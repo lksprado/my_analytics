@@ -398,6 +398,30 @@ O sucesso do mês é medido contra o CDI e contra a inflação pessoal
 carteira; bater a inflação pessoal é a meta do patrimônio. As duas são
 reportadas separadamente.
 
+**Dois patrimônios, o mesmo benchmark.** `riqueza` acompanha o patrimônio do
+casal (com abertura de Lucas e Jéssica) e o de Deusa, que vem de outra planilha
+e entra pelo `int_patrimonio_mensal_deusa` — só o total líquido, sem abertura
+por conta, e por isso ela não aparece em `patrimonio`. São carteiras e
+objetivos distintos: convivem no mesmo modelo porque enfrentam os mesmos
+indexadores, e **nunca devem ser somados** nem lidos como um patrimônio só.
+
+Três armadilhas do índice, nesta ordem de importância:
+
+1. **O índice inclui aporte.** Ele não é rentabilidade. Um mês de aporte alto
+   sobe o índice sem que ativo nenhum tenha rendido, e comparar isso ao CDI
+   superestima o desempenho da carteira. Serve para "o patrimônio cresceu mais
+   que a inflação?", não para "a carteira bateu o CDI?". Um salto de dois
+   dígitos num único mês é entrada de recurso ou reavaliação de ativo — leia
+   como tal, não como retorno.
+2. **As séries não compartilham base.** A do casal é composta desde 2023-11, a
+   de Deusa desde a primeira variação da planilha dela, e as dos indexadores
+   chegam prontas da planilha com base própria e desconhecida. Só a variação
+   **dentro de uma janela** é comparável entre séries; o nível absoluto não é.
+   Quem plota reindexa no primeiro mês exibido.
+3. **Queda no índice de Deusa não tem causa apurável aqui.** Não há lançamento
+   de despesa dela no warehouse, então o modelo não distingue resgate planejado
+   de perda de mercado. Reportar a queda é correto; atribuí-la, não.
+
 {% enddocs %}
 
 {% docs calendario_dados %}

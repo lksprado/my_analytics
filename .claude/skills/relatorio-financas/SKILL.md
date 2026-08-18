@@ -301,7 +301,7 @@ entre fatias, e formatação pt-BR de moeda, percentual e data.
 Só carregue a skill `dataviz` se precisar **acrescentar** um gráfico ao
 montador. Para gerar um relatório com os cortes que já existem, não precisa.
 
-## Passo 5 — Montar e converter
+## Passo 5 — Montar
 
 ```bash
 S=<scratchpad>
@@ -314,11 +314,17 @@ for escopo in orcamento lucas jessica deusa; do
   esac
   python3 .claude/skills/relatorio-financas/scripts/montar_relatorio.py \
       --dados "$S/dados.json" --escopo "$escopo" \
-      --narrativa "$S/narrativa_$escopo.json" --saida "$D/$nome.html"
-  .claude/skills/relatorio-financas/scripts/html_para_pdf.sh \
-      "$D/$nome.html" "$D/$nome.pdf"
+      --narrativa "$S/narrativa_$escopo.json" --saida "$D/$nome.pdf"
 done
 ```
+
+**Um comando, um arquivo.** `--saida` terminando em `.pdf` monta o HTML num
+temporário, converte e descarta o intermediário: o diretório de entrega recebe
+só o PDF. Não chame `html_para_pdf.sh` à mão e **não grave `.html` em `$D`** —
+o HTML nunca foi produto, era passo intermediário à vista.
+
+Para depurar a marcação, troque a extensão: `--saida "$S/debug.html"` grava só
+o HTML, sem converter, e no scratchpad — nunca no diretório de entrega.
 
 Gere só os escopos cujo portão passou (Passo 2). Se o portão do orçamento
 reprovou, o laço é `for escopo in lucas jessica deusa`.

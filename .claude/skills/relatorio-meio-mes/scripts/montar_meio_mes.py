@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Monta o HTML do relatório de meio de mês a partir do JSON extraído.
+"""Monta o relatório de meio de mês a partir do JSON extraído.
 
-    montar_meio_mes.py --dados D.json --narrativa N.json --saida R.html
+    montar_meio_mes.py --dados D.json --narrativa N.json --saida R.pdf
 
 Um relatório só, do casal — despesa não tem lançamento por pessoa. Duas
 partes, com recortes de tempo diferentes e deliberadamente não misturados:
@@ -48,6 +48,7 @@ from relatorios.graficos import (barras_desvio, legenda, linhas,  # noqa: E402
 from relatorios.politica import (CATEGORIAS, CATEGORIAS_COMPRIMIVEIS,  # noqa: E402
                                  COR_CAT, META_POUPANCA_PCT, ROTULO_CAT,
                                  SERIES)
+from relatorios.saida import escrever  # noqa: E402
 
 # Marcas de referência: a envoltória e a mediana dos meses fechados não são
 # entidades, são contexto. Vão em tinta neutra, e a mediana se distingue por
@@ -316,10 +317,38 @@ def secao_margem(d, n, num_secao):
                  f"dias restantes", corpo)
 
 
+def rebase(vals):
+    """Reindexa a série para 1,000 no primeiro mês da janela.
+
+    Os índices de `riqueza` não compartilham base: o do patrimônio é composto a
+    partir de 2023-11, o de Deusa a partir da primeira variação da planilha dela
+    e os dos indexadores vêm prontos da planilha, com base própria e
+    desconhecida. Plotados crus, o eixo compara níveis que não se comparam — e
+    a legenda que dizia «indexadas à mesma base» era falsa. Rebasear no primeiro
+    mês exibido é o que torna a leitura «quem cresceu mais na janela» correta.
+    Só variação DENTRO da janela é comparável; o nível absoluto do mart, não."""
+    base = next((v for v in vals if v), None)
+    if not base:
+        return vals
+    return [None if v is None else v / base for v in vals]
+
+
+def crescimento(vals):
+    """Variação ponta a ponta da janela, em %."""
+    limpos = [v for v in vals if v]
+    if len(limpos) < 2:
+        return None
+    return (limpos[-1] / limpos[0] - 1) * 100
+
+
 def secao_desempenho(d, n, num_secao):
     """Seção do mês ANTERIOR. Migrada do relatório de fechamento, que roda antes
     de o IPCA sair. Nunca lê `comparativo_*`: aquelas colunas rotulam superação
-    com RICO/POBRE, vocabulário interno que não vai para o PDF."""
+    com RICO/POBRE, vocabulário interno que não vai para o PDF.
+
+    Cobre dois patrimônios independentes contra os mesmos benchmarks: o do casal
+    e o de Deusa. São carteiras, planilhas e objetivos distintos — jamais devem
+    ser somados nem lidos como um só total."""
     meta = d["meta"]
     r, ind = d["riqueza"], d["indicadores"]
     if not r:
@@ -328,40 +357,76 @@ def secao_desempenho(d, n, num_secao):
                      "<p>Sem série de benchmark disponível para o período.</p>",
                      quebra=True)
     meses = [x["mes_base"] for x in r]
-    u = r[-1]
-    series = [("Patrimônio", SERIES[0],
-               [float(x["total_patrimonio_liquido_acum"]) for x in r]),
-              ("CDI", SERIES[1], [float(x["cdi_acum"]) for x in r]),
-              ("Infl. pessoal", SERIES[2], [float(x["minha_inflacao_acum"]) for x in r])]
     ind_por_mes = {x["mes_base"]: x for x in ind}
 
+    def coluna(chave):
+        return [float(x[chave]) if x.get(chave) is not None else None for x in r]
+
+    casal = rebase(coluna("total_patrimonio_liquido_acum"))
+    cdi = rebase(coluna("cdi_acum"))
+    infl = rebase(coluna("minha_inflacao_acum"))
+    ipca = rebase(coluna("ipca_acum"))
+    # Deusa entrou em `riqueza` depois das demais: um JSON extraído antes disso
+    # não tem a coluna, e a seção segue de pé sem ela em vez de quebrar.
+    tem_deusa = any(x.get("patrimonio_liquido_deusa_acum") is not None for x in r)
+    deusa = rebase(coluna("patrimonio_liquido_deusa_acum")) if tem_deusa else None
+
+    series = [("Casal", SERIES[0], casal)]
+    if tem_deusa:
+        series.append(("Deusa", SERIES[6], deusa))
+    series += [("CDI", SERIES[1], cdi), ("Infl. pessoal", SERIES[2], infl)]
+
+    kpis = (
+        kpi("Patrimônio do casal", sinal(crescimento(casal)), "no período")
+        + (kpi("Patrimônio de Deusa", sinal(crescimento(deusa)), "no período")
+           if tem_deusa else "")
+        + kpi("CDI", sinal(crescimento(cdi)), "no período")
+        + kpi("Inflação pessoal", sinal(crescimento(infl)), "no período"))
+
+    cabecalhos = (["Mês", "Casal"] + (["Deusa"] if tem_deusa else [])
+                  + ["CDI", "IPCA", "Infl. pessoal", "IPCA no mês", "CDI no mês"])
+    linhas_tab = []
+    for i, x in enumerate(r):
+        mes = x["mes_base"]
+        im = ind_por_mes.get(mes, {})
+        linhas_tab.append(
+            [mes_curto(mes), num(casal[i])]
+            + ([num(deusa[i])] if tem_deusa else [])
+            + [num(cdi[i]), num(ipca[i]), num(infl[i]),
+               pct(float(im["ipca"]) * 100, 2) if im.get("ipca") is not None else "—",
+               pct(float(im["cdi"]) * 100, 2) if im.get("cdi") is not None else "—"])
+
+    janela = f"{mes_extenso(meses[0])} a {mes_extenso(meses[-1])}"
+    resumo_deusa = (
+        f' O patrimônio de Deusa avançou {sinal(crescimento(deusa))} na mesma '
+        f'janela. <strong>Os dois patrimônios são independentes</strong> — '
+        f'planilhas, carteiras e objetivos distintos —, aparecem juntos só '
+        f'porque enfrentam o mesmo benchmark, e não devem ser somados.'
+        if tem_deusa else "")
+
     corpo = (
-        f'<figure>{linhas(meses, series, formato="idx")}'
-        f'<figcaption>Índice acumulado, base 1. Séries indexadas à mesma base — '
-        f'eixo único.</figcaption></figure>'
-        + tabela(["Mês", "Patrimônio", "CDI", "IPCA", "Infl. pessoal",
-                  "IPCA no mês", "CDI no mês"],
-                 [[mes_curto(x["mes_base"]), num(x["total_patrimonio_liquido_acum"]),
-                   num(x["cdi_acum"]), num(x["ipca_acum"]),
-                   num(x["minha_inflacao_acum"]),
-                   pct(float(ind_por_mes[x["mes_base"]]["ipca"]) * 100, 2)
-                   if x["mes_base"] in ind_por_mes
-                   and ind_por_mes[x["mes_base"]]["ipca"] is not None else "—",
-                   pct(float(ind_por_mes[x["mes_base"]]["cdi"]) * 100, 2)
-                   if x["mes_base"] in ind_por_mes
-                   and ind_por_mes[x["mes_base"]]["cdi"] is not None else "—"]
-                  for x in r])
-        + f'<p class="sub">Em {mes_extenso(meta["mes_anterior"])} o patrimônio '
-          f'acumula índice {num(u["total_patrimonio_liquido_acum"])} contra '
-          f'{num(u["cdi_acum"])} do CDI e {num(u["minha_inflacao_acum"])} da '
-          f'inflação pessoal. <strong>O índice de patrimônio compõe aporte e '
-          f'rentabilidade — não é retorno da carteira</strong>, e compará-lo ao '
+        f'<div class="kpis">{kpis}</div>'
+        + f'<figure>{linhas(meses, series, formato="idx")}'
+        + legenda([(rot, cor) for rot, cor, _ in series])
+        + f'<figcaption>Índice reindexado a 1,000 em {mes_curto(meses[0])}, o '
+          f'primeiro mês da janela. Os índices crus do mart não compartilham '
+          f'base, então só a variação dentro desta janela é comparável entre as '
+          f'séries.</figcaption></figure>'
+        + tabela(cabecalhos, linhas_tab)
+        + f'<p class="sub">Na janela de {janela}, o patrimônio do casal variou '
+          f'{sinal(crescimento(casal))}, contra {sinal(crescimento(cdi))} do CDI, '
+          f'{sinal(crescimento(ipca))} do IPCA e {sinal(crescimento(infl))} da '
+          f'inflação pessoal.{resumo_deusa}</p>'
+        + f'<p class="sub"><strong>O índice de patrimônio compõe aporte e '
+          f'rentabilidade — não é retorno de carteira</strong>, e compará-lo ao '
           f'CDI superestima o desempenho. Serve para responder "o patrimônio '
-          f'cresceu mais que a inflação?", não "a carteira bateu o CDI?".</p>'
+          f'cresceu mais que a inflação?", não "a carteira bateu o CDI?". Vale '
+          f'para o casal e para Deusa igualmente.</p>'
         + bloco("", n.get("diagnostico_desempenho", "")))
     return secao(num_secao, f"Desempenho até {mes_extenso(meta['mes_anterior'])}",
-                 "Patrimônio líquido do casal contra CDI e inflação pessoal · "
-                 "índice acumulado base 1", corpo, quebra=True)
+                 "Patrimônio líquido do casal e de Deusa contra CDI e inflação "
+                 "pessoal · índice reindexado no primeiro mês da janela",
+                 corpo, quebra=True)
 
 
 def rodape(d, premissas):
@@ -472,16 +537,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dados", required=True)
     ap.add_argument("--narrativa", required=True)
-    ap.add_argument("--saida", required=True)
+    ap.add_argument("--saida", required=True,
+                    help="caminho do relatório. Termine em .pdf para entregar "
+                         "só o PDF (o HTML vira temporário e é descartado); "
+                         "termine em .html para inspecionar a marcação.")
     a = ap.parse_args()
 
     d = json.loads(Path(a.dados).read_text(encoding="utf-8"))
     n = json.loads(Path(a.narrativa).read_text(encoding="utf-8"))
-    html = montar(d, n)
-    saida = Path(a.saida)
-    saida.parent.mkdir(parents=True, exist_ok=True)
-    saida.write_text(html, encoding="utf-8")
-    print(f"HTML montado: {saida} ({len(html)//1024} KB)")
+    escrever(montar(d, n), a.saida,
+             Path(__file__).resolve().parent / "html_para_pdf.sh")
 
 
 if __name__ == "__main__":

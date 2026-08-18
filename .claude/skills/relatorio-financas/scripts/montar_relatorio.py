@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Monta o HTML de um relatório financeiro a partir do JSON extraído.
+"""Monta um relatório financeiro a partir do JSON extraído.
 
     montar_relatorio.py --dados D.json --escopo orcamento|lucas|jessica|deusa \
-                        --narrativa N.json --saida R.html
+                        --narrativa N.json --saida R.pdf
 
 São quatro relatórios, separados por assunto e por titular:
 
@@ -62,6 +62,7 @@ from relatorios.politica import (ALVOS_CAMADA, APORTE_ALVO,  # noqa: E402
                                  META_INTERNACIONAL_PCT, META_RESERVA_MESES,
                                  META_RESERVA_PISO, NOME, ROTULO_CAMADA,
                                  ROTULO_CAT, SERIES, TEXTO_CAMADA)
+from relatorios.saida import escrever  # noqa: E402
 
 # ----------------------------------------------------------------- carteira ---
 
@@ -612,17 +613,18 @@ def main():
     ap.add_argument("--escopo", required=True,
                     choices=["orcamento"] + ESCOPOS_INVESTIMENTO)
     ap.add_argument("--narrativa", required=True)
-    ap.add_argument("--saida", required=True)
+    ap.add_argument("--saida", required=True,
+                    help="caminho do relatório. Termine em .pdf para entregar "
+                         "só o PDF (o HTML vira temporário e é descartado); "
+                         "termine em .html para inspecionar a marcação.")
     a = ap.parse_args()
 
     d = json.loads(Path(a.dados).read_text(encoding="utf-8"))
     n = json.loads(Path(a.narrativa).read_text(encoding="utf-8"))
     html = (montar_orcamento(d, n) if a.escopo == "orcamento"
             else montar_investimentos(d, n, a.escopo))
-    saida = Path(a.saida)
-    saida.parent.mkdir(parents=True, exist_ok=True)
-    saida.write_text(html, encoding="utf-8")
-    print(f"HTML montado: {saida} ({len(html)//1024} KB)")
+    escrever(html, a.saida,
+             Path(__file__).resolve().parent / "html_para_pdf.sh")
 
 
 if __name__ == "__main__":

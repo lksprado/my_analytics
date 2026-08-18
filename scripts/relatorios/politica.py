@@ -19,9 +19,13 @@ SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100",
 NOME = {"lucas": "Lucas", "jessica": "Jéssica", "deusa": "Deusa"}
 # Escopos de relatório de investimento — um por titular.
 ESCOPOS_INVESTIMENTO = ["lucas", "jessica", "deusa"]
-# Quem tem série em marts.patrimonio e marts.riqueza. Deusa não tem: o
-# enriquecimento dela entra na carteira como disponibilidade, não vira
-# patrimônio mensal nem índice acumulado.
+# Quem tem série de NÍVEL por pessoa em marts.patrimonio — é o que o relatório
+# de fechamento consome para a seção de patrimônio individual. Deusa não entra:
+# a planilha dela alimenta int_patrimonio_mensal_deusa, que traz só o total
+# líquido, sem abertura por conta.
+# Atenção: isto NÃO é o mesmo que ter índice em marts.riqueza. Deusa tem índice
+# acumulado lá desde 2026-08 e aparece na seção de desempenho do relatório de
+# meio de mês; o que ela não tem é nível por conta aqui.
 COM_PATRIMONIO = ["lucas", "jessica"]
 
 # --------------------------------------------------------------- categorias ---
@@ -102,23 +106,34 @@ TEXTO_CAMADA = {
                         "uma alocação — é pendência de classificação.",
 }
 TEXTO_CATEGORIA = {
-    "mercado": "Supermercado, hortifruti, feira, açougue, peixaria, padaria, "
-               "marmitas, bebidas de casa, limpeza e higiene. Não inclui "
-               "refeição fora nem farmácia.",
-    "diversos": "Categoria residual: vestuário, presentes, eletrônicos, "
-                "objetos domésticos, taxas bancárias, imprevistos. O que não "
-                "cabe nas demais.",
-    "assinaturas": "Serviços recorrentes de cobrança automática: streaming, "
-                   "nuvem, software, telefonia, academia.",
-    "role": "Lazer e consumo fora de casa: bares, restaurantes, delivery, "
-            "cinema, eventos, viagens.",
-    "transporte": "Combustível, aplicativos, transporte público, "
-                  "estacionamento, pedágio, manutenção, seguro e IPVA.",
-    "apartamento": "Moradia: prestação do imóvel, condomínio, IPTU, luz, "
-                   "água, gás, internet fixa, móveis, reformas, reparos e "
-                   "serviços domésticos.",
-    "saude": "Plano de saúde, consultas, exames, odontologia, terapia e "
-             "farmácia.",
-    "educacao": "Cursos, graduação e pós, certificações, livros, material "
-                "didático e plataformas de ensino.",
+    "mercado": "Abastecimento da casa: supermercado, hortifruti, feira, "
+               "açougue, peixaria, padaria de despensa, marmitas fit, bebidas "
+               "para consumo em casa, limpeza, higiene pessoal e itens "
+               "domésticos não duráveis. Não inclui refeição fora nem "
+               "delivery (rolê), farmácia (saúde) nem móveis e "
+               "eletrodomésticos.",
+    "diversos": "Categoria residual: vestuário e calçado, presentes, "
+                "eletrônicos e acessórios pessoais, objetos domésticos, "
+                "clube de tiro, charutos, salão de beleza e imprevistos. O "
+                "que não cabe nas demais.",
+    "assinaturas": "Serviços recorrentes de cobrança automática: streaming de "
+                   "vídeo e música, nuvem, licenças de software, telefonia "
+                   "móvel, academia e clubes com mensalidade, jornais e "
+                   "revistas. Não inclui internet fixa (apartamento), plano "
+                   "de saúde nem mensalidade de curso.",
+    "role": "Lazer e consumo fora de casa: bares e restaurantes, delivery e "
+            "aplicativos de comida, cafés, cinema, shows, eventos, viagens "
+            "(hospedagem, aluguel de veículo, passeios), compras de mercado "
+            "só para eventos e hobbies em geral.",
+    "transporte": "Combustível, aplicativos de transporte, transporte "
+                  "público, estacionamento, pedágio, manutenção e revisão do "
+                  "veículo, seguro, IPVA e licenciamento. Viagem de lazer com "
+                  "hospedagem é rolê.",
+    "apartamento": "Moradia e sua manutenção: condomínio, IPTU, energia "
+                   "elétrica, internet fixa, móveis, reformas e reparos. "
+                   "Produtos de limpeza e consumo da casa são mercado.",
+    "saude": "Plano de saúde, consultas, exames, procedimentos, odontologia, "
+             "terapia, farmácia e medicamentos. Academia é assinatura.",
+    "educacao": "Cursos, graduação e pós-graduação, certificações, livros, "
+                "material didático e plataformas de ensino.",
 }

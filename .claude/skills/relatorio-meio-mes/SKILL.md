@@ -27,7 +27,8 @@ Daí as duas partes, com recortes de tempo diferentes:
    para agir. No dia 17 metade do mês passou e a outra metade ainda é decisão.
 2. **Mês anterior** (parte 5) — o desempenho contra benchmark, que saiu do
    relatório de fechamento porque lá os indexadores ainda não existem. Isso
-   fechava a série um mês antes, em silêncio.
+   fechava a série um mês antes, em silêncio. Cobre **dois** patrimônios contra
+   os mesmos indexadores: o do casal e o de Deusa.
 
 **O que este relatório não faz:** posição de carteira, alocação por camada,
 exposição ao FGC, vencimentos, reserva de emergência, destino do aporte. Tudo
@@ -128,7 +129,22 @@ claro e não gere, a menos que o usuário mande.
 - **O índice de `riqueza` inclui aportes** — não é rentabilidade, e compará-lo
   ao CDI superestima o desempenho da carteira. Responde "o patrimônio cresceu
   mais que a inflação?", não "a carteira bateu o CDI?". Diga isso em vez de
-  omitir.
+  omitir. Corolário: **salto de dois dígitos num único mês é entrada de recurso
+  ou reavaliação de ativo**, nunca rendimento — se o ganho da janela se
+  concentra em um ou dois degraus, diga isso, senão o número engana.
+- **São dois patrimônios, não um.** `riqueza` traz o do casal e o de Deusa, que
+  vem de outra planilha (`int_patrimonio_mensal_deusa`, só o total líquido).
+  Carteiras e objetivos distintos: comparam-se ao mesmo benchmark, mas **não se
+  somam** e não viram um total. Deusa não tem série em `marts.patrimonio` — o
+  nível por conta dela não existe, só o índice.
+- **Queda no índice de Deusa não tem causa apurável aqui.** Não há despesa dela
+  no warehouse, então não dá para separar resgate planejado de perda de
+  mercado. Reporte a queda e diga que não dá para atribuí-la; não escolha uma
+  das hipóteses.
+- **Os índices não compartilham base** — o do casal começa em 2023-11, o de
+  Deusa na primeira variação da planilha dela, os dos indexadores vêm prontos da
+  planilha. O montador reindexa tudo no primeiro mês da janela; **cite variação
+  dentro da janela, nunca nível absoluto**.
 - **`riqueza.comparativo_*`** usa `RICO`/`POBRE` como rótulo interno. Não
   reproduza esses termos no PDF — escreva "acima do CDI" / "abaixo do IPCA".
 
@@ -144,9 +160,11 @@ mudar. A pergunta não é "como foi", é **"o que fazer nos dias que restam"**.
 - **Margem**: quanto ainda cabe em `role`, `diversos` e `mercado` para fechar
   dentro do padrão e para bater a meta de poupança. É a seção que justifica o
   relatório existir no dia 17 e não no dia 30 — priorize-a.
-- **Desempenho** (só se `pronto_indicadores`): patrimônio contra CDI e contra a
-  inflação pessoal, separadamente, sempre com a ressalva de que o índice inclui
-  aportes.
+- **Desempenho** (só se `pronto_indicadores`): patrimônio do casal **e o de
+  Deusa**, cada um contra o CDI e contra a inflação pessoal, separadamente,
+  sempre com a ressalva de que o índice inclui aportes. Olhe também os últimos
+  meses isolados, não só a janela inteira: uma sequência de queda é o achado que
+  a variação ponta a ponta esconde.
 
 Regras de conduta:
 - Recomendação sem número é opinião. Diga o valor em reais e o prazo.
@@ -193,7 +211,7 @@ Não peça para escrever, não duplique na narrativa:
 | 2 | Ritmo do mês — acumulado diário contra faixa e mediana + `diagnostico_ritmo` |
 | 3 | Categorias — realizado, agendado, projeção, desvio + `diagnostico_categorias` |
 | 4 | Margem disponível — teto de despesa e folga por categoria comprimível |
-| 5 | Desempenho do mês anterior + `diagnostico_desempenho` — **só se o portão passou** |
+| 5 | Desempenho do mês anterior — casal e Deusa, KPIs de variação na janela, séries reindexadas + `diagnostico_desempenho` — **só se o portão passou** |
 | 6 | Recomendações — a partir de `recomendacoes[]` |
 | 7 | Glossário de categorias de gasto |
 | — | Notas e procedência, com as `premissas[]` |
@@ -201,7 +219,7 @@ Não peça para escrever, não duplique na narrativa:
 A numeração é sequencial: sem a seção 5, as seguintes sobem. Não pode haver
 buraco.
 
-## Passo 5 — Montar e converter
+## Passo 5 — Montar
 
 ```bash
 S=<scratchpad>
@@ -210,10 +228,16 @@ nome=relatorio_meio_mes_<AAAA-MM>
 
 python3 .claude/skills/relatorio-meio-mes/scripts/montar_meio_mes.py \
     --dados "$S/dados.json" --narrativa "$S/narrativa_meio_mes.json" \
-    --saida "$D/$nome.html"
-.claude/skills/relatorio-meio-mes/scripts/html_para_pdf.sh \
-    "$D/$nome.html" "$D/$nome.pdf"
+    --saida "$D/$nome.pdf"
 ```
+
+**Um comando, um arquivo.** `--saida` terminando em `.pdf` monta o HTML num
+temporário, converte e descarta o intermediário: o diretório de entrega recebe
+só o PDF. Não chame `html_para_pdf.sh` à mão e **não grave `.html` em `$D`** —
+o HTML nunca foi produto, era passo intermediário à vista.
+
+Para depurar a marcação, troque a extensão: `--saida "$S/debug.html"` grava só
+o HTML, sem converter, e no scratchpad — nunca no diretório de entrega.
 
 Destino padrão: `relatorios/AAAA-MM/` na raiz (fora do git). Respeite
 `RELATORIOS_DIR` se estiver definida.

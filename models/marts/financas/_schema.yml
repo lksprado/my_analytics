@@ -527,10 +527,23 @@ models:
       Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das
       variações MoM de patrimonio_mom, a partir de 2023-11) contra os índices acumulados de
       int_indexadores, classificando cada mês por indexador.
+      Cobre DOIS patrimônios independentes: o do casal (com abertura de Lucas e Jéssica, vinda de
+      patrimonio_mom) e o de Deusa (vindo de int_patrimonio_mensal_deusa, que traz só o total
+      líquido — por isso ela não tem abertura por conta e não entra em marts.patrimonio). São
+      planilhas, carteiras e objetivos distintos: aparecem no mesmo modelo porque enfrentam o mesmo
+      benchmark, e NUNCA devem ser somados.
       NÃO É RENTABILIDADE: o índice compõe a variação do patrimônio, que inclui os aportes do
       período. Um mês de aporte alto sobe o índice sem que nenhum ativo tenha rendido. Comparar
       este índice ao CDI portanto SUPERESTIMA o desempenho da carteira — serve para responder "meu
       patrimônio cresceu mais que a inflação?", não "minha carteira bateu o CDI?".
+      ALINHAMENTO: o índice da linha do mês M reflete o nível de patrimônio DE M, igual ao
+      `*_acum` dos indexadores, que já embute a taxa do próprio mês. A janela de composição vai até
+      CURRENT ROW justamente por isso; ela já foi `1 PRECEDING`, o que fixava a primeira linha em
+      1,000 mas defasava a série inteira em um mês contra os benchmarks.
+      BASES DIFERENTES: os índices daqui não compartilham base. O do casal é composto desde
+      2023-11, o de Deusa desde a primeira variação da planilha dela, e os dos indexadores chegam
+      prontos de stg_patrimonio com base própria. Só a variação DENTRO de uma janela é comparável
+      entre séries — o nível absoluto não é. Quem plota reindexa no primeiro mês exibido.
       Os rótulos RICO(S)/POBRE(S) das colunas comparativo_* são internos; em relatório, escreva
       "acima do CDI" / "abaixo do IPCA".
     columns:
@@ -542,6 +555,12 @@ models:
         description: "Índice acumulado (base 1) do patrimônio líquido de Lucas, composto via EXP(SUM(LN(1+variação MoM)))."
       - name: patrimonio_liquido_jessica_acum
         description: "Índice acumulado (base 1) do patrimônio líquido de Jéssica, composto via EXP(SUM(LN(1+variação MoM)))."
+      - name: patrimonio_liquido_deusa_acum
+        description: >
+          Índice acumulado do patrimônio líquido de Deusa, composto via EXP(SUM(LN(1+variação MoM)))
+          a partir de int_patrimonio_mensal_deusa. Base própria, diferente da do casal — não compare
+          nível, só variação dentro de uma janela. O join é LEFT: mês sem fechamento da planilha dela
+          não derruba a linha do casal, e o índice repete o valor anterior.
       - name: minha_inflacao_acum
         description: "Índice acumulado (base 1) da inflação pessoal, vindo de int_indexadores."
       - name: ipca_acum
@@ -558,30 +577,40 @@ models:
         description: "'RICO' quando o índice do patrimônio de Lucas supera o da inflação pessoal no mês; 'POBRE' caso contrário."
       - name: comparativo_minha_inflacao_jessica
         description: "'RICO' quando o índice do patrimônio de Jéssica supera o da inflação pessoal no mês; 'POBRE' caso contrário."
+      - name: comparativo_minha_inflacao_deusa
+        description: "'RICO' quando o índice do patrimônio de Deusa supera o da inflação pessoal no mês; 'POBRE' caso contrário."
       - name: comparativo_ipca_total_liquido
         description: "'RICOS' quando o índice do patrimônio total supera o do IPCA no mês; 'POBRES' caso contrário."
       - name: comparativo_ipca_lucas
         description: "'RICO' quando o índice do patrimônio de Lucas supera o do IPCA no mês; 'POBRE' caso contrário."
       - name: comparativo_ipca_jessica
         description: "'RICO' quando o índice do patrimônio de Jéssica supera o do IPCA no mês; 'POBRE' caso contrário."
+      - name: comparativo_ipca_deusa
+        description: "'RICO' quando o índice do patrimônio de Deusa supera o do IPCA no mês; 'POBRE' caso contrário."
       - name: comparativo_igpm_total_liquido
         description: "'RICOS' quando o índice do patrimônio total supera o do IGP-M no mês; 'POBRES' caso contrário."
       - name: comparativo_igpm_lucas
         description: "'RICO' quando o índice do patrimônio de Lucas supera o do IGP-M no mês; 'POBRE' caso contrário."
       - name: comparativo_igpm_jessica
         description: "'RICO' quando o índice do patrimônio de Jéssica supera o do IGP-M no mês; 'POBRE' caso contrário."
+      - name: comparativo_igpm_deusa
+        description: "'RICO' quando o índice do patrimônio de Deusa supera o do IGP-M no mês; 'POBRE' caso contrário."
       - name: comparativo_selic_total_liquido
         description: "'RICOS' quando o índice do patrimônio total supera o da Selic no mês; 'POBRES' caso contrário."
       - name: comparativo_selic_lucas
         description: "'RICO' quando o índice do patrimônio de Lucas supera o da Selic no mês; 'POBRE' caso contrário."
       - name: comparativo_selic_jessica
         description: "'RICO' quando o índice do patrimônio de Jéssica supera o da Selic no mês; 'POBRE' caso contrário."
+      - name: comparativo_selic_deusa
+        description: "'RICO' quando o índice do patrimônio de Deusa supera o da Selic no mês; 'POBRE' caso contrário."
       - name: comparativo_cdi_total_liquido
         description: "'RICOS' quando o índice do patrimônio total supera o do CDI no mês; 'POBRES' caso contrário."
       - name: comparativo_cdi_lucas
         description: "'RICO' quando o índice do patrimônio de Lucas supera o do CDI no mês; 'POBRE' caso contrário."
       - name: comparativo_cdi_jessica
         description: "'RICO' quando o índice do patrimônio de Jéssica supera o do CDI no mês; 'POBRE' caso contrário."
+      - name: comparativo_cdi_deusa
+        description: "'RICO' quando o índice do patrimônio de Deusa supera o do CDI no mês; 'POBRE' caso contrário."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
