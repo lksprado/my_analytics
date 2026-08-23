@@ -404,6 +404,19 @@ e entra pelo `int_patrimonio_mensal_deusa` — só o total líquido, sem abertur
 por conta, e por isso ela não aparece em `patrimonio`. São carteiras e
 objetivos distintos: convivem no mesmo modelo porque enfrentam os mesmos
 indexadores, e **nunca devem ser somados** nem lidos como um patrimônio só.
+Convivem no modelo, mas não na página: o relatório de meio de mês dá a Deusa
+uma **seção apartada**, porque enquanto ela era uma linha a mais no gráfico do
+casal o leitor comparava as duas séries entre si — o que a armadilha 2 abaixo
+proíbe.
+
+**O nível dela tem duas fontes, e elas discordam.** O índice de `riqueza` vem
+da planilha de patrimônio; a composição de ativos vem de `carteira_deusa`, no
+grão de ativo, que é a única que dá instituição, classe e indexador. Os dois
+totais deveriam bater e quase sempre batem — R$ 2 de diferença em 07/2026 —,
+mas já diferiram em R$ 60 mil em 12/2024. Quem exibe os dois na mesma página
+imprime a diferença junto; a variação do mês calculada sobre a carteira pode
+não ser a mesma calculada sobre o índice, e a diferença é posição não lançada
+em uma das duas, não erro de conta.
 
 Três armadilhas do índice, nesta ordem de importância:
 
@@ -420,7 +433,10 @@ Três armadilhas do índice, nesta ordem de importância:
    Quem plota reindexa no primeiro mês exibido.
 3. **Queda no índice de Deusa não tem causa apurável aqui.** Não há lançamento
    de despesa dela no warehouse, então o modelo não distingue resgate planejado
-   de perda de mercado. Reportar a queda é correto; atribuí-la, não.
+   de perda de mercado. Reportar a queda é correto; atribuí-la, não. A
+   composição da carteira estreita a dúvida sem eliminá-la: dá para separar o
+   que foi realocação entre classes do que de fato deixou a carteira, e é só
+   esse resto que fica sem explicação.
 
 {% enddocs %}
 
@@ -469,7 +485,7 @@ segue o `calendario_dados`: cada um fala do que já se sabe no dia em que roda.
 |---|---|---|
 | Quando roda | dias 1 a 5 | dias 15 a 20 |
 | Sobre qual mês | o **anterior**, fechado | o **corrente**, em andamento (+ benchmark do anterior) |
-| Saída | 4 PDFs: um por titular + orçamento do casal | 1 PDF, do casal |
+| Saída | 4 PDFs: um por titular + orçamento do casal | 1 PDF, do casal (+ seção apartada de Deusa) |
 | Pergunta | "como foi o mês" | "o que fazer nos dias que restam" |
 
 **Fronteira de assunto — nenhum dos dois invade o outro:**
@@ -483,6 +499,13 @@ segue o `calendario_dados`: cada um fala do que já se sabe no dia em que roda.
 | Destino do aporte | fechamento (individuais) |
 | Ritmo do gasto, projeção de fechamento, margem disponível | meio de mês |
 | Desempenho do patrimônio contra CDI e inflação pessoal | **meio de mês** |
+| Composição dos ativos de Deusa — instituição, disponível contra investido, classe, indexador | **meio de mês** |
+
+A penúltima e a última linha se separam por um fio: camada, FGC, vencimento e
+destino do aporte de Deusa continuam no fechamento, que emite um PDF de
+investimentos só dela. O meio de mês fica com a **posição** — onde o dinheiro
+está e quanto está parado —, que é o que ainda dá para mudar e o que o índice
+sozinho não mostra.
 
 A última linha é a que costuma surpreender. O desempenho contra benchmark
 parece pertencer ao fechamento, e ficou lá por um tempo — mas no dia em que o

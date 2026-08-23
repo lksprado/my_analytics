@@ -1,6 +1,6 @@
 ---
 name: relatorio-meio-mes
-description: Gera o relatório de acompanhamento do mês EM ANDAMENTO — ritmo do gasto até hoje, projeção de fechamento, quanto ainda cabe gastar por categoria, mais o desempenho do patrimônio contra CDI e inflação pessoal do mês anterior. Use quando o usuário pedir o acompanhamento de meio de mês, como está o gasto do mês, se vai estourar o orçamento, ou o desempenho contra os benchmarks. NÃO é o fechamento mensal — para os quatro PDFs do mês fechado, use relatorio-financas.
+description: Gera o relatório de acompanhamento do mês EM ANDAMENTO — ritmo do gasto até hoje, projeção de fechamento, quanto ainda cabe gastar por categoria, mais o desempenho do patrimônio do casal contra CDI e inflação pessoal do mês anterior e uma seção apartada com o patrimônio e a composição dos ativos de Deusa. Use quando o usuário pedir o acompanhamento de meio de mês, como está o gasto do mês, se vai estourar o orçamento, o desempenho contra os benchmarks, ou a análise patrimonial de Deusa fora do fechamento. NÃO é o fechamento mensal — para os quatro PDFs do mês fechado, use relatorio-financas.
 ---
 
 # Relatório de meio de mês
@@ -20,19 +20,28 @@ fechamento roda cedo demais para duas coisas:
 | carteira e patrimônio | fecham em cadência própria, costumam vir 1 mês atrás |
 | indexadores IPCA/CDI/Selic/inflação pessoal | **IPCA sai ~dia 10**; a planilha é preenchida depois |
 
-Daí as duas partes, com recortes de tempo diferentes:
+Daí as três partes, com recortes de tempo e escopos diferentes:
 
-1. **Mês corrente** (partes 1 a 4) — o gasto diário é o dado mais fresco do
-   domínio e, no fechamento, era lido uma vez por mês, quando já não dava mais
-   para agir. No dia 17 metade do mês passou e a outra metade ainda é decisão.
-2. **Mês anterior** (parte 5) — o desempenho contra benchmark, que saiu do
-   relatório de fechamento porque lá os indexadores ainda não existem. Isso
-   fechava a série um mês antes, em silêncio. Cobre **dois** patrimônios contra
-   os mesmos indexadores: o do casal e o de Deusa.
+1. **Mês corrente, casal** (partes 1 a 4) — o gasto diário é o dado mais fresco
+   do domínio e, no fechamento, era lido uma vez por mês, quando já não dava
+   mais para agir. No dia 17 metade do mês passou e a outra metade ainda é
+   decisão.
+2. **Mês anterior, casal** (parte 5) — o desempenho contra benchmark, que saiu
+   do relatório de fechamento porque lá os indexadores ainda não existem. Isso
+   fechava a série um mês antes, em silêncio.
+3. **Mês anterior, Deusa** (parte 6) — o patrimônio dela contra os mesmos
+   indexadores e a composição dos ativos, em **escopo apartado**. Ela não tem
+   despesa lançada no warehouse, então não aparece em nada das partes 1 a 4; e
+   o patrimônio dela **nunca é somado ao do casal**. Já foi uma linha a mais no
+   gráfico do casal, e ali o leitor comparava duas séries lado a lado como se
+   fossem partes de um mesmo total.
 
-**O que este relatório não faz:** posição de carteira, alocação por camada,
-exposição ao FGC, vencimentos, reserva de emergência, destino do aporte. Tudo
-isso é do `relatorio-financas`. Não repita nem antecipe.
+**O que este relatório não faz:** alocação por camada, exposição ao FGC,
+vencimentos, reserva de emergência, destino do aporte — nem para o casal, nem
+para Deusa. Tudo isso é do `relatorio-financas`, que emite um PDF de
+investimentos só dela. Não repita nem antecipe. A composição de ativos de Deusa
+que **entra** aqui é posição — instituição, disponível contra investido, classe
+e indexador —, não política.
 
 **Acionamento: sob demanda.** Não há agendador. Para rodar sem sessão
 interativa existe `scripts/gerar_relatorio_meio_mes.sh`.
@@ -85,17 +94,20 @@ recalcule agregados de cabeça — se faltar um corte, acrescente o bloco em
 
 ### Portão de prontidão
 
-Leia `meta.prontidao`. São **dois portões independentes**:
+Leia `meta.prontidao`. São **três portões independentes**:
 
 | flag | o que exige | bloqueia |
 |---|---|---|
 | `pronto_ritmo` | hoje ≥ dia 10; último lançamento a ≤ 3 dias; ≥ 7 dias com gasto | partes 1 a 4 |
 | `pronto_indicadores` | `marts.indicadores` tem o mês anterior com `ipca` preenchido | parte 5 |
+| `pronto_deusa` | `marts.carteira_deusa` tem a posição do mês anterior | parte 6 |
 
-Um passa sem o outro. Se `pronto_indicadores` reprovar, o montador **omite** a
-seção de desempenho e renumera sozinho — não force. Se `pronto_ritmo` reprovar,
-o relatório inteiro perde o sentido: relate as `pendencias_ritmo` em português
-claro e não gere, a menos que o usuário mande.
+Cada um passa sem os outros — a carteira de Deusa fecha em cadência
+independente da publicação do IPCA. Se `pronto_indicadores` ou `pronto_deusa`
+reprovar, o montador **omite** a seção correspondente e renumera sozinho — não
+force. Se `pronto_ritmo` reprovar, o relatório inteiro perde o sentido: relate
+as `pendencias_ritmo` em português claro e não gere, a menos que o usuário
+mande.
 
 `meta.meses_de_base` diz quantos meses fechados sustentam a mediana. Menos de 6
 é pendência declarada, e precisa ir para `premissas`.
@@ -148,6 +160,32 @@ claro e não gere, a menos que o usuário mande.
 - **`riqueza.comparativo_*`** usa `RICO`/`POBRE` como rótulo interno. Não
   reproduza esses termos no PDF — escreva "acima do CDI" / "abaixo do IPCA".
 
+Só da seção de Deusa:
+
+- **Nunca some o patrimônio dela ao do casal, e nunca compare os dois índices
+  entre si.** As séries têm bases diferentes; cada uma só se compara ao
+  benchmark, dentro da janela exibida. É a razão de ela ter seção própria.
+- **Não há despesa de Deusa no warehouse.** Uma queda no patrimônio dela não
+  pode ser atribuída a resgate nem a perda de mercado — o dado não separa os
+  dois. Diga que não separa; não escolha uma hipótese.
+- **Duas fontes, dois totais.** Nível e composição vêm de `carteira_deusa`
+  (grão de ativo); o índice vem da planilha de patrimônio, via `riqueza`. Em
+  07/2026 diferiam em R$ 2, em 12/2024 em R$ 60 mil. `deusa_conciliacao` traz
+  os dois e a seção imprime a diferença — quando a variação do mês no KPI
+  discordar da variação do índice, é daí que vem, e não de duas realidades.
+- **«Sem indexador» é lacuna de cadastro antes de ser exposição.** Em 07/2026
+  são R$ 311 mil, dos quais R$ 202 mil de renda fixa com taxa contratada e
+  campo vazio na origem. Use `valor_renda_fixa` para separar os dois; nunca
+  reporte a linha inteira como exposição sem indexador. O indexador `TIR` sobre
+  conta corrente é do mesmo tipo de problema: rótulo herdado da planilha.
+- **Concentração por instituição é posição, não risco.** O teto do FGC e a
+  exposição por emissor são do relatório de fechamento. Cite o percentual e
+  aponte para lá.
+- **A fronteira disponível/investido é a classe `DISPONIBILIDADE`.**
+  `carteira_deusa_agregada` tem um `total_disponibilidades` com corte
+  ligeiramente diferente (R$ 259 a menos em 07/2026, com total geral idêntico)
+  e não é usada: a seção inteira tem uma definição só.
+
 ## Passo 3 — Analisar
 
 Você é o planejador financeiro do casal olhando um mês que ainda dá para
@@ -160,11 +198,16 @@ mudar. A pergunta não é "como foi", é **"o que fazer nos dias que restam"**.
 - **Margem**: quanto ainda cabe em `role`, `diversos` e `mercado` para fechar
   dentro do padrão e para bater a meta de poupança. É a seção que justifica o
   relatório existir no dia 17 e não no dia 30 — priorize-a.
-- **Desempenho** (só se `pronto_indicadores`): patrimônio do casal **e o de
-  Deusa**, cada um contra o CDI e contra a inflação pessoal, separadamente,
-  sempre com a ressalva de que o índice inclui aportes. Olhe também os últimos
-  meses isolados, não só a janela inteira: uma sequência de queda é o achado que
-  a variação ponta a ponta esconde.
+- **Desempenho** (só se `pronto_indicadores`): patrimônio **do casal** contra o
+  CDI e contra a inflação pessoal, separadamente, sempre com a ressalva de que
+  o índice inclui aportes. Olhe também os últimos meses isolados, não só a
+  janela inteira: uma sequência de queda é o achado que a variação ponta a
+  ponta esconde.
+- **Deusa** (só se `pronto_deusa`): o índice dela contra os mesmos benchmarks,
+  com a mesma ressalva; **quanto está parado em conta e como isso evoluiu** — a
+  única leitura acionável da seção; a rotação entre classes de ativo no mês; e
+  o que sobra de variação depois de descontada a rotação, que é justamente o
+  pedaço que o dado não explica e precisa ser apurado fora do relatório.
 
 Regras de conduta:
 - Recomendação sem número é opinião. Diga o valor em reais e o prazo.
@@ -182,14 +225,16 @@ e gráficos direto do JSON. Você escreve `narrativa_meio_mes.json` no scratchpa
   "diagnostico_ritmo": "<p>…</p>",
   "diagnostico_categorias": "<p>…</p>",
   "diagnostico_desempenho": "<p>…</p>",
+  "diagnostico_deusa": "<p>…</p>",
   "recomendacoes": [{"titulo": "…", "texto": "…"}],
   "premissas": ["…"]
 }
 ```
 
 Todas as chaves são opcionais; o conteúdo é HTML restrito a `<p>` e `<strong>`.
-`diagnostico_desempenho` só é renderizada se `pronto_indicadores` — se o portão
-reprovou, não a escreva.
+`diagnostico_desempenho` só é renderizada se `pronto_indicadores`, e
+`diagnostico_deusa` só se `pronto_deusa` — se o portão reprovou, não a
+escreva.
 
 Sobre o texto:
 
@@ -211,13 +256,14 @@ Não peça para escrever, não duplique na narrativa:
 | 2 | Ritmo do mês — acumulado diário contra faixa e mediana + `diagnostico_ritmo` |
 | 3 | Categorias — realizado, agendado, projeção, desvio + `diagnostico_categorias` |
 | 4 | Margem disponível — teto de despesa e folga por categoria comprimível |
-| 5 | Desempenho do mês anterior — casal e Deusa, KPIs de variação na janela, séries reindexadas + `diagnostico_desempenho` — **só se o portão passou** |
-| 6 | Recomendações — a partir de `recomendacoes[]` |
-| 7 | Glossário de categorias de gasto |
+| 5 | Desempenho do casal no mês anterior — KPIs de variação na janela, séries reindexadas + `diagnostico_desempenho` — **só se `pronto_indicadores`** |
+| 6 | Patrimônio e ativos de Deusa no mês anterior — nível, índice contra benchmark, disponível contra investido, composição por instituição, classe e indexador, conciliação entre as duas fontes + `diagnostico_deusa` — **só se `pronto_deusa`** |
+| 7 | Recomendações — a partir de `recomendacoes[]` |
+| 8 | Glossário de categorias de gasto |
 | — | Notas e procedência, com as `premissas[]` |
 
-A numeração é sequencial: sem a seção 5, as seguintes sobem. Não pode haver
-buraco.
+A numeração é sequencial: sem a 5, sem a 6, ou sem as duas, as seguintes sobem.
+Não pode haver buraco.
 
 ## Passo 5 — Montar
 
@@ -253,13 +299,16 @@ Obrigatório, não opcional:
    Procure texto cortado, tabela estourando a margem, gráfico sobreposto,
    rótulo colidindo, linha de tabela quebrando em duas.
 2. Confira dois ou três números da sua narrativa contra as tabelas renderizadas.
-3. **Nenhum número das partes 1 a 4 pode ser do mês anterior, e nenhum da parte
-   5 pode ser do mês corrente.** É o erro mais provável deste relatório.
+3. **Nenhum número das partes 1 a 4 pode ser do mês anterior, e nenhum das
+   partes 5 e 6 pode ser do mês corrente.** É o erro mais provável deste
+   relatório.
 4. Verifique que nenhum mês futuro entrou em número ou gráfico — setembro
    existe na base como pré-lançado.
-5. Confirme que o relatório não fala de carteira, camada, FGC, vencimento nem
-   reserva de emergência. Isso é do fechamento.
+5. Confirme que o relatório não fala de camada, FGC, vencimento nem reserva de
+   emergência — nem na seção do casal, nem na de Deusa. Isso é do fechamento.
 6. A numeração das seções não pode ter buraco.
+7. Na seção de Deusa, confirme que nenhum número dela foi somado a número do
+   casal e que os dois índices não foram comparados entre si.
 
 Se o texto estiver errado, corrija a narrativa; se o layout ou um número
 renderizado estiver errado, corrija `montar_meio_mes.py` ou
@@ -270,7 +319,8 @@ converta de novo. Não entregue um PDF que você não olhou.
 ## Encerramento
 
 Informe o caminho do PDF, a data de corte, o mês de cada bloco, e diga
-explicitamente se a seção de desempenho ficou de fora por causa do portão.
+explicitamente se a seção de desempenho ou a de Deusa ficaram de fora por causa
+do portão.
 Liste as pendências que apareceram — categorias já estouradas, poupança
 projetada abaixo da meta, base de comparação com menos de 6 meses, premissas
 `[CONFIRMAR]` que sustentaram alguma recomendação.

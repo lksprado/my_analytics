@@ -6,7 +6,13 @@
 -- Duas perguntas, dois recortes de tempo. O relatório fala do mês CORRENTE
 -- (ritmo do gasto, projeção de fechamento, margem que ainda cabe) e do mês
 -- ANTERIOR (desempenho contra CDI e inflação pessoal, que só agora tem
--- indexador publicado). Nenhum bloco mistura os dois.
+-- indexador publicado; e os ativos de Deusa, cuja carteira fecha na mesma
+-- cadência). Nenhum bloco mistura os dois.
+--
+-- Deusa é o terceiro escopo e é APARTADO por construção: patrimônio, carteira
+-- e objetivos dela não se somam aos do casal em lugar nenhum deste arquivo.
+-- Ela não tem despesa lançada no warehouse, então não entra em nada das partes
+-- 1 a 4 — só existe do lado patrimonial.
 --
 -- Por que o parâmetro é `:hoje` e não um mês: a pergunta do relatório é "como
 -- está o mês a esta altura". Travar :hoje num dia já passado reproduz
@@ -108,7 +114,13 @@ prontidao AS (
         (SELECT COUNT(*) FROM marts.indicadores i
           WHERE i.mes_base = p.mes_anterior AND i.ipca IS NOT NULL)     AS tem_indicadores,
         (SELECT MAX(i.mes_base) FROM marts.indicadores i
-          WHERE i.ipca IS NOT NULL)                                     AS ultimo_mes_indicador
+          WHERE i.ipca IS NOT NULL)                                     AS ultimo_mes_indicador,
+        -- A carteira de Deusa fecha em cadência própria e costuma vir um mês
+        -- atrás. Portão separado: sem a posição do mês anterior a seção de
+        -- ativos sai do relatório, sem derrubar as outras.
+        (SELECT COUNT(*) FROM marts.carteira_deusa c
+          WHERE c.mes_base = p.mes_anterior)                            AS tem_carteira_deusa,
+        (SELECT MAX(c.mes_base) FROM marts.carteira_deusa c)            AS ultimo_mes_carteira_deusa
     FROM params AS p
 ),
 
@@ -142,6 +154,13 @@ pendencias AS (
            || 'marts.indicadores. O IPCA sai por volta do dia 10 e a planilha é '
            || 'preenchida depois; sem eles não há leitura de desempenho.'
     FROM prontidao WHERE tem_indicadores = 0
+    UNION ALL
+    SELECT 'deusa',
+           'A carteira de Deusa ainda não tem a posição do mês anterior em '
+           || 'marts.carteira_deusa — a última é de '
+           || COALESCE(to_char(ultimo_mes_carteira_deusa, 'MM/YYYY'), 'nenhum mês')
+           || '. Sem ela não há leitura de ativos.'
+    FROM prontidao WHERE tem_carteira_deusa = 0
 ),
 
 -- --------------------------------------------------------------------- blocos ---
@@ -169,6 +188,7 @@ b_meta AS (
                              AND COALESCE(dias_desde_ultimo_lancamento, 99) <= 3
                              AND dias_com_gasto >= 7),
                 'pronto_indicadores',           tem_indicadores > 0,
+                'pronto_deusa',                 tem_carteira_deusa > 0,
                 'dia_do_mes',                   dia_do_mes,
                 'dia_corte',                    dia_corte,
                 'dias_com_gasto',               dias_com_gasto,
@@ -176,6 +196,7 @@ b_meta AS (
                 'dias_desde_ultimo_lancamento', dias_desde_ultimo_lancamento,
                 'meses_de_base',                meses_de_base,
                 'ultimo_mes_indicador',         ultimo_mes_indicador,
+                'ultimo_mes_carteira_deusa',    ultimo_mes_carteira_deusa,
                 'pendencias_ritmo', (
                     SELECT COALESCE(json_agg(frase), '[]'::json)
                     FROM pendencias WHERE escopo = 'ritmo'
@@ -183,6 +204,10 @@ b_meta AS (
                 'pendencias_indicadores', (
                     SELECT COALESCE(json_agg(frase), '[]'::json)
                     FROM pendencias WHERE escopo = 'indicadores'
+                ),
+                'pendencias_deusa', (
+                    SELECT COALESCE(json_agg(frase), '[]'::json)
+                    FROM pendencias WHERE escopo = 'deusa'
                 )
             )
             FROM prontidao
@@ -356,6 +381,130 @@ b_riqueza AS (
     ) AS t
 ),
 
+-- ------------------------------------------------------------ ativos de Deusa ---
+-- Mês ANTERIOR, escopo APARTADO. A pergunta aqui é "onde o dinheiro dela
+-- está" — instituição, disponibilidade contra investido, classe e indexador.
+-- Camada, teto do FGC, vencimento e destino do aporte NÃO entram: são do
+-- relatório de fechamento, que já emite um PDF de investimentos só dela.
+--
+-- Duas fontes com totais próprios, e por isso conciliadas explicitamente no
+-- bloco `b_deusa_conciliacao`:
+--
+--   marts.carteira_deusa           grão de ativo; é o que dá classe,
+--                                  indexador e a quebra por instituição
+--   int_patrimonio_mensal_deusa    a planilha dela; é o que alimenta o índice
+--                                  de `riqueza` exibido na mesma seção
+--
+-- Em 07/2026 os dois totais diferem em R$ 2, mas em 12/2024 diferiam em R$ 60
+-- mil. Exibir um número de cada fonte na mesma página sem mostrar a diferença
+-- é o modo de o relatório mentir sem errar nenhuma conta. O intermediate é
+-- lido direto porque nenhum mart expõe o nível do patrimônio de Deusa —
+-- `riqueza` carrega só o índice e `marts.patrimonio` não tem coluna dela.
+
+-- A série e a composição saem as duas de `carteira_deusa`, no grão de ativo.
+-- `carteira_deusa_agregada` traria a série pronta, mas o `total_disponibilidades`
+-- dela não bate com o que a classe DISPONIBILIDADE soma na carteira (R$ 259 de
+-- diferença em 07/2026, com o total geral idêntico): são dois critérios de
+-- corte para a mesma fronteira. Uma seção, uma definição.
+b_deusa_evolucao AS (
+    SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
+    FROM (
+        SELECT
+            c.mes_base,
+            ROUND(SUM(c.vlr_atualizado_brl), 2) AS total_geral,
+            ROUND(COALESCE(SUM(c.vlr_atualizado_brl)
+                  FILTER (WHERE c.classe_ativo = 'DISPONIBILIDADE'), 0), 2)  AS disponivel,
+            ROUND(COALESCE(SUM(c.vlr_atualizado_brl)
+                  FILTER (WHERE c.classe_ativo <> 'DISPONIBILIDADE'), 0), 2) AS investido
+        FROM marts.carteira_deusa AS c
+        CROSS JOIN params AS p
+        WHERE c.mes_base <= p.mes_anterior
+          AND c.mes_base >  p.mes_anterior - interval '13 months'
+        GROUP BY c.mes_base
+    ) AS t
+),
+
+-- Mês anterior e o anterior a ele na mesma varredura: a coluna de variação da
+-- composição sai de um FILTER, não de uma segunda leitura da carteira.
+deusa_pos AS (
+    SELECT
+        c.mes_base,
+        c.instituicao,
+        c.classe_ativo,
+        c.tipo_ativo,
+        COALESCE(NULLIF(TRIM(c.indexador), ''), 'SEM INDEXADOR') AS indexador,
+        c.vlr_atualizado_brl                                     AS valor
+    FROM marts.carteira_deusa AS c
+    CROSS JOIN params AS p
+    WHERE c.mes_base IN (p.mes_anterior,
+                         (p.mes_anterior - interval '1 month')::date)
+),
+
+b_deusa_instituicao AS (
+    SELECT COALESCE(json_agg(t ORDER BY t.valor DESC), '[]'::json) AS j
+    FROM (
+        SELECT
+            d.instituicao,
+            ROUND(SUM(d.valor) FILTER (WHERE d.mes_base = p.mes_anterior), 2) AS valor,
+            ROUND(SUM(d.valor) FILTER (WHERE d.mes_base < p.mes_anterior), 2) AS valor_anterior
+        FROM deusa_pos AS d
+        CROSS JOIN params AS p
+        GROUP BY d.instituicao
+        HAVING SUM(d.valor) FILTER (WHERE d.mes_base = p.mes_anterior) IS NOT NULL
+    ) AS t
+),
+
+b_deusa_classe AS (
+    SELECT COALESCE(json_agg(t ORDER BY t.valor DESC), '[]'::json) AS j
+    FROM (
+        SELECT
+            d.classe_ativo,
+            d.tipo_ativo,
+            COUNT(*) FILTER (WHERE d.mes_base = p.mes_anterior)::int         AS ativos,
+            ROUND(SUM(d.valor) FILTER (WHERE d.mes_base = p.mes_anterior), 2) AS valor,
+            ROUND(SUM(d.valor) FILTER (WHERE d.mes_base < p.mes_anterior), 2) AS valor_anterior
+        FROM deusa_pos AS d
+        CROSS JOIN params AS p
+        GROUP BY d.classe_ativo, d.tipo_ativo
+        HAVING SUM(d.valor) FILTER (WHERE d.mes_base = p.mes_anterior) IS NOT NULL
+    ) AS t
+),
+
+-- `valor_renda_fixa` existe porque «SEM INDEXADOR» é ambíguo e a ambiguidade
+-- muda a conclusão. Em 07/2026 os R$ 311 mil sem indexador incluem R$ 202 mil
+-- de renda fixa — título com taxa contratada cujo campo não foi preenchido na
+-- origem — e não só fundo, ação e saldo em conta. Sem esta coluna a seção
+-- reportaria como «exposição sem indexador» o que é lacuna de cadastro.
+b_deusa_indexador AS (
+    SELECT COALESCE(json_agg(t ORDER BY t.valor DESC), '[]'::json) AS j
+    FROM (
+        SELECT
+            d.indexador,
+            ROUND(SUM(d.valor) FILTER (WHERE d.mes_base = p.mes_anterior), 2) AS valor,
+            ROUND(COALESCE(SUM(d.valor) FILTER (WHERE d.mes_base = p.mes_anterior
+                                            AND d.classe_ativo = 'RENDA FIXA'), 0), 2)
+                                                                              AS valor_renda_fixa
+        FROM deusa_pos AS d
+        CROSS JOIN params AS p
+        GROUP BY d.indexador
+        HAVING SUM(d.valor) FILTER (WHERE d.mes_base = p.mes_anterior) IS NOT NULL
+    ) AS t
+),
+
+b_deusa_conciliacao AS (
+    SELECT json_build_object(
+        'mes_base',       (SELECT mes_anterior FROM params),
+        'total_carteira', (SELECT ROUND(SUM(c.vlr_atualizado_brl), 2)
+                           FROM marts.carteira_deusa AS c
+                           CROSS JOIN params AS p
+                           WHERE c.mes_base = p.mes_anterior),
+        'total_planilha', (SELECT x.total_patrimonio_liquido
+                           FROM intermediate.int_patrimonio_mensal_deusa AS x
+                           CROSS JOIN params AS p
+                           WHERE x.mes_base = p.mes_anterior)
+    ) AS j
+),
+
 b_meses_base AS (
     SELECT COALESCE(json_agg(mes ORDER BY mes), '[]'::json) AS j FROM base_6
 )
@@ -368,5 +517,10 @@ SELECT json_build_object(
     'dre_mensal',       (SELECT j FROM b_dre),
     'indicadores',      (SELECT j FROM b_indicadores),
     'riqueza',          (SELECT j FROM b_riqueza),
-    'meses_base',       (SELECT j FROM b_meses_base)
+    'meses_base',       (SELECT j FROM b_meses_base),
+    'deusa_evolucao',    (SELECT j FROM b_deusa_evolucao),
+    'deusa_instituicao', (SELECT j FROM b_deusa_instituicao),
+    'deusa_classe',      (SELECT j FROM b_deusa_classe),
+    'deusa_indexador',   (SELECT j FROM b_deusa_indexador),
+    'deusa_conciliacao', (SELECT j FROM b_deusa_conciliacao)
 )::text;
