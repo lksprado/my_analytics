@@ -5,8 +5,22 @@ description: Gera o relatório de acompanhamento do mês EM ANDAMENTO — ritmo 
 
 # Relatório de meio de mês
 
-Um PDF, do casal: `relatorio_meio_mes_AAAA-MM.pdf`, onde AAAA-MM é o **mês
-corrente**. Roda entre os dias 15 e 20.
+**Dois PDFs**, com leitores diferentes, onde AAAA-MM é o **mês corrente**:
+
+| Arquivo | Para quem | Conteúdo |
+|---|---|---|
+| `relatorio_meio_mes_AAAA-MM.pdf` | Lucas e Jéssica | o mês em andamento (ritmo, projeção, margem) + desempenho do casal + a seção patrimonial de Deusa |
+| `relatorio_meio_mes_deusa_AAAA-MM.pdf` | Deusa | só a leitura patrimonial dela, com capa e narrativa próprias |
+
+Roda entre os dias 15 e 20. O documento de Deusa **não depende dessa janela** —
+ele é todo do mês fechado anterior e não muda com o dia da geração —, mas sai
+na mesma passada porque usa a mesma extração.
+
+O documento dela existe separado porque tem outro leitor: no PDF do casal a
+leitura patrimonial de Deusa é uma seção entre oito, cercada de despesa que não
+é dela, e o arquivo inteiro não é entregável a ela sem expor o orçamento do
+casal. **Mesmos blocos, mesmo JSON, outra narrativa** — o montador é um só, com
+`--escopo`.
 
 ## Por que existe
 
@@ -217,7 +231,10 @@ Regras de conduta:
 ## Passo 4 — Escrever a narrativa
 
 **Você não escreve HTML.** `scripts/montar_meio_mes.py` renderiza KPIs, tabelas
-e gráficos direto do JSON. Você escreve `narrativa_meio_mes.json` no scratchpad:
+e gráficos direto do JSON. Você escreve **duas** narrativas no scratchpad, uma
+por documento.
+
+#### `narrativa_meio_mes.json` — o do casal
 
 ```json
 {
@@ -236,14 +253,35 @@ Todas as chaves são opcionais; o conteúdo é HTML restrito a `<p>` e `<strong>
 `diagnostico_deusa` só se `pronto_deusa` — se o portão reprovou, não a
 escreva.
 
-Sobre o texto:
+#### `narrativa_deusa.json` — o dela
+
+```json
+{
+  "sumario": "<p>…</p>",
+  "diagnostico_desempenho": "<p>…</p>",
+  "diagnostico_ativos": "<p>…</p>",
+  "recomendacoes": [{"titulo": "…", "texto": "…"}],
+  "premissas": ["…"]
+}
+```
+
+Só é escrita se `pronto_deusa`. **Não é recorte da outra**: o leitor é ela, o
+assunto é só o patrimônio dela, e o texto pode ser mais longo porque não
+compete com sete outras seções. Nada de gasto, orçamento, projeção ou número do
+casal — nem para comparar. As recomendações são as ações que dependem dela ou
+da planilha dela; no máximo 4.
+
+Sobre o texto dos dois:
 
 - Números citados têm que bater com os que o montador renderiza. Confira contra
   o JSON, não de memória.
-- No máximo 6 recomendações, cada uma com valor em R$ e prazo dentro do mês.
+- No máximo 6 recomendações no do casal, 4 no dela, cada uma com valor em R$ e
+  prazo.
 - Em `premissas`, liste: a regra da projeção, quantos meses fechados
   sustentaram a mediana, qualquer `[CONFIRMAR]` do glossário que você usou, e
-  os fatos relevantes que explicaram um desvio.
+  os fatos relevantes que explicaram um desvio. No dela, as quatro premissas
+  estruturais — sem despesa lançada, índice com aporte, bases diferentes, duas
+  fontes conciliadas — são obrigatórias.
 
 ### O que o montador já produz sozinho
 
@@ -265,6 +303,21 @@ Não peça para escrever, não duplique na narrativa:
 A numeração é sequencial: sem a 5, sem a 6, ou sem as duas, as seguintes sobem.
 Não pode haver buraco.
 
+E no documento de Deusa (`--escopo deusa`):
+
+| # | Seção | Conteúdo |
+|---|---|---|
+| — | Capa | Diz de saída que **não há gasto** na leitura, e por quê |
+| 1 | Sumário — nível, variação no mês, investido, parado em conta + `sumario` |
+| 2 | Desempenho — índice contra CDI, IPCA e inflação pessoal + `diagnostico_desempenho` |
+| 3 | Onde o dinheiro está — disponível contra investido, instituição, classe, indexador, conciliação + `diagnostico_ativos` |
+| 4 | Recomendações — a partir de `recomendacoes[]` |
+| — | Notas e procedência, com as `premissas[]` |
+
+Este documento **não tem portão de ritmo**: `pronto_ritmo` é do casal e reprová-lo
+não diz nada sobre o patrimônio dela. Ele depende de `pronto_deusa` e, para a
+seção 2, de `pronto_indicadores`.
+
 ## Passo 5 — Montar
 
 ```bash
@@ -275,7 +328,15 @@ nome=relatorio_meio_mes_<AAAA-MM>
 python3 .claude/skills/relatorio-meio-mes/scripts/montar_meio_mes.py \
     --dados "$S/dados.json" --narrativa "$S/narrativa_meio_mes.json" \
     --saida "$D/$nome.pdf"
+
+# só se pronto_deusa
+python3 .claude/skills/relatorio-meio-mes/scripts/montar_meio_mes.py \
+    --dados "$S/dados.json" --narrativa "$S/narrativa_deusa.json" \
+    --escopo deusa --saida "$D/${nome}_deusa.pdf"
 ```
+
+Os dois leem o **mesmo** JSON de dados: se um número diverge entre os PDFs, o
+erro está na narrativa, não na extração.
 
 **Um comando, um arquivo.** `--saida` terminando em `.pdf` monta o HTML num
 temporário, converte e descarta o intermediário: o diretório de entrega recebe
@@ -309,6 +370,9 @@ Obrigatório, não opcional:
 6. A numeração das seções não pode ter buraco.
 7. Na seção de Deusa, confirme que nenhum número dela foi somado a número do
    casal e que os dois índices não foram comparados entre si.
+8. **Olhe o PDF dela também** — os dois documentos, não só o do casal. No dela,
+   confirme que não sobrou nenhum número do orçamento do casal e que os valores
+   que aparecem nos dois batem entre si.
 
 Se o texto estiver errado, corrija a narrativa; se o layout ou um número
 renderizado estiver errado, corrija `montar_meio_mes.py` ou
@@ -318,9 +382,10 @@ converta de novo. Não entregue um PDF que você não olhou.
 
 ## Encerramento
 
-Informe o caminho do PDF, a data de corte, o mês de cada bloco, e diga
-explicitamente se a seção de desempenho ou a de Deusa ficaram de fora por causa
-do portão.
+Informe o caminho **dos dois PDFs**, a data de corte, o mês de cada bloco, e
+diga explicitamente se a seção de desempenho ou a de Deusa ficaram de fora por
+causa do portão — e, se `pronto_deusa` reprovou, que o PDF dela não foi
+gerado.
 Liste as pendências que apareceram — categorias já estouradas, poupança
 projetada abaixo da meta, base de comparação com menos de 6 meses, premissas
 `[CONFIRMAR]` que sustentaram alguma recomendação.

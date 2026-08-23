@@ -21,6 +21,15 @@ partes, com recortes de tempo diferentes e deliberadamente não misturados:
 Divisão de responsabilidades igual à do fechamento: este script renderiza tudo
 que é calculável, e o arquivo de narrativa traz só o texto analítico.
 
+Dois documentos, um script (`--escopo`):
+
+    casal   o relatório acima, com a leitura patrimonial de Deusa como uma
+            seção entre oito
+    deusa   só a leitura dela, com capa, narrativa e rodapé próprios — mesmos
+            blocos, outro leitor, e entregável sem expor o orçamento do casal.
+            Não tem partes 1 a 4: sem despesa lançada não há ritmo, projeção
+            nem orçamento a calcular.
+
 Estrutura do arquivo de narrativa (todas as chaves opcionais):
 
     {
@@ -29,6 +38,7 @@ Estrutura do arquivo de narrativa (todas as chaves opcionais):
       "diagnostico_categorias": "<p>…</p>",
       "diagnostico_desempenho": "<p>…</p>",   # só se pronto_indicadores
       "diagnostico_deusa": "<p>…</p>",        # só se pronto_deusa
+      "diagnostico_ativos": "<p>…</p>",       # só no --escopo deusa
       "recomendacoes": [{"titulo": "…", "texto": "…"}],
       "premissas": ["…"]
     }
@@ -435,46 +445,33 @@ def secao_desempenho(d, n, num_secao):
                  corpo, quebra=True)
 
 
-def secao_deusa(d, n, num_secao):
-    """Mês ANTERIOR, escopo de Deusa — apartado do casal em toda a seção.
+# ------------------------------------------------------- blocos de Deusa ---
+# Os quatro blocos abaixo são as peças da leitura patrimonial de Deusa, e
+# existem separados porque servem a dois documentos: viram UMA seção dentro do
+# relatório do casal (`secao_deusa`) e TRÊS seções no relatório dela
+# (`montar_deusa`). Enquanto o conteúdo morava inteiro dentro da seção do
+# casal, o relatório dela só podia ser uma cópia — e cópia diverge.
+#
+# O que NÃO entra em nenhum deles, por ser do relatório de fechamento (que
+# emite um PDF de investimentos só dela): camada, alocação alvo, teto do FGC,
+# vencimentos e destino do aporte. Aqui é posição, não política.
 
-    Duas perguntas, nesta ordem: o patrimônio dela acompanhou o benchmark, e
-    onde o dinheiro está hoje. O que NÃO entra aqui, por ser do relatório de
-    fechamento (que emite um PDF de investimentos só dela): camada, alocação
-    alvo, teto do FGC, vencimentos e destino do aporte.
 
-    Duas advertências que a seção precisa dizer em vez de esconder:
-
-    1. Não há despesa de Deusa no warehouse. Uma queda no patrimônio dela não
-       pode ser atribuída a saque nem a perda de mercado — o dado não permite
-       separar os dois, e a narrativa não deve fingir que permite.
-    2. O índice vem da planilha de patrimônio e a composição vem da carteira.
-       São duas fontes com totais próprios; a nota de conciliação imprime a
-       diferença do mês para que ela nunca passe calada."""
-    meta = d["meta"]
-    r, ind = d["riqueza"], d["indicadores"]
+def deusa_kpis(d):
+    """Nível, variação no mês e a fatia que está parada em conta."""
     evol = d.get("deusa_evolucao") or []
-    inst = d.get("deusa_instituicao") or []
-    classes = d.get("deusa_classe") or []
-    indexadores = d.get("deusa_indexador") or []
-    conc = d.get("deusa_conciliacao") or {}
-    mes_ref = mes_extenso(meta["mes_anterior"])
-
-    partes = []
-
-    # -- nível e composição ---------------------------------------------------
-    atual = evol[-1] if evol else None
+    if not evol:
+        return ""
+    atual = evol[-1]
     anterior = evol[-2] if len(evol) > 1 else None
-    if atual:
-        total = float(atual["total_geral"])
-        disp, inv = float(atual["disponivel"]), float(atual["investido"])
-        var_mes = (total / float(anterior["total_geral"]) - 1) * 100 \
-            if anterior and float(anterior["total_geral"]) else None
-        pct_disp = disp / total * 100 if total else 0
-        maior = inst[0] if inst else None
-        partes.append(
-            '<div class="kpis">'
-            + kpi("Patrimônio de Deusa", brl(total), f"posição de {mes_ref}")
+    total = float(atual["total_geral"])
+    disp, inv = float(atual["disponivel"]), float(atual["investido"])
+    var_mes = (total / float(anterior["total_geral"]) - 1) * 100 \
+        if anterior and float(anterior["total_geral"]) else None
+    pct_disp = disp / total * 100 if total else 0
+    return ('<div class="kpis">'
+            + kpi("Patrimônio de Deusa", brl(total),
+                  f"posição de {mes_extenso(d['meta']['mes_anterior'])}")
             + kpi("Variação no mês", sinal(var_mes), "contra o mês anterior",
                   classe_delta(var_mes))
             + kpi("Investido", brl(inv), f"{pct(100 - pct_disp)} do total")
@@ -482,68 +479,85 @@ def secao_deusa(d, n, num_secao):
                   classe_delta(-pct_disp))
             + "</div>")
 
-    # -- índice contra os mesmos benchmarks do casal --------------------------
-    # Recorta a janela onde a série dela existe: `linhas` traça o caminho ponto
-    # a ponto e não sabe pular um None.
-    if r:
-        idx = [i for i, x in enumerate(r)
-               if x.get("patrimonio_liquido_deusa_acum") is not None]
-        if len(idx) >= 2:
-            rr = r[idx[0]:idx[-1] + 1]
-            meses = [x["mes_base"] for x in rr]
-            ind_por_mes = {x["mes_base"]: x for x in ind}
-            deusa = rebase(coluna(rr, "patrimonio_liquido_deusa_acum"))
-            cdi = rebase(coluna(rr, "cdi_acum"))
-            infl = rebase(coluna(rr, "minha_inflacao_acum"))
-            ipca = rebase(coluna(rr, "ipca_acum"))
-            series = [("Deusa", SERIES[6], deusa), ("CDI", SERIES[1], cdi),
-                      ("Infl. pessoal", SERIES[2], infl)]
-            linhas_tab = [
-                [mes_curto(x["mes_base"]), num(deusa[i]), num(cdi[i]),
-                 num(ipca[i]), num(infl[i]),
-                 pct(float(im["cdi"]) * 100, 2)
-                 if (im := ind_por_mes.get(x["mes_base"], {})).get("cdi") is not None
-                 else "—"]
-                for i, x in enumerate(rr)]
-            janela = f"{mes_extenso(meses[0])} a {mes_extenso(meses[-1])}"
-            partes.append(
-                bloco("Contra o benchmark",
-                      f'<figure>{linhas(meses, series, formato="idx")}'
-                      + legenda([(rot, cor) for rot, cor, _ in series])
-                      + f'<figcaption>Índice reindexado a 1,000 em '
-                        f'{mes_curto(meses[0])}. Base própria, diferente da do '
-                        f'casal — as duas séries não se comparam entre si, só '
-                        f'cada uma contra o benchmark.</figcaption></figure>'
-                      + tabela(["Mês", "Deusa", "CDI", "IPCA", "Infl. pessoal",
-                                "CDI no mês"], linhas_tab)
-                      + f'<p class="sub">Na janela de {janela} o patrimônio de '
-                        f'Deusa variou {sinal(crescimento(deusa))}, contra '
-                        f'{sinal(crescimento(cdi))} do CDI e '
-                        f'{sinal(crescimento(infl))} da inflação pessoal. '
-                        f'<strong>Não há despesa de Deusa no warehouse</strong>: '
-                        f'uma queda aqui não pode ser atribuída a saque nem a '
-                        f'perda de mercado.</p>'
-                      + NOTA_INDICE))
 
-    # -- disponível contra investido ao longo do tempo ------------------------
+def deusa_benchmark(d):
+    """Índice dela contra os mesmos indexadores do casal.
+
+    Recorta a janela onde a série existe: `linhas` traça o caminho ponto a
+    ponto e não sabe pular um None. A base é própria e diferente da do casal —
+    a legenda diz isso, porque as duas séries não se comparam entre si."""
+    r, ind = d["riqueza"], d["indicadores"]
+    if not r:
+        return ""
+    idx = [i for i, x in enumerate(r)
+           if x.get("patrimonio_liquido_deusa_acum") is not None]
+    if len(idx) < 2:
+        return ""
+    rr = r[idx[0]:idx[-1] + 1]
+    meses = [x["mes_base"] for x in rr]
+    ind_por_mes = {x["mes_base"]: x for x in ind}
+    deusa = rebase(coluna(rr, "patrimonio_liquido_deusa_acum"))
+    cdi = rebase(coluna(rr, "cdi_acum"))
+    infl = rebase(coluna(rr, "minha_inflacao_acum"))
+    ipca = rebase(coluna(rr, "ipca_acum"))
+    series = [("Deusa", SERIES[6], deusa), ("CDI", SERIES[1], cdi),
+              ("Infl. pessoal", SERIES[2], infl)]
+    linhas_tab = [
+        [mes_curto(x["mes_base"]), num(deusa[i]), num(cdi[i]), num(ipca[i]),
+         num(infl[i]),
+         pct(float(im["cdi"]) * 100, 2)
+         if (im := ind_por_mes.get(x["mes_base"], {})).get("cdi") is not None
+         else "—"]
+        for i, x in enumerate(rr)]
+    janela = f"{mes_extenso(meses[0])} a {mes_extenso(meses[-1])}"
+    return (f'<figure>{linhas(meses, series, formato="idx")}'
+            + legenda([(rot, cor) for rot, cor, _ in series])
+            + f'<figcaption>Índice reindexado a 1,000 em {mes_curto(meses[0])}. '
+              f'Base própria, diferente da do casal — as duas séries não se '
+              f'comparam entre si, só cada uma contra o benchmark.'
+              f'</figcaption></figure>'
+            + tabela(["Mês", "Deusa", "CDI", "IPCA", "Infl. pessoal",
+                      "CDI no mês"], linhas_tab)
+            + f'<p class="sub">Na janela de {janela} o patrimônio de Deusa '
+              f'variou {sinal(crescimento(deusa))}, contra '
+              f'{sinal(crescimento(cdi))} do CDI e {sinal(crescimento(infl))} '
+              f'da inflação pessoal. <strong>Não há despesa de Deusa no '
+              f'warehouse</strong>: uma queda aqui não pode ser atribuída a '
+              f'saque nem a perda de mercado.</p>'
+            + f'<p class="sub">A «inflação pessoal» é a do casal, apurada da '
+              f'cesta de consumo deles — é o único índice de consumo que o '
+              f'warehouse tem. Serve de referência, não é a inflação medida '
+              f'sobre os gastos de Deusa, que não existem na base.</p>'
+            + NOTA_INDICE)
+
+
+def deusa_ativos(d):
+    """Onde o dinheiro está: disponível contra investido, instituição, classe
+    e indexador — sempre com o mês anterior ao lado, para a variação ser lida
+    e não inferida."""
+    evol = d.get("deusa_evolucao") or []
+    inst = d.get("deusa_instituicao") or []
+    classes = d.get("deusa_classe") or []
+    indexadores = d.get("deusa_indexador") or []
+    atual = evol[-1] if evol else None
+    partes = []
+
     if len(evol) > 1:
         meses_e = [x["mes_base"] for x in evol]
         partes.append(
             bloco("Disponível contra investido",
                   '<figure>'
-                  + barras_empilhadas(meses_e, [
-                        ("Investido", SERIES[0],
-                         [float(x["investido"]) for x in evol]),
-                        ("Parado em conta", SERIES[3],
-                         [float(x["disponivel"]) for x in evol])])
-                  + legenda([("Investido", SERIES[0]),
-                             ("Parado em conta", SERIES[3])])
-                  + '<figcaption>Saldo em conta corrente contra o que está '
-                    'aplicado, por mês. O que está parado é a única leitura '
-                    'acionável desta seção — o resto é posição.'
-                    '</figcaption></figure>'))
+            + barras_empilhadas(meses_e, [
+                  ("Investido", SERIES[0],
+                   [float(x["investido"]) for x in evol]),
+                  ("Parado em conta", SERIES[3],
+                   [float(x["disponivel"]) for x in evol])])
+            + legenda([("Investido", SERIES[0]),
+                       ("Parado em conta", SERIES[3])])
+            + '<figcaption>Saldo em conta corrente contra o que está aplicado, '
+              'por mês. O que está parado é a única leitura acionável desta '
+              'seção — o resto é posição.</figcaption></figure>'))
 
-    # -- composição -----------------------------------------------------------
     def linha_comp(rotulo, valor, valor_ant, total):
         v = float(valor)
         va = float(valor_ant) if valor_ant is not None else None
@@ -597,23 +611,46 @@ def secao_deusa(d, n, num_secao):
                     f'têm taxa. Enquanto o campo não for preenchido, esta '
                     f'linha não mede exposição a juro nenhum.</p>'))
 
-    # -- conciliação entre as duas fontes -------------------------------------
-    tc, tp = conc.get("total_carteira"), conc.get("total_planilha")
-    if tc is not None and tp is not None:
-        dif = float(tc) - float(tp)
-        dif_pct = dif / float(tp) * 100 if float(tp) else 0
-        partes.append(
-            f'<p class="sub"><strong>Conciliação.</strong> A composição acima '
-            f'vem da carteira ({brl(float(tc))}) e o índice vem da planilha de '
-            f'patrimônio ({brl(float(tp))}) — duas fontes, dois totais. A '
-            f'diferença em {mes_ref} é de {brl(dif)} ({sinal(dif_pct, 2)}). '
-            f'Diferença grande significa posição não lançada em uma das duas, '
-            f'não erro de conta.</p>')
+    partes.append(deusa_conciliacao(d))
+    return "".join(partes)
 
-    partes.append(bloco("", n.get("diagnostico_deusa", "")))
+
+def deusa_conciliacao(d):
+    """Duas fontes, dois totais — a diferença nunca passa calada.
+
+    O nível e a composição vêm de `carteira_deusa`, no grão de ativo; o índice
+    vem da planilha de patrimônio, via `riqueza`. Em 07/2026 diferiam em R$ 2,
+    em 12/2024 em R$ 60 mil. É daqui que sai a divergência entre a variação do
+    mês no KPI e a variação do índice."""
+    conc = d.get("deusa_conciliacao") or {}
+    tc, tp = conc.get("total_carteira"), conc.get("total_planilha")
+    if tc is None or tp is None:
+        return ""
+    dif = float(tc) - float(tp)
+    dif_pct = dif / float(tp) * 100 if float(tp) else 0
+    return (f'<p class="sub"><strong>Conciliação.</strong> A composição vem da '
+            f'carteira ({brl(float(tc))}) e o índice vem da planilha de '
+            f'patrimônio ({brl(float(tp))}) — duas fontes, dois totais. A '
+            f'diferença em {mes_extenso(d["meta"]["mes_anterior"])} é de '
+            f'{brl(dif)} ({sinal(dif_pct, 2)}). Diferença grande significa '
+            f'posição não lançada em uma das duas, não erro de conta.</p>')
+
+
+def secao_deusa(d, n, num_secao):
+    """A leitura patrimonial de Deusa como UMA seção do relatório do casal.
+
+    O relatório dela usa os mesmos blocos abertos em três seções — ver
+    `montar_deusa`. Aqui eles ficam juntos porque, no documento do casal, esta
+    é uma seção entre oito e não o assunto."""
+    mes_ref = mes_extenso(d["meta"]["mes_anterior"])
+    bench = deusa_benchmark(d)
+    corpo = (deusa_kpis(d)
+             + (bloco("Contra o benchmark", bench) if bench else "")
+             + deusa_ativos(d)
+             + bloco("", n.get("diagnostico_deusa", "")))
     return secao(num_secao, f"Patrimônio e ativos de Deusa · {mes_ref}",
                  "Escopo apartado do casal · os dois patrimônios não se somam",
-                 "".join(partes), quebra=True)
+                 corpo, quebra=True)
 
 
 def rodape(d, premissas):
@@ -735,6 +772,150 @@ def montar(d, n):
     return "\n".join(partes)
 
 
+def cabecalho_deusa(meta):
+    """Capa do documento dela. Diz de saída que não há gasto na leitura: é a
+    diferença que mais confunde quem recebe este PDF depois de ver o do casal,
+    onde metade das páginas é despesa."""
+    mes = mes_extenso(meta["mes_anterior"])
+    return f"""<meta charset="utf-8"><title>Patrimônio e ativos de Deusa</title>
+<style>{css_inline()}</style>
+<div class="capa">
+  <div class="eyebrow">Acompanhamento de meio de mês · patrimônio de Deusa</div>
+  <h1>Patrimônio de {mes}</h1>
+  <div class="periodo">posição fechada de {mes} · gerado em {data_br(meta['hoje'])}</div>
+  <p style="max-width:120mm;color:var(--text-secondary)">
+    Preparado para Deusa. Lê o patrimônio <strong>fechado de {mes}</strong>
+    contra o CDI e a inflação, e mostra onde o dinheiro está — por instituição,
+    por classe de ativo e por indexador —, com atenção ao que está parado em
+    conta corrente.
+    <br><br>
+    <strong>Não há gasto neste relatório.</strong> O warehouse não tem despesa
+    lançada de Deusa, então não há ritmo de consumo, projeção de fechamento nem
+    orçamento aqui — nada disso pode ser calculado. Pela mesma razão, uma queda
+    no patrimônio não distingue resgate de perda de mercado.
+    <br><br>
+    Este é o acompanhamento de meio de mês. Camada de investimento, alocação
+    alvo, teto do FGC, vencimentos e destino do aporte saem no relatório de
+    fechamento, no início do mês.
+  </p>
+  {aviso_prontidao_deusa(meta)}
+  <div class="rodape-capa">
+    Gerado em {data_br(meta['gerado_em'])} a partir da camada <code>marts</code>
+    do data warehouse · posição de {mes}
+  </div>
+</div>"""
+
+
+def aviso_prontidao_deusa(meta):
+    """Só os dois portões que valem para ela. `pronto_ritmo` é do casal e não
+    entra: ela não tem gasto, e reprovar o documento dela por causa de
+    lançamento atrasado de despesa do casal seria falso."""
+    pr = meta["prontidao"]
+    avisos = []
+    if not pr.get("pronto_deusa", True):
+        itens = "".join(f"<li>{esc(x)}</li>"
+                        for x in pr.get("pendencias_deusa", []))
+        ult = pr.get("ultimo_mes_carteira_deusa")
+        alt = (f"<p>Última posição disponível: "
+               f"<strong>{mes_extenso(ult)}</strong>.</p>") if ult else ""
+        avisos.append(
+            '<div class="destaque-bloco alerta"><h4>Carteira sem a posição do '
+            f'mês</h4><ul>{itens}</ul>{alt}</div>')
+    if not pr["pronto_indicadores"]:
+        itens = "".join(f"<li>{esc(x)}</li>"
+                        for x in pr["pendencias_indicadores"])
+        avisos.append(
+            '<div class="destaque-bloco alerta"><h4>Indexadores ainda não '
+            f'publicados</h4><ul>{itens}</ul></div>')
+    return "".join(avisos)
+
+
+def rodape_deusa(d, premissas):
+    meta = d["meta"]
+    pr = meta["prontidao"]
+    itens = "".join(f"<li>{esc(x)}</li>" for x in premissas)
+    bloco_prem = (f"<p><strong>Premissas e critérios adotados neste "
+                  f"relatório:</strong></p><ul>{itens}</ul>") if premissas else ""
+    incompleto = ""
+    for chave, rot, pend in (
+            ("pronto_deusa", "Carteira desatualizada", "pendencias_deusa"),
+            ("pronto_indicadores", "Indexadores não publicados",
+             "pendencias_indicadores")):
+        if not pr.get(chave, True):
+            incompleto += (f"<p><strong>{rot}.</strong> "
+                           f"{esc('; '.join(pr.get(pend, [])))}</p>")
+    return f"""<section class="quebra"><h2><span class="num">—</span>Notas e procedência</h2>
+<div class="rodape-doc">{incompleto}{bloco_prem}
+  <p>Origem: camada <code>marts</code> do data warehouse pessoal (PostgreSQL),
+  domínio finanças. Posição e composição apuradas em
+  {mes_extenso(meta['mes_anterior'])}, o último mês fechado.</p>
+  <p>O nível e a composição vêm de <code>marts.carteira_deusa</code>, no grão de
+  ativo; o índice de desempenho vem da planilha de patrimônio, via
+  <code>marts.riqueza</code>. São duas fontes com totais próprios, e a
+  conciliação entre elas está impressa na seção de ativos.</p>
+  <p>Este patrimônio é <strong>independente do patrimônio do casal</strong> e em
+  nenhum momento foi somado a ele. Os dois índices têm bases diferentes e não se
+  comparam entre si — cada um só se compara ao seu benchmark, dentro da janela
+  exibida. O índice compõe aporte com rentabilidade: mede se o patrimônio
+  cresceu acima da inflação, não se a carteira bateu o CDI.</p>
+  <p>Este relatório não traz alocação por camada, exposição ao FGC, vencimentos
+  nem cobertura da reserva de emergência. Esses são assunto do relatório de
+  fechamento, gerado no início do mês. O que está aqui é posição, não
+  política.</p>
+  <p>Este documento é gerado automaticamente a partir de dados próprios e não
+  constitui recomendação de investimento de profissional certificado.</p>
+  <p>Gerado em {data_br(meta['gerado_em'])}.</p>
+</div></section>"""
+
+
+def montar_deusa(d, n):
+    """O documento dela: os mesmos blocos da seção do casal, abertos em três
+    seções, com capa e rodapé próprios.
+
+    Existe separado porque tem outro leitor. No PDF do casal esta leitura é uma
+    seção entre oito, cercada de despesa que não é dela; aqui é o assunto, e o
+    documento pode ser entregue sem expor o orçamento do casal."""
+    meta = d["meta"]
+    mes = mes_extenso(meta["mes_anterior"])
+    numero = 0
+
+    def prox():
+        nonlocal numero
+        numero += 1
+        return numero
+
+    partes = [cabecalho_deusa(meta)]
+
+    partes.append(secao(prox(), "Sumário", f"Posição fechada de {mes}",
+                        deusa_kpis(d) + (n.get("sumario") or "")))
+
+    # Sem `quebra`: o sumário é curto e, com a quebra, deixava dois terços da
+    # primeira página em branco num documento de oito. As duas seções seguintes
+    # continuam abrindo página, porque começam com gráfico.
+    bench = deusa_benchmark(d)
+    if bench:
+        partes.append(secao(prox(), f"Desempenho até {mes}",
+                            "Patrimônio contra CDI e inflação · índice "
+                            "reindexado no primeiro mês da janela",
+                            bench + bloco("", n.get("diagnostico_desempenho", ""))))
+
+    partes.append(secao(prox(), "Onde o dinheiro está",
+                        "Disponível contra investido, instituição, classe de "
+                        "ativo e indexador",
+                        deusa_ativos(d)
+                        + bloco("", n.get("diagnostico_ativos", "")),
+                        quebra=True))
+
+    partes.append(secao(prox(), "Recomendações",
+                        "A camada de investimento e o destino do aporte saem "
+                        "no relatório de fechamento",
+                        recomendacoes_html(n.get("recomendacoes", [])),
+                        quebra=True))
+
+    partes.append(rodape_deusa(d, n.get("premissas", [])))
+    return "\n".join(partes)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dados", required=True)
@@ -743,11 +924,17 @@ def main():
                     help="caminho do relatório. Termine em .pdf para entregar "
                          "só o PDF (o HTML vira temporário e é descartado); "
                          "termine em .html para inspecionar a marcação.")
+    ap.add_argument("--escopo", choices=("casal", "deusa"), default="casal",
+                    help="casal: o relatório de acompanhamento do mês em "
+                         "andamento, com a seção patrimonial de Deusa dentro. "
+                         "deusa: só a leitura patrimonial dela, como documento "
+                         "próprio — outro leitor, outra narrativa.")
     a = ap.parse_args()
 
     d = json.loads(Path(a.dados).read_text(encoding="utf-8"))
     n = json.loads(Path(a.narrativa).read_text(encoding="utf-8"))
-    escrever(montar(d, n), a.saida,
+    html = montar_deusa(d, n) if a.escopo == "deusa" else montar(d, n)
+    escrever(html, a.saida,
              Path(__file__).resolve().parent / "html_para_pdf.sh")
 
 

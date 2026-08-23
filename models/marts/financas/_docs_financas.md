@@ -407,7 +407,9 @@ indexadores, e **nunca devem ser somados** nem lidos como um patrimônio só.
 Convivem no modelo, mas não na página: o relatório de meio de mês dá a Deusa
 uma **seção apartada**, porque enquanto ela era uma linha a mais no gráfico do
 casal o leitor comparava as duas séries entre si — o que a armadilha 2 abaixo
-proíbe.
+proíbe. E dá também um **PDF próprio**, com a mesma leitura e outro leitor: o
+arquivo do casal não é entregável a ela sem expor o orçamento deles, e a
+recíproca — número do casal dentro do documento dela — não deve existir.
 
 **O nível dela tem duas fontes, e elas discordam.** O índice de `riqueza` vem
 da planilha de patrimônio; a composição de ativos vem de `carteira_deusa`, no
@@ -485,7 +487,7 @@ segue o `calendario_dados`: cada um fala do que já se sabe no dia em que roda.
 |---|---|---|
 | Quando roda | dias 1 a 5 | dias 15 a 20 |
 | Sobre qual mês | o **anterior**, fechado | o **corrente**, em andamento (+ benchmark do anterior) |
-| Saída | 4 PDFs: um por titular + orçamento do casal | 1 PDF, do casal (+ seção apartada de Deusa) |
+| Saída | 4 PDFs: um por titular + orçamento do casal | 2 PDFs: o do casal (com a seção apartada de Deusa dentro) e o de Deusa |
 | Pergunta | "como foi o mês" | "o que fazer nos dias que restam" |
 
 **Fronteira de assunto — nenhum dos dois invade o outro:**
