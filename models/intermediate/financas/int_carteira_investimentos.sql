@@ -1,0 +1,55 @@
+{{
+  config(
+    materialized = 'table',
+    tags = ['financas', 'intermediate'],
+  )
+}}
+
+
+WITH
+variavel AS (
+    SELECT
+        instituicao,
+        NULL::TEXT AS emissor,
+        NULL::TEXT AS conglomerado_fgc,
+        classe_ativo,
+        tipo_ativo,
+        ativo,
+        NULL::TEXT AS indexador,
+        NULL::DATE AS data_vencimento,
+        NULL::INT AS vencimento_em_dias,
+        NULL::BOOLEAN AS fl_vencido,
+        vlr_atualizado_brl,
+        moeda_ativo,
+        mes_base,
+        pessoa
+    FROM {{ ref('int_renda_variavel') }}
+),
+
+fixa AS (
+    SELECT
+        instituicao,
+        emissor,
+        conglomerado_fgc,
+        classe_ativo,
+        tipo_ativo,
+        ativo,
+        indexador,
+        data_vencimento,
+        vencimento_em_dias,
+        fl_vencido,
+        vlr_atualizado_brl,
+        moeda_ativo,
+        mes_base,
+        pessoa
+    FROM {{ ref('int_renda_fixa') }}
+),
+
+unioned AS (
+    SELECT * FROM variavel
+    UNION ALL
+    SELECT * FROM fixa
+)
+
+SELECT * FROM unioned
+ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo
