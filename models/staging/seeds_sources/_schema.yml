@@ -14,12 +14,14 @@ models:
         description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
       - name: tipo_ativo
         description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: codigo_ativo
+        description: "Código do ativo na seed (ex.: RDB100CAIX00)."
       - name: ativo
         description: "Nome/identificação do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do ativo (nula na seed atual)."
+        description: "Data de emissão do ativo; em branco nas linhas antigas. O tipo é fixado como date em dbt_project.yml — sem isso o dbt infere integer quando a coluna está inteiramente vazia."
       - name: data_vencimento
         description: "Data de vencimento do ativo."
       - name: vlr_atualizado_brl
@@ -40,12 +42,14 @@ models:
         description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
       - name: tipo_ativo
         description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: codigo_ativo
+        description: "Código do ativo na seed (ex.: RDB100CAIX00)."
       - name: ativo
         description: "Nome/identificação do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do ativo (nula na seed atual)."
+        description: "Data de emissão do ativo; em branco nas linhas antigas. O tipo é fixado como date em dbt_project.yml — sem isso o dbt infere integer quando a coluna está inteiramente vazia."
       - name: data_vencimento
         description: "Data de vencimento do ativo."
       - name: vlr_atualizado_brl
@@ -66,12 +70,14 @@ models:
         description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
       - name: tipo_ativo
         description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: codigo_ativo
+        description: "Código do ativo na seed (ex.: RDB100CAIX00)."
       - name: ativo
         description: "Nome/identificação do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do ativo (nula na seed atual)."
+        description: "Data de emissão do ativo; em branco nas linhas antigas. O tipo é fixado como date em dbt_project.yml — sem isso o dbt infere integer quando a coluna está inteiramente vazia."
       - name: data_vencimento
         description: "Data de vencimento do ativo."
       - name: vlr_atualizado_brl

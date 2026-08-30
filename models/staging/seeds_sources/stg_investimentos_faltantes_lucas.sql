@@ -18,7 +18,7 @@ renamed AS (
         emissor,
         classe_ativo,
         tipo_ativo,
-        codigo_ativo
+        codigo_ativo,
         ativo,
         indexador,
         data_emissao,

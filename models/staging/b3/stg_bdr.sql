@@ -35,7 +35,7 @@ renamed AS (
         pessoa,
         {{ clean_string("produto", "upper") }}                                       AS produto,
         {{ clean_string("instituicao", "upper") }}                                   AS instituicao,
-        codigo_de_negociacao                                                         AS ticker,
+        codigo_de_negociacao                                                         AS codigo_ativo,
         {{ clean_string("tipo", "upper") }}                                          AS tipo,
         escriturador,
         quantidade::INT                                                              AS quantidade,

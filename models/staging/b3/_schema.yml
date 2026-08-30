@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_acoes
-    description: "Posições de ações na B3 por pessoa e mês-base, com ticker, CNPJ da empresa, quantidades e valores de fechamento/atualizado."
+    description: "Posições de ações na B3 por pessoa e mês-base, com codigo_ativo, CNPJ da empresa, quantidades e valores de fechamento/atualizado."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
@@ -12,7 +12,7 @@ models:
         description: "Nome do produto/ativo conforme extrato da B3, normalizado em maiúsculas."
       - name: instituicao
         description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
-      - name: ticker
+      - name: codigo_ativo
         description: "Código de negociação da ação na B3."
       - name: cnpj_empresa
         description: "CNPJ da empresa emissora, apenas dígitos."
@@ -36,7 +36,7 @@ models:
         description: "Moeda do ativo (BRL)."
 
   - name: stg_bdr
-    description: "Posições de BDRs na B3 por pessoa e mês-base, com ticker, quantidades e valores de fechamento/atualizado."
+    description: "Posições de BDRs na B3 por pessoa e mês-base, com codigo_ativo, quantidades e valores de fechamento/atualizado."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
@@ -46,7 +46,7 @@ models:
         description: "Nome do produto/ativo conforme extrato da B3, normalizado em maiúsculas."
       - name: instituicao
         description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
-      - name: ticker
+      - name: codigo_ativo
         description: "Código de negociação do BDR na B3."
       - name: tipo
         description: "Tipo do ativo conforme classificação da B3."
@@ -68,7 +68,7 @@ models:
         description: "Moeda do ativo (BRL)."
 
   - name: stg_etf
-    description: "Posições de ETFs na B3 por pessoa e mês-base, com ticker, CNPJ do fundo, quantidades e valores."
+    description: "Posições de ETFs na B3 por pessoa e mês-base, com codigo_ativo, CNPJ do fundo, quantidades e valores."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
@@ -78,7 +78,7 @@ models:
         description: "Nome do produto/ETF conforme extrato da B3, normalizado em maiúsculas."
       - name: instituicao
         description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
-      - name: ticker
+      - name: codigo_ativo
         description: "Código de negociação do ETF na B3."
       - name: cnpj_empresa
         description: "CNPJ do fundo (ETF), apenas dígitos."
@@ -110,7 +110,7 @@ models:
         description: "Nome do fundo conforme extrato da B3, normalizado em maiúsculas."
       - name: instituicao
         description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
-      - name: ticker
+      - name: codigo_ativo
         description: "Código de negociação do fundo na B3."
       - name: cnpj_empresa
         description: "CNPJ do fundo, apenas dígitos."
