@@ -17,20 +17,14 @@ avenue AS (
         period_start                                         AS mes_base,
         pessoa,
         'AVENUE'                                             AS instituicao,
-        CASE 
-            WHEN symbol_cusip = 'CASH' 
-                THEN 'CONTA CORRENTE'
-        ELSE 'FUNDO' END                                     AS tipo_ativo,
-        CASE 
-            WHEN symbol_cusip = 'CASH' 
-                THEN 'SALDO EM CONTA'
-        ELSE symbol_cusip END                                AS ticker,
+        'ACAO'                                               AS tipo_ativo,
+        symbol_cusip                                         AS codigo_ativo,
         (market_value::INT * vlr_usd)::INT                   AS vlr_atualizado_brl,
         moeda_ativo
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
-    WHERE asset_class = 'EQUITIES' OR asset_class = 'CASH'
+    WHERE asset_class = 'EQUITIES'
 ),
 
 acoes AS (
@@ -39,7 +33,7 @@ acoes AS (
         pessoa,
         instituicao,
         'ACAO' AS tipo_ativo,
-        ticker,
+        codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo
     FROM {{ ref('stg_acoes') }}
@@ -51,7 +45,7 @@ bdr AS (
         pessoa,
         instituicao,
         'ACAO' AS tipo_ativo,
-        ticker,
+        codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo
     FROM {{ ref('stg_bdr') }}
@@ -63,7 +57,7 @@ etf AS (
         pessoa,
         instituicao,
         'FUNDO' AS tipo_ativo,
-        ticker,
+        codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo
     FROM {{ ref('stg_etf') }}
@@ -75,7 +69,7 @@ fundos AS (
         pessoa,
         instituicao,
         'FUNDO' AS tipo_ativo,
-        ticker,
+        codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo
     FROM {{ ref('stg_fundos') }}
@@ -98,17 +92,15 @@ final AS (
         mes_base,
         pessoa,
         {{ normaliza_instituicao('instituicao') }} AS instituicao,
-        CASE
-            WHEN tipo_ativo = 'CONTA CORRENTE'
-                THEN 'DISPONIBILIDADE'
-        ELSE 'RENDA VARIAVEL' END              AS classe_ativo,
+        'RENDA VARIAVEL'                           AS classe_ativo,
         tipo_ativo,
-        ticker                                 AS ativo,
-        SUM(vlr_atualizado_brl)::INT           AS vlr_atualizado_brl,
+        codigo_ativo,
+        codigo_ativo                               AS ativo,
+        SUM(vlr_atualizado_brl)::INT               AS vlr_atualizado_brl,
         moeda_ativo
     FROM unioned
-    GROUP BY 1, 2, 3, 4, 5, 6, 8
+    GROUP BY 1, 2, 3, 4, 5, 6, 7, 9
 )
 
 SELECT * FROM final
-ORDER BY mes_base
+ORDER BY mes_base, pessoa, instituicao, tipo_ativo

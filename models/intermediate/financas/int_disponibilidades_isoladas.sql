@@ -14,6 +14,14 @@ ativos_saldo_avenue   AS (
         'AVENUE'                           AS instituicao,
         'NAO APLICAVEL'                    AS conglomerado_fgc,
         'DISPONIBILIDADE'                  AS classe_ativo,
+        CASE
+            WHEN pessoa = 'lucas'
+                THEN 'AVECONTALCS'
+            WHEN pessoa = 'jessica'
+                THEN 'AVECONTAJSS'
+            WHEN pessoa = 'deusa'
+                THEN 'AVECONTADEU'
+        END                                AS codigo_ativo,
         'SALDO EM CONTA'                   AS ativo,
         (market_value::INT * vlr_usd)::INT AS vlr_atualizado_brl,
         moeda_ativo
@@ -29,6 +37,7 @@ ativos_bradesco_lucas AS (
         'BRADESCO'           AS instituicao,
         'BRADESCO'           AS conglomerado_fgc,
         'DISPONIBILIDADE'    AS classe_ativo,
+        'BRDCONTALCS'        AS codigo_ativo,
         'SALDO EM CONTA'     AS ativo,
         saldo_bradesco_lucas AS vlr_atualizado_brl,
         'BRL'                AS moeda_ativo,
@@ -42,6 +51,7 @@ ativos_bradesco_deusa AS (
         'BRADESCO'           AS instituicao,
         'BRADESCO'           AS conglomerado_fgc,
         'DISPONIBILIDADE'    AS classe_ativo,
+        'BRDCONTADEU'        AS codigo_ativo,
         'SALDO EM CONTA'     AS ativo,
         saldo_bradesco_deusa AS vlr_atualizado_brl,
         'BRL'                AS moeda_ativo,
@@ -55,6 +65,7 @@ ativos_nubank_deusa AS (
         'NUBANK'           AS instituicao,
         'NUBANK'           AS conglomerado_fgc,
         'DISPONIBILIDADE'  AS classe_ativo,
+        'NUBCONTADEU'      AS codigo_ativo,
         'SALDO EM CONTA'   AS ativo,
         saldo_nubank_deusa AS vlr_atualizado_brl,
         'BRL'              AS moeda_ativo,
@@ -68,6 +79,7 @@ ativos_cashback_lucas AS (
         'NUBANK'                    AS instituicao,
         'NUBANK'                    AS conglomerado_fgc,
         'DISPONIBILIDADE'           AS classe_ativo,
+        'NUBCASHLCS'                AS codigo_ativo,
         'SALDO EM CONTA'            AS ativo,
         saldo_nubank_cashback_lucas AS vlr_atualizado_brl,
         'BRL'                       AS moeda_ativo,
@@ -81,6 +93,7 @@ ativos_cashback_deusa AS (
         'NUBANK'                    AS instituicao,
         'NUBANK'                    AS conglomerado_fgc,
         'DISPONIBILIDADE'           AS classe_ativo,
+        'NUBCASHDEU'                AS codigo_ativo,
         'SALDO EM CONTA'            AS ativo,
         saldo_nubank_cashback_deusa AS vlr_atualizado_brl,
         'BRL'                       AS moeda_ativo,
@@ -94,6 +107,7 @@ ativos_wise_lucas AS (
         'WISE'            AS instituicao,
         'NAO APLICAVEL'   AS conglomerado_fgc,
         'DISPONIBILIDADE' AS classe_ativo,
+        'WISCONTALCS'     AS codigo_ativo,
         'SALDO EM CONTA'  AS ativo,
         saldo_wise_lucas  AS vlr_atualizado_brl,
         'USD'             AS moeda_ativo,
@@ -107,6 +121,7 @@ ativos_bitcoin_lucas AS (
         'AUTOCUSTODIA'      AS instituicao,
         'NAO APLICAVEL'     AS conglomerado_fgc,
         'DISPONIBILIDADE'   AS classe_ativo,
+        'BTCCONTALCS'       AS codigo_ativo,
         'SALDO EM CONTA'    AS ativo,
         saldo_bitcoin_lucas AS vlr_atualizado_brl,
         'BTC'               AS moeda_ativo,
@@ -120,6 +135,7 @@ ativos_bb_jessica AS (
         'BANCO DO BRASIL'          AS instituicao,
         'BANCO DO BRASIL'          AS conglomerado_fgc,
         'DISPONIBILIDADE'          AS classe_ativo,
+        'BBCONTAJSS'               AS codigo_ativo,
         'SALDO EM CONTA'           AS ativo,
         saldo_banco_brasil_jessica AS vlr_atualizado_brl,
         'BRL'                      AS moeda_ativo,
@@ -133,6 +149,7 @@ ativos_bb_deusa AS (
         'BANCO DO BRASIL'        AS instituicao,
         'BANCO DO BRASIL'        AS conglomerado_fgc,
         'DISPONIBILIDADE'        AS classe_ativo,
+        'BBCONTADEU'             AS codigo_ativo,
         'SALDO EM CONTA'         AS ativo,
         saldo_banco_brasil_deusa AS vlr_atualizado_brl,
         'BRL'                    AS moeda_ativo,

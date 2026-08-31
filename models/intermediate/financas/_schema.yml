@@ -1,57 +1,8 @@
 version: 2
 
 models:
-  - name: int_patrimonio_mensal
-    description: "Consolida o patrimônio mensal a partir de stg_patrimonio, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês-base. Faz join com dim_datas para trazer mês final, trimestre e ano, e sinaliza o mês mais recente disponível. Consumido por patrimonio, patrimonio_mom e pelos CTEs de disponibilidade de int_carteira_extra. Os indexadores macroeconômicos ficam em int_indexadores."
-    columns:
-      - name: mes_base
-        description: "Primeiro dia do mês-base de referência do patrimônio (chave de junção com a dimensão de datas)."
-      - name: mes_final
-        description: "Último dia do mês de referência."
-      - name: trimestre
-        description: "Trimestre do ano de referência (quarter_of_year da dimensão de datas)."
-      - name: ano
-        description: "Ano de referência."
-      - name: fl_mes_atual
-        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_patrimonio."
-      - name: total_patrimonio_bruto
-        description: "Patrimônio bruto total do casal no mês."
-      - name: total_patrimonio_liquido
-        description: "Patrimônio líquido total do casal no mês."
-      - name: patrimonio_liquido_lucas
-        description: "Patrimônio líquido de Lucas no mês."
-      - name: saldo_bradesco_lucas
-        description: "Saldo em conta corrente Bradesco (Lucas)."
-      - name: saldo_bradesco_investimentos_lucas
-        description: "Saldo em investimentos Bradesco (Lucas)."
-      - name: saldo_nubank_investimentos_lucas
-        description: "Saldo em investimentos Nubank (Lucas)."
-      - name: saldo_nubank_cashback_lucas
-        description: "Saldo de cashback Nubank (Lucas)."
-      - name: saldo_bitcoin_lucas
-        description: "Saldo em bitcoin (Lucas)."
-      - name: saldo_daycoval_lucas
-        description: "Saldo em investimentos Daycoval (Lucas)."
-      - name: saldo_avenue_lucas
-        description: "Saldo na Avenue (Lucas)."
-      - name: saldo_wise_lucas
-        description: "Saldo na Wise (Lucas)."
-      - name: patrimonio_liquido_jessica
-        description: "Patrimônio líquido de Jéssica no mês."
-      - name: saldo_banco_brasil_jessica
-        description: "Saldo em conta Banco do Brasil (Jéssica)."
-      - name: saldo_sofisa_investimentos_jessica
-        description: "Saldo em investimentos Sofisa (Jéssica)."
-      - name: saldo_itau_investimentos_jessica
-        description: "Saldo em investimentos Itaú (Jéssica)."
-      - name: saldo_nubank_investimentos_jessica
-        description: "Saldo em investimentos Nubank (Jéssica)."
-      - name: saldo_avenue_jessica
-        description: "Saldo na Avenue (Jéssica)."
-      - name: vlr_carro
-        description: "Valor de mercado do carro segundo a Fipe"
 
-  - name: int_carteira
+  - name: int_carteira_investimentos
     description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas, carteira_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*) e para int_carteira_agregada, que alimenta os três carteira_*_agregada — materializado como table por ser fortemente reutilizado a jusante."
     columns:
       - name: mes_base
@@ -66,7 +17,7 @@ models:
         description: "Corretora/custodiante padronizada."
       - name: emissor
         description: "Instituição emissora do título (apenas renda fixa)."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC do emissor (apenas renda fixa)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA ou RENDA VARIAVEL)."
@@ -86,6 +37,8 @@ models:
         description: "Indexador de rentabilidade (apenas renda fixa)."
       - name: data_vencimento
         description: "Data de vencimento do título (apenas renda fixa)."
+      - name: fl_vencido
+        description: "TRUE quando data_vencimento já passou; FALSE quando ainda não venceu ou o título não tem vencimento; nulo nas posições de renda variável, que vêm sem a coluna."
       - name: vencimento_em_dias
         description: "Dias restantes até o vencimento (apenas renda fixa)."
       - name: vlr_atualizado_brl
@@ -97,83 +50,34 @@ models:
       - name: pessoa
         description: "Titular da posição (deusa, jessica ou lucas)."
 
-  - name: int_carteira_extra
+  - name: int_carteira_disponibilidades
     description: >
-      Disponibilidades em conta expostas no mesmo layout de int_carteira, para que os dois possam
-      ser unidos a jusante (carteira_lucas, carteira_jessica, carteira_deusa,
-      carteira_classificacao). Vêm de duas fontes: int_patrimonio_mensal (saldo Bradesco, cashback
-      Nubank, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica) e int_patrimonio_mensal_deusa
-      (Bradesco, Nubank, cashback Nubank e Banco do Brasil da Deusa). A camada usa o mesmo join
-      as-of (SCD2) contra stg_carteira_classificacao de int_carteira, com o mesmo fallback
-      'NAO CLASSIFICADO'.
-      PENDÊNCIA CONHECIDA: a intenção registrada era usar fallback 'RESERVA ESTRATEGICA' aqui, para
-      que saldo em conta — que tem camada natural — não aparecesse como pendência de classificação
-      na planilha. O SQL nunca implementou isso. Esta descrição documenta o comportamento real.
+      Tem o propósito de unificar saldos em conta corrente de Lucas, Deusa e Jéssica.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base do saldo (chave de junção com a dimensão de datas)."
-      - name: mes_final
-        description: "Último dia do mês de referência."
-      - name: trimestre
-        description: "Trimestre do ano de referência."
-      - name: ano
-        description: "Ano de referência."
       - name: instituicao
         description: "Instituição onde o saldo é mantido (BRADESCO, NUBANK, WISE, AUTOCUSTODIA ou BANCO DO BRASIL)."
       - name: emissor
         description: "Sempre nulo — não se aplica a disponibilidades."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC quando o saldo está em banco (BRADESCO, NUBANK, BANCO DO BRASIL); nulo para Wise e autocustódia."
       - name: classe_ativo
         description: "Sempre 'DISPONIBILIDADE'."
-      - name: tipo_ativo
-        description: "Sempre 'CONTA CORRENTE'."
-      - name: camada
-        description: "Camada de alocação vigente, resolvida por join as-of contra stg_carteira_classificacao na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao); 'NAO CLASSIFICADO' enquanto não houver classificação manual na planilha."
       - name: ativo
         description: "Sempre 'SALDO EM CONTA' — as linhas se distinguem por pessoa + instituicao."
-      - name: indexador
-        description: "'TIR' para as contas remuneradas de banco (Bradesco, Banco do Brasil); nulo para Nubank, Wise e bitcoin, salvo se preenchido na planilha de classificação."
-      - name: data_vencimento
-        description: "Sempre nulo — não se aplica a disponibilidades."
-      - name: vencimento_em_dias
-        description: "Sempre nulo — não se aplica a disponibilidades."
       - name: vlr_atualizado_brl
         description: "Saldo do mês, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do saldo (BRL, USD ou BTC)."
-      - name: fl_mes_atual
-        description: "Indica se a linha pertence ao mês-base mais recente disponível na fonte de patrimônio (herdado de int_patrimonio_mensal / int_patrimonio_mensal_deusa — pode divergir do fl_mes_atual de int_carteira se as fontes estiverem dessincronizadas)."
       - name: pessoa
         description: "Titular do saldo (deusa, jessica ou lucas)."
 
-  - name: int_carteira_usd
-    description: >
-      Posição na Avenue em moeda original, no grão mês x pessoa: soma o market_value de stg_assets
-      com o líquido de stg_dividends_interest do período. Reatribui para a Deusa os papéis que ficam
-      registrados na conta do Lucas (TFLO, GOVT e US TREASURY) antes de agregar. Consumido por
-      int_carteira_agregada, que o junta DEPOIS da agregação — o grão único abaixo é o que garante
-      que esse join seja 1:1.
-    columns:
-      - name: period_start
-        description: "Primeiro dia do mês da posição; equivale ao mes_base dos demais modelos de carteira."
-      - name: period_end
-        description: "Último dia do período do extrato da Avenue."
-      - name: pessoa
-        description: "Titular da posição depois da reatribuição dos papéis da Deusa (deusa, jessica ou lucas)."
-      - name: vlr_liquido_usd
-        description: "Posição em dólares no mês, arredondada para inteiro."
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - period_start
-              - pessoa
 
   - name: int_carteira_agregada
     description: >
       Carteira agregada no grão mês x pessoa, com uma coluna por instituição gerada por
-      dbt_utils.pivot a partir da união das instituições de int_carteira e int_carteira_extra.
+      dbt_utils.pivot a partir da união das instituições de int_carteira e int_carteira_disponibilidades.
       Base única dos três marts carteira_*_agregada, que passaram a ser apenas um filtro por
       pessoa sobre este modelo — instituição nova vira coluna e entra nos totais sem edição
       manual. Materializado como table (foge do default view do intermediate) porque os três
@@ -191,7 +95,7 @@ models:
       - name: total_investido
         description: "Soma das posições vindas de int_carteira no mês. É a métrica que os marts carteira_*_agregada sempre expuseram — o corte é por modelo de origem, não por classe_ativo, então as poucas linhas 'DISPONIBILIDADE' que int_carteira herda de int_renda_variavel (tipo_ativo CONTA CORRENTE) continuam aqui dentro."
       - name: total_disponibilidades
-        description: "Soma das posições vindas de int_carteira_extra no mês: saldo em conta Bradesco/Nubank/Wise/autocustódia do Lucas, Banco do Brasil da Jéssica, e Bradesco/Nubank/Banco do Brasil da Deusa."
+        description: "Soma das posições vindas de int_carteira_disponibilidades no mês: saldo em conta Bradesco/Nubank/Wise/autocustódia do Lucas, Banco do Brasil da Jéssica, e Bradesco/Nubank/Banco do Brasil da Deusa."
       - name: total_geral
         description: "total_investido + total_disponibilidades. Equivale à soma de todas as colunas por instituição."
         data_tests:
@@ -332,12 +236,9 @@ models:
       - name: pessoa
         description: "Titular do consolidado (lucas ou jessica)."
 
-  - name: int_renda_fixa
+  - name: int_renda_fixa_loop
     description: >
-      Consolida posições de renda fixa (renda fixa B3, tesouro direto, Avenue e faltantes) por
-      mês-base e pessoa, padronizando instituição e somando o valor atualizado. A renda fixa da
-      Avenue entra por asset_class, sem filtro por pessoa: os títulos registrados na conta do Lucas
-      são reatribuídos à Deusa no CASE de stg_assets, que é o único lugar onde essa regra mora.
+      Fim do loop de preenchimento dos investimentos faltantes por mês-base e pessoa.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."
@@ -347,12 +248,12 @@ models:
         description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, DAYCOVAL, AVENUE)."
       - name: emissor
         description: "Instituição emissora do título, normalizada."
-      - name: conglomerado
-        description: "Conglomerado financeiro FGC do emissor (via de-para)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA)."
       - name: tipo_ativo
         description: "Tipo do ativo (TÍTULO PÚBLICO ou TÍTULO PRIVADO)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ISIN do tesouro, CUSIP da Avenue, código do papel na B3 ou da seed)."
       - name: ativo
         description: "Nome/identificação do ativo (com ano de vencimento para títulos privados)."
       - name: indexador
@@ -362,9 +263,87 @@ models:
       - name: data_vencimento
         description: "Data de vencimento do título."
       - name: vencimento_em_dias
-        description: "Dias restantes até o vencimento a partir da data atual (nulo se já vencido)."
+        description: "Dias restantes até o vencimento a partir da data atual; nulo se já vencido ou sem vencimento."
+      - name: fl_vencido
+        description: "TRUE quando data_vencimento já passou; FALSE quando ainda não venceu OU quando a seed não traz vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, somado por grupo, em reais."
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
+
+  - name: int_renda_fixa_incompleta
+    description: >
+      Conforma os investimentos em renda-fixa das fontes automatizadas (renda fixa B3, tesouro
+      direto e Avenue), antes do complemento manual de int_renda_fixa_loop. Layout idêntico ao
+      do loop — int_renda_fixa une os dois por posição.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, DAYCOVAL, AVENUE)."
+      - name: emissor
+        description: "Instituição emissora do título, normalizada."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (TÍTULO PÚBLICO ou TÍTULO PRIVADO)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ISIN do tesouro, CUSIP da Avenue, código do papel na B3 ou da seed)."
+      - name: ativo
+        description: "Nome/identificação do ativo (com ano de vencimento para títulos privados)."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
+      - name: data_emissao
+        description: "Data de emissão do título."
+      - name: data_vencimento
+        description: "Data de vencimento do título."
+      - name: vencimento_em_dias
+        description: "Dias restantes até o vencimento a partir da data atual; nulo se já vencido ou sem vencimento."
+      - name: fl_vencido
+        description: "TRUE quando data_vencimento já passou; FALSE quando ainda não venceu OU quando o título não tem vencimento (Avenue)."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
+
+
+  - name: int_renda_fixa
+    description: >
+      Consolida posições de renda fixa (renda fixa B3, tesouro direto, Avenue) com o resultado do loop 
+      de faltantes por mês-base e pessoa.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, DAYCOVAL, AVENUE)."
+      - name: emissor
+        description: "Instituição emissora do título, normalizada."
+      - name: conglomerado_fgc
+        description: "Conglomerado financeiro FGC do emissor (via de-para)."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (TÍTULO PÚBLICO ou TÍTULO PRIVADO)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ISIN do tesouro, CUSIP da Avenue, código do papel na B3 ou da seed)."
+      - name: ativo
+        description: "Nome/identificação do ativo (com ano de vencimento para títulos privados)."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
+      - name: data_emissao
+        description: "Data de emissão do título."
+      - name: data_vencimento
+        description: "Data de vencimento do título."
+      - name: vencimento_em_dias
+        description: "Dias restantes até o vencimento a partir da data atual; nulo se já vencido ou sem vencimento."
+      - name: fl_vencido
+        description: "TRUE quando data_vencimento já passou; FALSE quando ainda não venceu OU quando o título não tem vencimento (Avenue)."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
 
@@ -389,11 +368,11 @@ models:
       - name: ativo
         description: "Ticker/identificação do ativo."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, somado por grupo, em reais."
+        description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
 
-  - name: int_renda_passiva
+  - name: int_dividendos
     description: "Consolida a renda passiva (proventos B3 exceto juros e dividendos da Avenue) por mês-base e pessoa, padronizando instituição e somando o valor líquido."
     columns:
       - name: mes_base
