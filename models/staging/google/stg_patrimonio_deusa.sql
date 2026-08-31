@@ -39,7 +39,19 @@ renamed AS (
         REGEXP_REPLACE(nubank_investimentos, '[^0-9]', '', 'g')::INT   AS saldo_nubank_investimentos_deusa,
         REGEXP_REPLACE(nubank_cashback, '[^0-9]', '', 'g')::INT        AS saldo_nubank_cashback_deusa
     FROM source
+),
+nulls_treated AS (
+    SELECT
+    mes_base,
+    COALESCE(total_patrimonio_liquido, 0) AS total_patrimonio_liquido,
+    COALESCE(saldo_banco_brasil_deusa, 0) AS saldo_banco_brasil_deusa,
+    COALESCE(saldo_banco_brasil_investimentos_deusa, 0) AS saldo_banco_brasil_investimentos_deusa,
+    COALESCE(saldo_bradesco_deusa, 0) AS saldo_bradesco_deusa,
+    COALESCE(saldo_bradesco_investimentos_deusa, 0) AS saldo_bradesco_investimentos_deusa,
+    COALESCE(saldo_nubank_deusa, 0) AS saldo_nubank_deusa,
+    COALESCE(saldo_nubank_investimentos_deusa, 0) AS saldo_nubank_investimentos_deusa,
+    COALESCE(saldo_nubank_cashback_deusa, 0) AS saldo_nubank_cashback_deusa
+    FROM renamed
 )
 
-SELECT * FROM renamed
-WHERE mes_base > '2023-08-01'
+SELECT * FROM nulls_treated

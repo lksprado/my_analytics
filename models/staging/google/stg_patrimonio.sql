@@ -81,6 +81,39 @@ renamed AS (
         REPLACE("selic_acum.", ',', '.')::NUMERIC(18, 3)               AS selic_acum,
         REPLACE("cdi_acum.", ',', '.')::NUMERIC(18, 3)                 AS cdi_acum
     FROM source
+),
+nulls_treated AS (
+    SELECT
+mes_base,
+COALESCE(total_patrimonio_bruto,0) AS total_patrimonio_bruto,
+COALESCE(total_patrimonio_liquido,0) AS total_patrimonio_liquido,
+COALESCE(patrimonio_liquido_lucas,0) AS patrimonio_liquido_lucas,
+COALESCE(saldo_bradesco_lucas,0) AS saldo_bradesco_lucas,
+COALESCE(saldo_bradesco_investimentos_lucas,0) AS saldo_bradesco_investimentos_lucas,
+COALESCE(saldo_nubank_investimentos_lucas,0) AS saldo_nubank_investimentos_lucas,
+COALESCE(saldo_nubank_cashback_lucas,0) AS saldo_nubank_cashback_lucas,
+COALESCE(saldo_bitcoin_lucas,0) AS saldo_bitcoin_lucas,
+COALESCE(saldo_daycoval_lucas,0) AS saldo_daycoval_lucas,
+COALESCE(saldo_avenue_lucas,0) AS saldo_avenue_lucas,
+COALESCE(saldo_wise_lucas,0) AS saldo_wise_lucas,
+COALESCE(patrimonio_liquido_jessica,0) AS patrimonio_liquido_jessica,
+COALESCE(saldo_banco_brasil_jessica,0) AS saldo_banco_brasil_jessica,
+COALESCE(saldo_sofisa_investimentos_jessica,0) AS saldo_sofisa_investimentos_jessica,
+COALESCE(saldo_itau_investimentos_jessica,0) AS saldo_itau_investimentos_jessica,
+COALESCE(saldo_nubank_investimentos_jessica,0) AS saldo_nubank_investimentos_jessica,
+COALESCE(saldo_avenue_jessica,0) AS saldo_avenue_jessica,
+COALESCE(vlr_carro,0) AS vlr_carro,
+COALESCE(minha_inflacao,0) AS minha_inflacao,
+COALESCE(ipca,0) AS ipca,
+COALESCE(igpm,0) AS igpm,
+COALESCE(selic,0) AS selic,
+COALESCE(cdi,0) AS cdi,
+COALESCE(minha_inflacao_acum,0) AS minha_inflacao_acum,
+COALESCE(ipca_acum,0) AS ipca_acum,
+COALESCE(igpm_acum,0) AS igpm_acum,
+COALESCE(selic_acum,0) AS selic_acum,
+COALESCE(cdi_acum,0) AS cdi_acum
+FROM renamed
 )
 
 SELECT * FROM renamed

@@ -17,14 +17,15 @@ source AS (
 
 renamed AS (
     SELECT
+        TO_DATE(mes_base, 'YYYY-MM-DD') AS mes_base,
         pessoa,
-        ativo,
-        indexador,
-        classe_ativo,
-        tipo_ativo,
         instituicao,
-        camada,
-        TO_DATE(mes_base, 'YYYY-MM-DD') AS mes_base
+        classe_ativo,
+        codigo_ativo,
+        ativo,
+        data_vencimento,
+        moeda_ativo,
+        camada
     FROM source
 )
 
