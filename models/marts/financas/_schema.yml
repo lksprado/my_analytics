@@ -24,7 +24,7 @@ models:
         description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, DAYCOVAL, AVENUE, WISE, AUTOCUSTODIA)."
       - name: emissor
         description: "Instituição emissora do título (apenas renda fixa; nulo em renda variável e disponibilidades)."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC do emissor (apenas renda fixa e conta corrente de banco; nulo nos demais)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
@@ -70,7 +70,7 @@ models:
         description: "Corretora/custodiante padronizada."
       - name: emissor
         description: "Instituição emissora do título (apenas renda fixa)."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC do emissor (apenas renda fixa e conta corrente de banco)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
@@ -117,7 +117,7 @@ models:
         description: "Corretora/custodiante padronizada."
       - name: emissor
         description: "Instituição emissora do título (apenas renda fixa)."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC do emissor (apenas renda fixa e conta corrente de banco)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
@@ -321,7 +321,7 @@ models:
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base avaliado (mês atual da carteira)."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC avaliado."
       - name: vlr_liberado
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
@@ -335,7 +335,7 @@ models:
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base avaliado (mês atual da carteira)."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC avaliado."
       - name: vlr_liberado
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
@@ -349,7 +349,7 @@ models:
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base avaliado (mês atual da carteira)."
-      - name: conglomerado
+      - name: conglomerado_fgc
         description: "Conglomerado financeiro FGC avaliado."
       - name: vlr_liberado
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
@@ -364,7 +364,7 @@ models:
       - name: emissor
         description: "Emissor de renda fixa sem conglomerado FGC associado."
       - name: conglomerado
-        description: "Conglomerado FGC (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
+        description: "Conglomerado FGC vindo de stg_de_para_instituicoes_fgc (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 

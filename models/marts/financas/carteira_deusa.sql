@@ -16,7 +16,7 @@ unioned AS (
         ano,
         instituicao,
         emissor,
-        conglomerado,
+        conglomerado_fgc,
         classe_ativo,
         tipo_ativo,
         camada,
@@ -39,7 +39,7 @@ unioned AS (
         ano,
         instituicao,
         emissor,
-        conglomerado,
+        conglomerado_fgc,
         classe_ativo,
         tipo_ativo,
         camada,
@@ -51,7 +51,7 @@ unioned AS (
         moeda_ativo,
         fl_mes_atual,
         pessoa
-    FROM {{ ref('int_carteira_extra') }}
+    FROM {{ ref('int_carteira_disponibilidades') }}
 )
 select
     unioned.*,

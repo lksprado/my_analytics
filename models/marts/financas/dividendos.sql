@@ -17,7 +17,7 @@ datas AS (
 
 pessoas AS (
     SELECT DISTINCT pessoa
-    FROM {{ ref('int_renda_passiva') }}
+    FROM {{ ref('int_dividendos') }}
 ),
 
 dividendos AS (
@@ -25,7 +25,7 @@ dividendos AS (
         mes_base,
         pessoa,
         SUM(vlr_liquido_brl) AS vlr_liquido_brl
-    FROM {{ ref('int_renda_passiva') }}
+    FROM {{ ref('int_dividendos') }}
     GROUP BY 1, 2
 ),
 

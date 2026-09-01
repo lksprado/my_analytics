@@ -4,7 +4,6 @@
   )
 }}
 
-
 WITH
 lucas AS (
     SELECT * FROM {{ ref('stg_luc_consolidado') }}
@@ -25,7 +24,10 @@ unioned AS (
 ),
 
 joined AS (
-    SELECT 
+    SELECT
+        u.mes_fatura,
+        u.mes_debito,
+        u.pessoa,
         u.salario,
         u.dividendos,
         u.outros,
@@ -40,17 +42,12 @@ joined AS (
         u.saude,
         u.educacao,
         u.despesas_total,
-        u.resultado,
-        u.pessoa,
-        u.mes_fatura,
-        u.mes_debito  
-    
-    FROM unioned u
-    LEFT JOIN ajuste a 
-    ON u.mes_debito = a.mes
-    AND u.pessoa = a.pessoa
+        u.resultado
+    FROM unioned AS u
+    LEFT JOIN ajuste AS a
+        ON u.mes_debito = a.mes
+        AND u.pessoa = a.pessoa
 )
 
 SELECT * FROM joined
-ORDER BY
-    mes_debito, pessoa
+ORDER BY mes_debito, pessoa

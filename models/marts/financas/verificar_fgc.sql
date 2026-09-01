@@ -13,7 +13,7 @@ tb AS (
     SELECT DISTINCT
         t1.emissor,
         t2.conglomerado
-    FROM {{ ref('int_renda_fixa') }} AS t1
+    FROM {{ ref('int_renda_fixa_incompleta') }} AS t1
     LEFT JOIN {{ ref('stg_de_para_instituicoes_fgc') }} AS t2
         ON t1.emissor = t2.instituicao
     WHERE

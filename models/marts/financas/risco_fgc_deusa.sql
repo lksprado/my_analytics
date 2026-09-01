@@ -9,7 +9,7 @@ WITH
 carteira AS (
     SELECT
         mes_base,
-        conglomerado,
+        conglomerado_fgc,
         250000                  AS limite_fgc,
         SUM(vlr_atualizado_brl) AS total
     FROM {{ ref('int_carteira') }}
@@ -17,14 +17,15 @@ carteira AS (
         1 = 1
         AND pessoa = 'deusa'
         AND fl_mes_atual IS TRUE
-        AND conglomerado IS NOT NULL
+        AND conglomerado_fgc IS NOT NULL
+        AND conglomerado_fgc <> 'NAO APLICAVEL'
     GROUP BY 1, 2, 3
 ),
 
 calc AS (
     SELECT
         mes_base,
-        conglomerado,
+        conglomerado_fgc,
         limite_fgc - total AS vlr_liberado,
         CASE
             WHEN limite_fgc - total > 50000 THEN 'OK'

@@ -29,19 +29,19 @@ params AS (
 -- casar por posição já trocou camada por ativo em silêncio (ambas TEXT).
 carteira AS (
     SELECT
-        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado,
+        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
         classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
     FROM marts.carteira_lucas
     UNION ALL
     SELECT
-        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado,
+        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
         classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
     FROM marts.carteira_jessica
     UNION ALL
     SELECT
-        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado,
+        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
         classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
     FROM marts.carteira_deusa
@@ -311,7 +311,7 @@ b_posicoes AS (
     SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.vlr_atualizado_brl DESC), '[]'::json) AS j
     FROM (
         SELECT pessoa, camada, classe_ativo, tipo_ativo,
-               ativo, instituicao, emissor, conglomerado, indexador,
+               ativo, instituicao, emissor, conglomerado_fgc, indexador,
                data_vencimento, vencimento_em_dias, vlr_atualizado_brl, moeda_ativo
         FROM carteira_ref
     ) AS t

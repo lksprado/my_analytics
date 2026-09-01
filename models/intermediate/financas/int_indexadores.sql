@@ -4,9 +4,9 @@
   )
 }}
 
-WITH 
-ativos as (
-    SELECT 
+WITH
+indexadores AS (
+    SELECT
         mes_base,
         minha_inflacao,
         ipca,
@@ -20,4 +20,4 @@ ativos as (
         cdi_acum
     FROM {{ ref('stg_patrimonio') }}
 )
-select * from ativos
+SELECT * FROM indexadores

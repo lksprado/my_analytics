@@ -4,7 +4,6 @@
   )
 }}
 
-
 WITH
 lucas AS (
     SELECT * FROM {{ ref('stg_luc_contas') }}
@@ -18,8 +17,27 @@ unioned AS (
     SELECT * FROM lucas
     UNION ALL
     SELECT * FROM jessica
+),
+
+final AS (
+    SELECT
+        mes_fatura,
+        mes_debito,
+        pessoa,
+        data_debito,
+        nome_dia,
+        dia_ajustado,
+        dia_real,
+        mercado,
+        diversos,
+        assinaturas,
+        role,
+        transporte,
+        apartamento,
+        saude,
+        educacao
+    FROM unioned
 )
 
-SELECT * FROM unioned
-ORDER BY
-    mes_debito, pessoa
+SELECT * FROM final
+ORDER BY mes_debito, pessoa

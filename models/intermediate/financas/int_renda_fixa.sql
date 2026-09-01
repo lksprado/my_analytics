@@ -10,7 +10,7 @@ unioned AS (
     UNION ALL
     SELECT * FROM {{ ref('int_renda_fixa_loop') }}
 ),
-final as (
+final AS (
     SELECT
         t1.mes_base,
         t1.pessoa,
@@ -22,7 +22,7 @@ final as (
             WHEN t2.conglomerado IS NOT NULL
                 THEN t2.conglomerado
             ELSE 'NAO APLICAVEL'
-        END as conglomerado_fgc,
+        END AS conglomerado_fgc,
         t1.classe_ativo,
         t1.tipo_ativo,
         t1.codigo_ativo,
@@ -34,8 +34,8 @@ final as (
         t1.fl_vencido,
         t1.vlr_atualizado_brl,
         t1.moeda_ativo
-    FROM unioned t1
-    LEFT JOIN {{ ref('stg_de_para_instituicoes_fgc') }} t2
+    FROM unioned AS t1
+    LEFT JOIN {{ ref('stg_de_para_instituicoes_fgc') }} AS t2
     ON t1.emissor = t2.instituicao
 )
 

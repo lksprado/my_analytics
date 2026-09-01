@@ -7,39 +7,44 @@
 
 WITH
 unioned AS (
-  SELECT 
-    mes_base,
-    pessoa,
-    instituicao,
-    NULL::TEXT AS emissor,
-    conglomerado_fgc,
-    classe_ativo,
-    codigo_ativo,
-    ativo,
-    NULL::TEXT AS indexador,
-    vlr_atualizado_brl,
-    NULL::DATE AS data_vencimento,
-    NULL::INT AS vencimento_em_dias,
-    NULL::BOOLEAN AS fl_vencido,
-    moeda_ativo
-  FROM {{ ref('int_disponibilidades_isoladas')}}
-  UNION ALL
-  SELECT
-    mes_base,
-    pessoa,
-    instituicao,
-    emissor,
-    conglomerado_fgc,
-    classe_ativo,
-    codigo_ativo,
-    ativo,
-    indexador,
-    vlr_atualizado_brl,
-    data_vencimento,
-    vencimento_em_dias,
-    fl_vencido,
-    moeda_ativo
-  FROM {{ ref('int_renda_unificada')}}
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        NULL::TEXT    AS emissor,
+        conglomerado_fgc,
+        classe_ativo,
+        tipo_ativo,
+        codigo_ativo,
+        ativo,
+        NULL::TEXT    AS indexador,
+        NULL::DATE    AS data_vencimento,
+        NULL::INT     AS vencimento_em_dias,
+        NULL::BOOLEAN AS fl_vencido,
+        vlr_atualizado_brl,
+        moeda_ativo
+    FROM {{ ref('int_disponibilidades_isoladas') }}
+
+    UNION ALL
+
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        emissor,
+        conglomerado_fgc,
+        classe_ativo,
+        tipo_ativo,
+        codigo_ativo,
+        ativo,
+        indexador,
+        data_vencimento,
+        vencimento_em_dias,
+        fl_vencido,
+        vlr_atualizado_brl,
+        moeda_ativo
+    FROM {{ ref('int_renda_unificada') }}
 )
 
-select * from unioned
+SELECT * FROM unioned
+ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo

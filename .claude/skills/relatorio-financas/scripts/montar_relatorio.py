@@ -462,7 +462,7 @@ def bloco_riscos(d, pessoas):
          '<p class="sub">Garantia de R$ 250.000 por CPF e por conglomerado. '
          'A política exige folga mínima de R$ 50.000.</p>',
          tabela(["Titular", "Conglomerado", "Valor coberto restante", "Situação"],
-                [[NOME[f["pessoa"]], f["conglomerado"].title(),
+                [[NOME[f["pessoa"]], f["conglomerado_fgc"].title(),
                   brl(f["vlr_liberado"]), tag_risco(f["risco_fgc"])] for f in fgc],
                 None, ["l", "l", "n", "l"])]
     h.append("<h3>Vencimentos nos próximos 12 meses</h3>")

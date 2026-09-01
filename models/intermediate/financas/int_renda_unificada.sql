@@ -5,30 +5,31 @@
   )
 }}
 
-
 WITH
 variavel AS (
     SELECT
+        mes_base,
+        pessoa,
         instituicao,
-        NULL::TEXT AS emissor,
-        NULL::TEXT AS conglomerado_fgc,
+        NULL::TEXT    AS emissor,
+        NULL::TEXT    AS conglomerado_fgc,
         classe_ativo,
         tipo_ativo,
         codigo_ativo,
         ativo,
-        NULL::TEXT AS indexador,
-        NULL::DATE AS data_vencimento,
-        NULL::INT AS vencimento_em_dias,
+        NULL::TEXT    AS indexador,
+        NULL::DATE    AS data_vencimento,
+        NULL::INT     AS vencimento_em_dias,
         NULL::BOOLEAN AS fl_vencido,
         vlr_atualizado_brl,
-        moeda_ativo,
-        mes_base,
-        pessoa
+        moeda_ativo
     FROM {{ ref('int_renda_variavel') }}
 ),
 
 fixa AS (
     SELECT
+        mes_base,
+        pessoa,
         instituicao,
         emissor,
         conglomerado_fgc,
@@ -41,9 +42,7 @@ fixa AS (
         vencimento_em_dias,
         fl_vencido,
         vlr_atualizado_brl,
-        moeda_ativo,
-        mes_base,
-        pessoa
+        moeda_ativo
     FROM {{ ref('int_renda_fixa') }}
 ),
 

@@ -5,13 +5,6 @@
 }}
 
 WITH
-usd AS (
-    SELECT
-        data_referencia,
-        vlr_usd
-    FROM {{ ref('stg_usd') }}
-),
-
 avenue AS (
     SELECT
         period_start                       AS mes_base,

@@ -80,8 +80,8 @@ final AS (
             data_vencimento IS NOT NULL
             AND data_vencimento < CURRENT_DATE
         )                        AS fl_vencido,
-        moeda_ativo,
-        vlr_atualizado_brl
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM unioned
 )
 
