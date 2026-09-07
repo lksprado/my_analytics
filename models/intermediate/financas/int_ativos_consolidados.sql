@@ -22,7 +22,8 @@ unioned AS (
         NULL::INT     AS vencimento_em_dias,
         NULL::BOOLEAN AS fl_vencido,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        fonte_dado
     FROM {{ ref('int_disponibilidades_isoladas') }}
 
     UNION ALL
@@ -42,7 +43,8 @@ unioned AS (
         vencimento_em_dias,
         fl_vencido,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        fonte_dado
     FROM {{ ref('int_renda_unificada') }}
 )
 

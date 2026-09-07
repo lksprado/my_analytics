@@ -13,7 +13,8 @@ avenue AS (
         'ACAO'                                               AS tipo_ativo,
         symbol_cusip                                         AS codigo_ativo,
         (market_value::INT * vlr_usd)::INT                   AS vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'AVENUE'                                             AS fonte_dado
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -28,7 +29,8 @@ acoes AS (
         'ACAO' AS tipo_ativo,
         codigo_ativo,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'B3'   AS fonte_dado
     FROM {{ ref('stg_acoes') }}
 ),
 
@@ -40,7 +42,8 @@ bdr AS (
         'ACAO' AS tipo_ativo,
         codigo_ativo,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'B3'   AS fonte_dado
     FROM {{ ref('stg_bdr') }}
 ),
 
@@ -52,7 +55,8 @@ etf AS (
         'FUNDO' AS tipo_ativo,
         codigo_ativo,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'B3'    AS fonte_dado
     FROM {{ ref('stg_etf') }}
 ),
 
@@ -64,7 +68,8 @@ fundos AS (
         'FUNDO' AS tipo_ativo,
         codigo_ativo,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'B3'    AS fonte_dado
     FROM {{ ref('stg_fundos') }}
 ),
 
@@ -90,9 +95,10 @@ final AS (
         codigo_ativo,
         codigo_ativo                               AS ativo,
         SUM(vlr_atualizado_brl)::INT               AS vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        fonte_dado
     FROM unioned
-    GROUP BY 1, 2, 3, 4, 5, 6, 7, 9
+    GROUP BY 1, 2, 3, 4, 5, 6, 7, 9, 10
 )
 
 SELECT * FROM final

@@ -38,6 +38,8 @@ models:
         description: "Valor atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
 
   - name: int_renda_unificada
     description: >
@@ -74,6 +76,8 @@ models:
         description: "Valor atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
 
   - name: int_disponibilidades_isoladas
     description: >
@@ -101,6 +105,8 @@ models:
         description: "Valor atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
 
   - name: int_renda_fixa
     description: >
@@ -140,6 +146,8 @@ models:
         description: "Valor atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
 
   - name: int_renda_fixa_incompleta
     description: >
@@ -177,6 +185,8 @@ models:
         description: "Valor atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
 
   - name: int_renda_fixa_loop
     description: >
@@ -213,6 +223,8 @@ models:
         description: "Valor atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
 
   - name: int_renda_variavel
     description: >
@@ -237,6 +249,8 @@ models:
         description: "Valor atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
 
   - name: int_dividendos
     description: >

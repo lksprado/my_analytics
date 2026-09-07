@@ -25,7 +25,8 @@ ativos_saldo_avenue AS (
         END                                AS codigo_ativo,
         'SALDO EM CONTA'                   AS ativo,
         (market_value::INT * vlr_usd)::INT AS vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'AVENUE'                           AS fonte_dado
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -43,7 +44,8 @@ ativos_bradesco_lucas AS (
         'BRDCONTALCS'        AS codigo_ativo,
         'SALDO EM CONTA'     AS ativo,
         saldo_bradesco_lucas AS vlr_atualizado_brl,
-        'BRL'                AS moeda_ativo
+        'BRL'                AS moeda_ativo,
+        'PLANILHA GOOGLE'    AS fonte_dado
     FROM {{ ref('stg_patrimonio') }}
 ),
 
@@ -58,7 +60,8 @@ ativos_bradesco_deusa AS (
         'BRDCONTADEU'        AS codigo_ativo,
         'SALDO EM CONTA'     AS ativo,
         saldo_bradesco_deusa AS vlr_atualizado_brl,
-        'BRL'                AS moeda_ativo
+        'BRL'                AS moeda_ativo,
+        'PLANILHA GOOGLE'    AS fonte_dado
     FROM {{ ref('stg_patrimonio_deusa') }}
 ),
 
@@ -73,7 +76,8 @@ ativos_nubank_deusa AS (
         'NUBCONTADEU'      AS codigo_ativo,
         'SALDO EM CONTA'   AS ativo,
         saldo_nubank_deusa AS vlr_atualizado_brl,
-        'BRL'              AS moeda_ativo
+        'BRL'              AS moeda_ativo,
+        'PLANILHA GOOGLE'  AS fonte_dado
     FROM {{ ref('stg_patrimonio_deusa') }}
 ),
 
@@ -88,7 +92,8 @@ ativos_cashback_lucas AS (
         'NUBCASHLCS'                AS codigo_ativo,
         'SALDO EM CONTA'            AS ativo,
         saldo_nubank_cashback_lucas AS vlr_atualizado_brl,
-        'BRL'                       AS moeda_ativo
+        'BRL'                       AS moeda_ativo,
+        'PLANILHA GOOGLE'           AS fonte_dado
     FROM {{ ref('stg_patrimonio') }}
 ),
 
@@ -103,7 +108,8 @@ ativos_cashback_deusa AS (
         'NUBCASHDEU'                AS codigo_ativo,
         'SALDO EM CONTA'            AS ativo,
         saldo_nubank_cashback_deusa AS vlr_atualizado_brl,
-        'BRL'                       AS moeda_ativo
+        'BRL'                       AS moeda_ativo,
+        'PLANILHA GOOGLE'           AS fonte_dado
     FROM {{ ref('stg_patrimonio_deusa') }}
 ),
 
@@ -118,7 +124,8 @@ ativos_wise_lucas AS (
         'WISCONTALCS'     AS codigo_ativo,
         'SALDO EM CONTA'  AS ativo,
         saldo_wise_lucas  AS vlr_atualizado_brl,
-        'USD'             AS moeda_ativo
+        'USD'             AS moeda_ativo,
+        'PLANILHA GOOGLE' AS fonte_dado
     FROM {{ ref('stg_patrimonio') }}
 ),
 
@@ -133,7 +140,8 @@ ativos_bitcoin_lucas AS (
         'BTCCONTALCS'       AS codigo_ativo,
         'SALDO EM CONTA'    AS ativo,
         saldo_bitcoin_lucas AS vlr_atualizado_brl,
-        'BTC'               AS moeda_ativo
+        'BTC'               AS moeda_ativo,
+        'PLANILHA GOOGLE'   AS fonte_dado
     FROM {{ ref('stg_patrimonio') }}
 ),
 
@@ -148,7 +156,8 @@ ativos_bb_jessica AS (
         'BBCONTAJSS'               AS codigo_ativo,
         'SALDO EM CONTA'           AS ativo,
         saldo_banco_brasil_jessica AS vlr_atualizado_brl,
-        'BRL'                      AS moeda_ativo
+        'BRL'                      AS moeda_ativo,
+        'PLANILHA GOOGLE'          AS fonte_dado
     FROM {{ ref('stg_patrimonio') }}
 ),
 
@@ -163,7 +172,8 @@ ativos_bb_deusa AS (
         'BBCONTADEU'             AS codigo_ativo,
         'SALDO EM CONTA'         AS ativo,
         saldo_banco_brasil_deusa AS vlr_atualizado_brl,
-        'BRL'                    AS moeda_ativo
+        'BRL'                    AS moeda_ativo,
+        'PLANILHA GOOGLE'        AS fonte_dado
     FROM {{ ref('stg_patrimonio_deusa') }}
 ),
 

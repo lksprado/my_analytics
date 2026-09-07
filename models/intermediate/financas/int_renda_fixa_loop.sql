@@ -19,7 +19,8 @@ unioned AS (
         data_emissao,
         data_vencimento,
         moeda_ativo,
-        vlr_atualizado_brl
+        vlr_atualizado_brl,
+        'SEED' AS fonte_dado
     FROM {{ ref('stg_investimentos_faltantes_lucas') }}
 
     UNION ALL
@@ -37,7 +38,8 @@ unioned AS (
         data_emissao,
         data_vencimento,
         moeda_ativo,
-        vlr_atualizado_brl
+        vlr_atualizado_brl,
+        'SEED' AS fonte_dado
     FROM {{ ref('stg_investimentos_faltantes_jessica') }}
 
     UNION ALL
@@ -55,7 +57,8 @@ unioned AS (
         data_emissao,
         data_vencimento,
         moeda_ativo,
-        vlr_atualizado_brl
+        vlr_atualizado_brl,
+        'SEED' AS fonte_dado
     FROM {{ ref('stg_investimentos_faltantes_deusa') }}
 ),
 
@@ -81,7 +84,8 @@ final AS (
             AND data_vencimento < CURRENT_DATE
         )                        AS fl_vencido,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        fonte_dado
     FROM unioned
 )
 

@@ -29,6 +29,7 @@ SELECT
     fl_vencido,
     vlr_atualizado_brl,
     moeda_ativo,
+    fonte_dado,
     fl_mes_atual,
     CURRENT_TIMESTAMP AS model_updated_at
 FROM {{ ref('carteira') }}

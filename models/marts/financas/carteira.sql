@@ -16,6 +16,12 @@
     camada                        classificação manual lida da planilha
     fl_mes_atual                  a posição pertence ao mês mais recente?
 
+  fonte_dado NÃO nasce aqui: é atribuído lá atrás, no CTE-folha de cada ramo do
+  intermediate (B3, AVENUE, PLANILHA GOOGLE ou SEED), porque depois do UNION ALL
+  a origem já não é recuperável. Aqui ele só é carregado adiante. Serve para
+  separar o que uma extração traz do que é digitado à mão, e para distinguir
+  "a extração não rodou" de "a posição sumiu".
+
   Feito uma vez só. Os três carteira_<pessoa>, os três risco_fgc_<pessoa>,
   carteira_agregada, carteira_classificacao e ativos_sem_classificacao são todos
   recortes deste modelo — antes o mesmo LATERAL de camada estava copiado em dois
@@ -77,6 +83,7 @@ final AS (
         t1.fl_vencido,
         t1.vlr_atualizado_brl,
         t1.moeda_ativo,
+        t1.fonte_dado,
         t1.mes_base = MAX(t1.mes_base) OVER () AS fl_mes_atual
     FROM posicoes AS t1
     INNER JOIN datas AS t2

@@ -22,7 +22,8 @@ avenue AS (
         NULL::DATE             AS data_emissao,
         NULL::DATE             AS data_vencimento,
         market_value * vlr_usd AS vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'AVENUE'               AS fonte_dado
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -76,7 +77,8 @@ b3 AS (
         data_emissao,
         data_vencimento,
         COALESCE(vlr_atualizado_curva, vlr_atualizado_mtm)                                                                      AS vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'B3'                                                                                                                    AS fonte_dado
     FROM {{ ref('stg_renda_fixa') }}
 ),
 
@@ -93,7 +95,8 @@ b3_td AS (
         NULL::DATE                       AS data_emissao,
         data_vencimento,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        'B3'                             AS fonte_dado
     FROM {{ ref('stg_tesouro_direto') }}
 ),
 unioned AS (
@@ -141,7 +144,8 @@ final AS (
             O cast fica aqui, no CTE onde os três ramos convergem, e não em cada
             um deles. ::INT arredonda (não trunca), que é o que se quer. -#}
         vlr_atualizado_brl::INT AS vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        fonte_dado
     FROM unioned
     WHERE vlr_atualizado_brl IS NOT NULL
 )

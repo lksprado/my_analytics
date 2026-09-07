@@ -549,3 +549,38 @@ O dia usado é o **`dia_fatura`** (o `dia_ajustado` da planilha), nunca o dia do
 calendário — ver `ciclo_fatura`. É o que torna dois meses comparáveis dia a dia.
 
 {% enddocs %}
+
+{% docs fonte_dado %}
+
+**Procedência da linha** — de qual extração veio o valor da posição.
+
+A carteira é uma união de fontes que não têm a mesma confiabilidade nem a mesma
+cadência de atualização, e depois do `UNION ALL` isso ficava indistinguível.
+`fonte_dado` é atribuído no CTE-folha de cada ramo, onde a origem ainda é
+conhecida, e viaja intacto por `int_renda_variavel` / `int_renda_fixa_incompleta`
+/ `int_renda_fixa_loop` / `int_disponibilidades_isoladas` →
+`int_ativos_consolidados` → `marts.carteira` e seus recortes por pessoa.
+
+| Valor | Origem | Modelos de staging |
+|---|---|---|
+| `B3` | Relatório da B3 (CEI) | `stg_acoes`, `stg_bdr`, `stg_etf`, `stg_fundos`, `stg_renda_fixa`, `stg_tesouro_direto` |
+| `AVENUE` | Extrato da Avenue (broker no exterior) | `stg_assets` |
+| `PLANILHA GOOGLE` | Aba de patrimônio da planilha | `stg_patrimonio`, `stg_patrimonio_deusa` |
+| `SEED` | Seeds de investimentos faltantes, cadastradas à mão | `stg_investimentos_faltantes_lucas` / `_jessica` / `_deusa` |
+
+Duas leituras que a coluna habilita e antes exigiam abrir o SQL:
+
+1. **Quanto da carteira é digitado à mão.** `SEED` e `PLANILHA GOOGLE` são
+   cadastro manual — não se atualizam sozinhos e envelhecem em silêncio. São eles
+   que explicam boa parte da divergência entre `marts.carteira_deusa` e
+   `marts.patrimonio_deusa` (as seeds itemizadas e a Avenue, que não tem coluna
+   na planilha dela).
+2. **O que se perde se uma extração falhar.** Um mês sem linhas `B3` ou sem
+   linhas `AVENUE` é uma extração que não rodou, não um resgate.
+
+Cuidado com um caso: em `int_renda_variavel` a coluna entra no `GROUP BY` junto
+com pessoa, instituição e ativo. Hoje isso não muda o grão, porque cada
+instituição tem uma fonte só — B3 e Avenue nunca custodiam o mesmo ativo do mesmo
+titular. Se um dia custodiarem, a mesma posição passa a aparecer em duas linhas.
+
+{% enddocs %}
