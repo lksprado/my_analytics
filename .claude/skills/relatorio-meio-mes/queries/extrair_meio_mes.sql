@@ -390,22 +390,24 @@ b_riqueza AS (
 -- Duas fontes com totais próprios, e por isso conciliadas explicitamente no
 -- bloco `b_deusa_conciliacao`:
 --
---   marts.carteira_deusa           grão de ativo; é o que dá classe,
---                                  indexador e a quebra por instituição
---   int_patrimonio_mensal_deusa    a planilha dela; é o que alimenta o índice
---                                  de `riqueza` exibido na mesma seção
+--   marts.carteira_deusa    grão de ativo; é o que dá classe, indexador e a
+--                           quebra por instituição
+--   marts.patrimonio_deusa  a planilha dela; é o que alimenta o índice de
+--                           `riqueza` exibido na mesma seção
 --
 -- Em 07/2026 os dois totais diferem em R$ 2, mas em 12/2024 diferiam em R$ 60
 -- mil. Exibir um número de cada fonte na mesma página sem mostrar a diferença
--- é o modo de o relatório mentir sem errar nenhuma conta. O intermediate é
--- lido direto porque nenhum mart expõe o nível do patrimônio de Deusa —
--- `riqueza` carrega só o índice e `marts.patrimonio` não tem coluna dela.
+-- é o modo de o relatório mentir sem errar nenhuma conta. `patrimonio_deusa`
+-- existe justamente para isso: `riqueza` carrega só o índice e
+-- `marts.patrimonio` é o patrimônio do casal, sem coluna dela.
 
 -- A série e a composição saem as duas de `carteira_deusa`, no grão de ativo.
--- `carteira_deusa_agregada` traria a série pronta, mas o `total_disponibilidades`
--- dela não bate com o que a classe DISPONIBILIDADE soma na carteira (R$ 259 de
--- diferença em 07/2026, com o total geral idêntico): são dois critérios de
--- corte para a mesma fronteira. Uma seção, uma definição.
+-- `carteira_deusa_agregada` traria a série pronta e hoje concordaria: desde que
+-- carteira_agregada passou a cortar disponível/investido por classe_ativo (e não
+-- pelo modelo de origem), o `total_disponibilidades` dela é a mesma fronteira
+-- que a classe DISPONIBILIDADE soma aqui — a divergência de R$ 259 que havia em
+-- 07/2026 desapareceu. Manter o grão de ativo mesmo assim, porque é dele que
+-- saem a classe e a quebra por instituição da mesma seção.
 b_deusa_evolucao AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
@@ -499,7 +501,7 @@ b_deusa_conciliacao AS (
                            CROSS JOIN params AS p
                            WHERE c.mes_base = p.mes_anterior),
         'total_planilha', (SELECT x.total_patrimonio_liquido
-                           FROM intermediate.int_patrimonio_mensal_deusa AS x
+                           FROM marts.patrimonio_deusa AS x
                            CROSS JOIN params AS p
                            WHERE x.mes_base = p.mes_anterior)
     ) AS j

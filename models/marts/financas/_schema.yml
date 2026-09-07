@@ -1,15 +1,141 @@
 version: 2
 
 models:
+  - name: carteira
+    description: >
+      Base da camada de carteira: toda posição de todo titular, mês a mês. Lê
+      int_ativos_consolidados (que já une renda fixa, renda variável e disponibilidades no mesmo
+      grão) e acrescenta o que o intermediate deliberadamente não faz — mes_final/trimestre/ano
+      pela dimensão de datas, a camada lida da planilha e fl_mes_atual.
+      Os três carteira_<pessoa>, os três risco_fgc_<pessoa>, carteira_agregada,
+      carteira_classificacao e ativos_sem_classificacao são todos recortes deste modelo; o
+      enriquecimento acontece uma vez só.
+      {{ doc('politica_investimentos') }}
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
+      - name: mes_final
+        description: "Último dia do mês de referência da posição."
+      - name: trimestre
+        description: "Trimestre do ano da posição."
+      - name: ano
+        description: "Ano da posição."
+      - name: pessoa
+        description: "Titular da posição (lucas, jessica ou deusa)."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada pela macro normaliza_instituicao."
+      - name: emissor
+        description: "Instituição emissora do título (apenas renda fixa)."
+      - name: conglomerado_fgc
+        description: "Conglomerado financeiro FGC do emissor, para efeito do limite de garantia."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE). É por esta coluna que carteira_agregada separa investido de disponível."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). Com pessoa e instituicao, é a chave do join de camada."
+      - name: camada
+        description: >
+          Classificação manual lida da planilha por pessoa + codigo_ativo + instituicao;
+          'NAO CLASSIFICADO' quando a posição ainda não foi cadastrada lá. É estado atual, não
+          vigência histórica: a aba perdeu a coluna mes_base, então um mês passado carrega a
+          classificação de hoje.
+          {{ doc("camada_investimento") }}
+      - name: ativo
+        description: "Nome/identificação do ativo ('SALDO EM CONTA' para as disponibilidades)."
+      - name: indexador
+        description: "Indexador de rentabilidade (apenas renda fixa)."
+      - name: data_vencimento
+        description: "Data de vencimento do título (apenas renda fixa)."
+      - name: vencimento_em_dias
+        description: "Dias restantes até o vencimento; nulo se já vencido ou sem vencimento."
+      - name: fl_vencido
+        description: "Indica se o título já passou da data de vencimento."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
+      - name: moeda_ativo
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
+
+  - name: carteira_agregada
+    description: >
+      Carteira agregada por mês x pessoa, com uma coluna por instituição resolvida por pivot
+      dinâmico — instituição nova entra como coluna sem edição manual. Substitui o antigo
+      int_carteira_agregada, que lia dois modelos intermediários hoje extintos.
+      O corte entre investido e disponível é por classe_ativo, e não pelo modelo de origem como
+      antes: desde que o refactor do intermediate moveu o caixa da Avenue para as
+      disponibilidades, classe_ativo é fiel e há uma definição só da fronteira. Vale
+      `soma das colunas por instituição = total_geral = total_investido + total_disponibilidades`.
+      Os três carteira_<pessoa>_agregada são recortes deste modelo.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base."
+      - name: mes_final
+        description: "Último dia do mês-base."
+      - name: pessoa
+        description: "Titular (lucas, jessica ou deusa). Fica no grão da linha, não no pivot."
+      - name: total_geral
+        description: "Soma de todas as posições da pessoa no mês, em reais inteiros (bigint — SUM sobre integer em PostgreSQL devolve bigint)."
+      - name: total_disponibilidades
+        description: "Parcela em classe_ativo = 'DISPONIBILIDADE' (saldo em conta, cashback, Wise, caixa Avenue, bitcoin em autocustódia)."
+      - name: total_investido
+        description: "Parcela fora de 'DISPONIBILIDADE' — renda fixa e renda variável."
+      - name: vlr_liquido_usd
+        description: "Saldo Avenue na moeda original (posições + proventos), que a conversão para reais apaga. Juntado depois da agregação: já está no grão mês x pessoa."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
+
+  - name: patrimonio_deusa
+    description: >
+      Patrimônio de Deusa mês a mês, vindo da planilha dela. Mesmo shape de `patrimonio`, mas
+      OUTRO patrimônio: outra planilha, outra carteira, outros objetivos — os dois aparecem lado a
+      lado em `riqueza` porque enfrentam o mesmo benchmark, e NUNCA devem ser somados.
+      Ao contrário do casal, a planilha dela não abre patrimônio líquido por titular, só o total
+      mais os saldos por conta; por isso ela não entra em `patrimonio` e a variação MoM dela é
+      calculada dentro de `riqueza`, sem um patrimonio_mom próprio.
+      Existe como mart porque a extração do relatório de meio de mês precisa do total líquido da
+      planilha para imprimir a reconciliação contra marts.carteira_deusa — e as extrações leem
+      exclusivamente a camada marts.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês de referência."
+      - name: mes_final
+        description: "Último dia do mês de referência."
+      - name: trimestre
+        description: "Trimestre do ano."
+      - name: ano
+        description: "Ano."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês mais recente preenchido na planilha."
+      - name: total_patrimonio_liquido
+        description: "Patrimônio líquido total declarado na planilha. É o número conciliado contra a soma de marts.carteira_deusa no relatório de meio de mês; as duas fontes têm cortes próprios e a diferença é impressa, não escondida."
+      - name: saldo_banco_brasil_deusa
+        description: "Saldo em conta corrente no Banco do Brasil."
+      - name: saldo_banco_brasil_investimentos_deusa
+        description: "Saldo investido no Banco do Brasil."
+      - name: saldo_bradesco_deusa
+        description: "Saldo em conta corrente no Bradesco."
+      - name: saldo_bradesco_investimentos_deusa
+        description: "Saldo investido no Bradesco."
+      - name: saldo_nubank_deusa
+        description: "Saldo em conta corrente no Nubank."
+      - name: saldo_nubank_investimentos_deusa
+        description: "Saldo investido no Nubank."
+      - name: saldo_nubank_cashback_deusa
+        description: "Saldo de cashback acumulado no Nubank."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
+
   - name: carteira_lucas
     description: >
-      Carteira consolidada do Lucas por mês, com instituição, categoria, tipo, indexador,
-      vencimento e valor atualizado. Une as posições de renda fixa e renda variável de int_carteira
-      com as disponibilidades em conta de int_carteira_extra (Bradesco, cashback Nubank, Wise e
-      Bitcoin), que entram como classe DISPONIBILIDADE e recebem camada pela mesma classificação
-      manual dos demais ativos — 'NAO CLASSIFICADO' enquanto não classificadas na planilha. Só
-      então filtra pessoa = 'lucas'. Mesmo layout de carteira_jessica e carteira_deusa; os três
-      substituíram o antigo carteira_lucas_jessica.
+      Carteira consolidada do Lucas por mês, com instituição, classe, tipo, camada, indexador,
+      vencimento e valor atualizado. É um recorte do mart base `carteira` por pessoa = 'lucas' —
+      renda fixa, renda variável e disponibilidades em conta (Bradesco, cashback Nubank, Wise e
+      Bitcoin) já unidas e enriquecidas lá. Mesmo layout de carteira_jessica e carteira_deusa; os
+      três substituíram o antigo carteira_lucas_jessica.
       {{ doc('politica_investimentos') }}
     columns:
       - name: mes_base
@@ -30,8 +156,15 @@ models:
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO, CONTA CORRENTE)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). É a chave que casa a posição com a classificação manual da planilha."
       - name: camada
-        description: '{{ doc("camada_investimento") }}'
+        description: >
+          Classificação manual lida da planilha (aba "classificacao") por
+          pessoa + codigo_ativo + instituicao; 'NAO CLASSIFICADO' quando a posição ainda não foi
+          cadastrada lá. É estado atual, não vigência histórica: a aba perdeu a coluna mes_base,
+          então um mês passado carrega a classificação de hoje.
+          {{ doc("camada_investimento") }}
       - name: ativo
         description: "Nome/identificação do ativo ('SALDO EM CONTA' para as disponibilidades)."
       - name: indexador
@@ -40,8 +173,10 @@ models:
         description: "Data de vencimento do título (apenas renda fixa; nulo em renda variável e disponibilidades)."
       - name: vencimento_em_dias
         description: "Dias restantes até o vencimento (apenas renda fixa; nulo em renda variável e disponibilidades)."
+      - name: fl_vencido
+        description: "Indica se o título já passou da data de vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais."
+        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL, USD ou BTC)."
       - name: fl_mes_atual
@@ -54,8 +189,8 @@ models:
   - name: carteira_jessica
     description: >
       Carteira consolidada da Jéssica por mês; mesmo layout e mesma origem de carteira_lucas
-      (int_carteira + int_carteira_extra), filtrando pessoa = 'jessica'. A disponibilidade em conta
-      dela é o saldo do Banco do Brasil.
+      (o mart base `carteira`), filtrando pessoa = 'jessica'. A disponibilidade em conta dela é o
+      saldo do Banco do Brasil.
       {{ doc('politica_investimentos') }}
     columns:
       - name: mes_base
@@ -76,8 +211,15 @@ models:
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). É a chave que casa a posição com a classificação manual da planilha."
       - name: camada
-        description: '{{ doc("camada_investimento") }}'
+        description: >
+          Classificação manual lida da planilha (aba "classificacao") por
+          pessoa + codigo_ativo + instituicao; 'NAO CLASSIFICADO' quando a posição ainda não foi
+          cadastrada lá. É estado atual, não vigência histórica: a aba perdeu a coluna mes_base,
+          então um mês passado carrega a classificação de hoje.
+          {{ doc("camada_investimento") }}
       - name: ativo
         description: "Nome/identificação do ativo ('SALDO EM CONTA' para as disponibilidades)."
       - name: indexador
@@ -86,8 +228,10 @@ models:
         description: "Data de vencimento do título (apenas renda fixa)."
       - name: vencimento_em_dias
         description: "Dias restantes até o vencimento (apenas renda fixa)."
+      - name: fl_vencido
+        description: "Indica se o título já passou da data de vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais."
+        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL ou USD)."
       - name: fl_mes_atual
@@ -100,9 +244,9 @@ models:
   - name: carteira_deusa
     description: >
       Carteira consolidada da Deusa por mês; mesmo layout e mesma origem de carteira_lucas
-      (int_carteira + int_carteira_extra), filtrando pessoa = 'deusa'. As disponibilidades em conta
-      dela (Bradesco, Nubank, cashback Nubank e Banco do Brasil) vêm de int_patrimonio_mensal_deusa
-      via int_carteira_extra.
+      (o mart base `carteira`), filtrando pessoa = 'deusa'. As disponibilidades em conta
+      dela (Bradesco, Nubank, cashback Nubank e Banco do Brasil) vêm da planilha dela, por
+      int_disponibilidades_isoladas.
       {{ doc('politica_investimentos') }}
     columns:
       - name: mes_base
@@ -123,8 +267,15 @@ models:
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). É a chave que casa a posição com a classificação manual da planilha."
       - name: camada
-        description: '{{ doc("camada_investimento") }}'
+        description: >
+          Classificação manual lida da planilha (aba "classificacao") por
+          pessoa + codigo_ativo + instituicao; 'NAO CLASSIFICADO' quando a posição ainda não foi
+          cadastrada lá. É estado atual, não vigência histórica: a aba perdeu a coluna mes_base,
+          então um mês passado carrega a classificação de hoje.
+          {{ doc("camada_investimento") }}
       - name: ativo
         description: "Nome/identificação do ativo ('SALDO EM CONTA' para as disponibilidades)."
       - name: indexador
@@ -133,8 +284,10 @@ models:
         description: "Data de vencimento do título (apenas renda fixa)."
       - name: vencimento_em_dias
         description: "Dias restantes até o vencimento (apenas renda fixa)."
+      - name: fl_vencido
+        description: "Indica se o título já passou da data de vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais."
+        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL ou USD)."
       - name: fl_mes_atual
@@ -146,8 +299,8 @@ models:
 
   - name: carteira_lucas_agregada
     description: >
-      Recorte do Lucas sobre int_carteira_agregada: totais mensais de valor atualizado com
-      uma coluna por instituição. int_carteira_agregada resolve o pivot com a lista de
+      Recorte do Lucas sobre carteira_agregada: totais mensais de valor atualizado com
+      uma coluna por instituição. carteira_agregada resolve o pivot com a lista de
       instituições dinâmica, mas ESTE mart lista as colunas uma a uma — instituição nova
       passa a existir lá e entra em total_geral aqui, porém só vira coluna própria depois
       de acrescentada ao SELECT. Vale `soma das colunas por instituição = total_geral`
@@ -162,9 +315,9 @@ models:
       - name: total_geral
         description: "Soma de total_investido e total_disponibilidades, equivalente à soma das colunas por instituição."
       - name: total_disponibilidades
-        description: "Total do saldo em conta (int_carteira_extra) no mês."
+        description: "Total do saldo em conta no mês — a parcela em classe_ativo = 'DISPONIBILIDADE'."
       - name: total_investido
-        description: "Total das posições de investimento (int_carteira) no mês."
+        description: "Total das posições de investimento no mês — tudo fora de 'DISPONIBILIDADE'."
       - name: bradesco
         description: "Total do mês na instituição BRADESCO (investimentos + saldo em conta), em reais."
       - name: nubank
@@ -178,13 +331,13 @@ models:
       - name: wise
         description: "Total do mês na Wise convertido para reais."
       - name: vlr_liquido_usd
-        description: "Saldo Avenue no mês na moeda original (USD), vindo de int_carteira_usd; 0 quando não há posição. NÃO somar com as colunas em reais."
+        description: "Saldo Avenue no mês na moeda original (USD), reproduzido de stg_assets e stg_dividends_interest; 0 quando não há posição. NÃO somar com as colunas em reais."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: carteira_jessica_agregada
     description: >
-      Recorte da Jéssica sobre int_carteira_agregada: totais mensais de valor atualizado com
+      Recorte da Jéssica sobre carteira_agregada: totais mensais de valor atualizado com
       uma coluna por instituição. Mesmo caveat de carteira_lucas_agregada — as colunas por
       instituição são listadas manualmente no SELECT, então instituição nova entra em
       total_geral antes de virar coluna própria.
@@ -198,9 +351,9 @@ models:
       - name: total_geral
         description: "Soma de total_investido e total_disponibilidades, equivalente à soma das colunas por instituição."
       - name: total_disponibilidades
-        description: "Total do saldo em conta (int_carteira_extra) no mês: o saldo Banco do Brasil da Jéssica."
+        description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): o saldo Banco do Brasil da Jéssica."
       - name: total_investido
-        description: "Total das posições de investimento (int_carteira) no mês."
+        description: "Total das posições de investimento no mês — tudo fora de 'DISPONIBILIDADE'."
       - name: banco_do_brasil
         description: "Total do mês na instituição BANCO DO BRASIL (saldo em conta), em reais."
       - name: sofisa
@@ -212,13 +365,13 @@ models:
       - name: avenue
         description: "Total do mês na Avenue convertido para reais."
       - name: vlr_liquido_usd
-        description: "Saldo Avenue no mês na moeda original (USD), vindo de int_carteira_usd; 0 quando não há posição. NÃO somar com as colunas em reais."
+        description: "Saldo Avenue no mês na moeda original (USD), reproduzido de stg_assets e stg_dividends_interest; 0 quando não há posição. NÃO somar com as colunas em reais."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: carteira_deusa_agregada
     description: >
-      Recorte da Deusa sobre int_carteira_agregada: totais mensais de valor atualizado com
+      Recorte da Deusa sobre carteira_agregada: totais mensais de valor atualizado com
       uma coluna por instituição. Mesmo caveat de carteira_lucas_agregada — as colunas por
       instituição são listadas manualmente no SELECT, então instituição nova entra em
       total_geral antes de virar coluna própria.
@@ -232,9 +385,9 @@ models:
       - name: total_geral
         description: "Soma de total_investido e total_disponibilidades, equivalente à soma das colunas por instituição."
       - name: total_disponibilidades
-        description: "Total do saldo em conta (int_carteira_extra) no mês: Bradesco, Nubank, cashback Nubank e Banco do Brasil da Deusa, vindos de int_patrimonio_mensal_deusa."
+        description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): Bradesco, Nubank, cashback Nubank e Banco do Brasil da Deusa, mais o caixa da Avenue."
       - name: total_investido
-        description: "Total das posições de investimento (int_carteira) no mês."
+        description: "Total das posições de investimento no mês — tudo fora de 'DISPONIBILIDADE'."
       - name: banco_do_brasil
         description: "Total do mês na instituição BANCO DO BRASIL, em reais."
       - name: bradesco
@@ -244,7 +397,7 @@ models:
       - name: avenue
         description: "Total do mês na Avenue convertido para reais."
       - name: vlr_liquido_usd
-        description: "Saldo Avenue no mês na moeda original (USD), vindo de int_carteira_usd; 0 quando não há posição. NÃO somar com as colunas em reais."
+        description: "Saldo Avenue no mês na moeda original (USD), reproduzido de stg_assets e stg_dividends_interest; 0 quando não há posição. NÃO somar com as colunas em reais."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
@@ -252,10 +405,10 @@ models:
     description: >
       Modelo de auditoria da carteira: para cada mês x pessoa, compara o total somado linha a
       linha em carteira_lucas / carteira_jessica / carteira_deusa com o total_geral do
-      respectivo mart agregado. As duas rotas partem das mesmas fontes (int_carteira +
-      int_carteira_extra), então `dif` deve ser zero em todos os meses — diferente de zero
+      respectivo mart agregado. As duas rotas partem do mesmo mart base `carteira`, então `dif`
+      deve ser zero em todos os meses — diferente de zero
       denuncia divergência entre o caminho detalhado e o agregado (pivot, filtro por pessoa
-      ou join de int_carteira_usd).
+      ou join do saldo em USD).
       É INNER JOIN: mês x pessoa que exista em só um dos lados some da saída em vez de
       aparecer como divergência.
     columns:
@@ -275,30 +428,69 @@ models:
                 values: [0]
 
   - name: carteira_classificacao
-    description: "Mart auxiliar de INPUT do loop de classificação: lista os ativos do mês atual (distintos) já com a camada vigente preenchida ('NAO CLASSIFICADO' para os novos). Cobre os investimentos de int_carteira e também as disponibilidades em conta de int_carteira_extra (Bradesco/Nubank cashback/Wise/Bitcoin do Lucas, Banco do Brasil da Jéssica, Bradesco/Nubank/Nubank cashback/Banco do Brasil da Deusa), que seguem a mesma regra dos demais ativos e também chegam como 'NAO CLASSIFICADO' até serem classificadas na planilha. É copiado para a aba 'classificacao' da planilha, onde o Lucas preenche/edita a camada; o ETL do Google lê a aba de volta para raw.carteira_classificacao, fechando o loop de retroalimentação."
+    description: >
+      Metade de ESCRITA do loop de classificação: publica a posição do mês corrente no mesmo
+      layout da aba "classificacao" da planilha, para ser colada de volta nela. O Lucas preenche
+      ou edita a camada lá; o ETL do Google lê a aba de volta para raw.carteira_classificacao, que
+      vira stg_carteira_classificacao e alimenta a coluna camada do mart base `carteira` —
+      fechando o loop.
+      Publica TUDO do mês atual, classificado ou não, porque é o retrato que substitui a aba.
+      Quem quer só a pendência usa ativos_sem_classificacao.
+      As colunas são exatamente as de stg_carteira_classificacao, na mesma ordem. Ficaram de fora
+      indexador e tipo_ativo, que saíram do cadastro, e entrou codigo_ativo, que é o que
+      identifica a posição no join de volta — com ele o saldo em conta e o cashback Nubank da
+      Deusa deixaram de colapsar numa linha só no SELECT DISTINCT, como acontecia quando a chave
+      era pessoa + instituicao + ativo e as duas posições eram 'SALDO EM CONTA' no NUBANK.
     columns:
-      - name: mes_base
-        description: "Primeiro dia do mês-base da posição — o mes_base que o Lucas registra na planilha ao classificar ou reclassificar."
       - name: pessoa
         description: "Dono do ativo (deusa, jessica ou lucas)."
-      - name: ativo
-        description: "Identificador do ativo (ticker para RV; produto normalizado para RF; 'SALDO EM CONTA' para as disponibilidades). Chave que o Lucas usa para classificar."
-      - name: indexador
-        description: "Indexador de rentabilidade vigente (renda fixa e contas remuneradas); nulo nos demais."
+      - name: instituicao
+        description: "Instituição/corretora onde o ativo é mantido, na grafia padronizada pela macro normaliza_instituicao. Parte da chave do join de volta."
       - name: classe_ativo
         description: "RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE — contexto para a classificação manual."
-      - name: tipo_ativo
-        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO, CONTA CORRENTE)."
-      - name: instituicao
-        description: >
-          Instituição/corretora onde o ativo é mantido. Junto com pessoa, é o que distingue as
-          linhas de 'SALDO EM CONTA'. ATENÇÃO: o saldo em conta e o cashback Nubank da Deusa têm
-          pessoa, instituicao e ativo idênticos, então o SELECT DISTINCT os colapsa numa linha só
-          — as duas posições de carteira_deusa compartilham a mesma classificação de camada.
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). É a chave do join de volta; não editar na planilha."
+      - name: ativo
+        description: "Nome do ativo, para leitura humana na planilha ('SALDO EM CONTA' para as disponibilidades)."
       - name: data_vencimento
         description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
+      - name: moeda_ativo
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: camada
-        description: "Camada vigente do ativo ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: tanto os investimentos de int_carteira quanto as disponibilidades de int_carteira_extra (saldo Bradesco/Wise/Bitcoin/BB) chegam como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
+        description: "Camada do ativo ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: investimentos e disponibilidades chegam todos como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
+
+  - name: ativos_sem_classificacao
+    description: >
+      A pendência do loop de classificação: posições do mês corrente que ainda não têm linha na
+      aba "classificacao" e por isso caem no default 'NAO CLASSIFICADO' dentro do mart base
+      `carteira`. Complemento de carteira_classificacao, que publica o retrato inteiro do mês —
+      aqui sai só o que falta digitar, e por isso cabe numa mensagem.
+      O anti-join é por pessoa + codigo_ativo + instituicao, a mesma chave do join de camada. O
+      recorte é fl_mes_atual e não uma data fixa: meses antigos sempre terão pendência, porque a
+      planilha só cadastra o que se tem hoje.
+    columns:
+      - name: pessoa
+        description: "Dono do ativo (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Instituição/corretora onde o ativo é mantido."
+      - name: classe_ativo
+        description: "RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO, CONTA CORRENTE)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte — o valor a cadastrar na planilha."
+      - name: ativo
+        description: "Nome do ativo, para identificá-lo na hora de classificar."
+      - name: data_vencimento
+        description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
+      - name: moeda_ativo
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
+      - name: vlr_atualizado_brl
+        description: "Valor da posição em reais, para priorizar o que classificar primeiro."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: dividendos
     description: "Série mensal de renda passiva por pessoa, com spine de datas contínuo entre o primeiro e o último mês com dividendos (zero quando não há recebimento)."
@@ -370,7 +562,7 @@ models:
 
   - name: patrimonio_mom
     description: >
-      Variação mês a mês (MoM) de cada saldo de int_patrimonio_mensal. Um registro por mês-base.
+      Variação mês a mês (MoM) de cada saldo de stg_patrimonio. Um registro por mês-base.
       CUIDADO: as colunas têm exatamente os mesmos nomes de `patrimonio`, mas NÃO são saldos — são
       variações, expressas em FRAÇÃO DECIMAL com 3 casas (0.045 = +4,5%), calculadas como
       valor / LAG(valor) - 1 sobre mes_base. O primeiro mês da série e qualquer mês cujo antecessor
@@ -425,7 +617,7 @@ models:
     description: >
       Fotografia mensal do patrimônio do casal: um registro por mês-base, com o bruto e o líquido
       totais, o líquido de cada titular e o saldo de cada conta/instituição, em reais. Vem de
-      int_patrimonio_mensal, cuja origem é a planilha (raw.patrimonio) — é declarado manualmente,
+      stg_patrimonio, cuja origem é a planilha (raw.patrimonio) — é declarado manualmente,
       não derivado das posições de carteira, e por isso pode divergir de carteira_lucas /
       carteira_jessica em meses em que as duas fontes não fecharam juntas. Para variação use patrimonio_mom, que tem os
       mesmos nomes de coluna com unidade diferente.
@@ -528,7 +720,7 @@ models:
       variações MoM de patrimonio_mom, a partir de 2023-11) contra os índices acumulados de
       int_indexadores, classificando cada mês por indexador.
       Cobre DOIS patrimônios independentes: o do casal (com abertura de Lucas e Jéssica, vinda de
-      patrimonio_mom) e o de Deusa (vindo de int_patrimonio_mensal_deusa, que traz só o total
+      patrimonio_mom) e o de Deusa (vindo de patrimonio_deusa, que traz só o total
       líquido — por isso ela não tem abertura por conta e não entra em marts.patrimonio). São
       planilhas, carteiras e objetivos distintos: aparecem no mesmo modelo porque enfrentam o mesmo
       benchmark, e NUNCA devem ser somados.
@@ -558,7 +750,7 @@ models:
       - name: patrimonio_liquido_deusa_acum
         description: >
           Índice acumulado do patrimônio líquido de Deusa, composto via EXP(SUM(LN(1+variação MoM)))
-          a partir de int_patrimonio_mensal_deusa. Base própria, diferente da do casal — não compare
+          a partir de patrimonio_deusa. Base própria, diferente da do casal — não compare
           nível, só variação dentro de uma janela. O join é LEFT: mês sem fechamento da planilha dela
           não derruba a linha do casal, e o índice repete o valor anterior.
       - name: minha_inflacao_acum

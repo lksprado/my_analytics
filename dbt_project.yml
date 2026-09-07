@@ -48,8 +48,6 @@ models:
     marts:
       +materialized: table
       +schema: marts
-      financas:
-      +enabled: false
 
 # Tipos fixados nas seeds de investimentos faltantes: sem isso o dbt infere o
 # tipo da coluna a partir do conteúdo, e uma coluna de data inteiramente vazia

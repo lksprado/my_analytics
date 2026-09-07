@@ -259,7 +259,16 @@ edite a planilha — não os modelos.
 A camada não descreve o que o ativo é (isso é `tipo_ativo`), e sim para
 que ele existe na carteira. É classificada manualmente por Lucas na aba
 `classificacao` da planilha e volta ao warehouse via
-`stg_carteira_classificacao`, com histórico SCD2 (join as-of por `mes_base`).
+`stg_carteira_classificacao`, de onde o mart base `carteira` a lê por
+`pessoa + codigo_ativo + instituicao`.
+
+**A classificação é estado atual, não histórico.** A aba já teve uma coluna
+`mes_base` e o join era as-of (SCD2): cada mês da carteira recebia a camada
+vigente naquele mês, e reclassificar um ativo não reescrevia o passado. A coluna
+saiu da origem, então não há mais vigência a resolver — hoje um mês passado
+carrega a classificação de hoje. Reclassificar um ativo muda a série inteira
+retroativamente, e a composição por camada de um mês antigo não é
+necessariamente a que valia quando aquele mês fechou.
 
 | Camada | Objetivo | Horizonte | Instrumentos típicos |
 |---|---|---|---|
@@ -400,7 +409,7 @@ reportadas separadamente.
 
 **Dois patrimônios, o mesmo benchmark.** `riqueza` acompanha o patrimônio do
 casal (com abertura de Lucas e Jéssica) e o de Deusa, que vem de outra planilha
-e entra pelo `int_patrimonio_mensal_deusa` — só o total líquido, sem abertura
+e entra pelo `patrimonio_deusa` — só o total líquido, sem abertura
 por conta, e por isso ela não aparece em `patrimonio`. São carteiras e
 objetivos distintos: convivem no mesmo modelo porque enfrentam os mesmos
 indexadores, e **nunca devem ser somados** nem lidos como um patrimônio só.

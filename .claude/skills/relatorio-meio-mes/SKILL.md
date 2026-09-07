@@ -159,7 +159,7 @@ mande.
   ou reavaliação de ativo**, nunca rendimento — se o ganho da janela se
   concentra em um ou dois degraus, diga isso, senão o número engana.
 - **São dois patrimônios, não um.** `riqueza` traz o do casal e o de Deusa, que
-  vem de outra planilha (`int_patrimonio_mensal_deusa`, só o total líquido).
+  vem de outra planilha (`marts.patrimonio_deusa`, só o total líquido).
   Carteiras e objetivos distintos: comparam-se ao mesmo benchmark, mas **não se
   somam** e não viram um total. Deusa não tem série em `marts.patrimonio` — o
   nível por conta dela não existe, só o índice.
@@ -196,9 +196,11 @@ Só da seção de Deusa:
   exposição por emissor são do relatório de fechamento. Cite o percentual e
   aponte para lá.
 - **A fronteira disponível/investido é a classe `DISPONIBILIDADE`.**
-  `carteira_deusa_agregada` tem um `total_disponibilidades` com corte
-  ligeiramente diferente (R$ 259 a menos em 07/2026, com total geral idêntico)
-  e não é usada: a seção inteira tem uma definição só.
+  `carteira_deusa_agregada.total_disponibilidades` já usou um corte ligeiramente
+  diferente (R$ 259 a menos em 07/2026, com total geral idêntico); desde que
+  `carteira_agregada` passou a cortar por `classe_ativo`, os dois concordam. A
+  seção continua lendo o grão de ativo, que é de onde saem a classe e a quebra
+  por instituição.
 
 ## Passo 3 — Analisar
 

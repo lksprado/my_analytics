@@ -1,6 +1,5 @@
 {{
   config(
-    enabled=false,
     materialized = 'table',
     tags = ['financas', 'marts'],
   )
@@ -28,8 +27,8 @@ WITH casal_mom AS (
     FROM {{ ref('patrimonio_mom') }}
 ),
 
--- Deusa vem de outra planilha e de outro modelo: `int_patrimonio_mensal_deusa`
--- traz só o total líquido, sem abertura por conta, então não há um
+-- Deusa vem de outra planilha e de outro modelo: `patrimonio_deusa`
+-- traz só o total líquido, sem abertura por titular, então não há um
 -- `patrimonio_mom` dela para reaproveitar e a variação MoM é calculada aqui.
 -- O LAG roda sobre a série inteira, antes do recorte de 2023-11, para que a
 -- primeira linha da janela tenha mês anterior com que se comparar.
@@ -41,7 +40,7 @@ deusa_mom AS (
             / NULLIF(LAG(total_patrimonio_liquido) OVER (ORDER BY mes_base), 0)
             - 1
         )::NUMERIC(18, 3) AS patrimonio_liquido_deusa
-    FROM {{ ref('int_patrimonio_mensal_deusa') }}
+    FROM {{ ref('patrimonio_deusa') }}
 ),
 
 -- LEFT JOIN e não INNER: um mês sem fechamento da planilha de Deusa não pode

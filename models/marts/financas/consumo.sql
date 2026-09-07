@@ -15,18 +15,27 @@ consolidados AS (
         t1.nome_dia         AS dia_nome,
         t1.dia_ajustado     AS dia_fatura,
         t1.dia_real         AS dia_ano,
-        t2.day_of_month     AS dia_mes,
+        {#- ::INT porque day_of_month vem como double precision da dimensão de
+            datas (o get_date_dimension do dbt_date usa EXTRACT, que em
+            PostgreSQL devolve float). Dia do mês é contagem, não medida — e era
+            a única coluna de finanças que chegava à marts em ponto flutuante. -#}
+        t2.day_of_month::INT AS dia_mes,
         t2.week_of_year     AS semana,
         t2.quarter_of_year  AS trimestre,
         t2.year_number      AS ano,
-        SUM(t1.mercado)     AS total_mercado,
-        SUM(t1.diversos)    AS total_diversos,
-        SUM(t1.assinaturas) AS total_assinaturas,
-        SUM(t1.role)        AS total_role,
-        SUM(t1.transporte)  AS total_transporte,
-        SUM(t1.apartamento) AS total_apartamento,
-        SUM(t1.saude)       AS total_saude,
-        SUM(t1.educacao)    AS total_educacao
+        {#- Dinheiro chega à marts em reais inteiros, como no resto do domínio.
+            O cast é DEPOIS do SUM, de propósito: as contas do Lucas e da Jéssica
+            entram com centavos, e arredondar cada uma antes de somar erraria
+            duas vezes por dia/categoria em vez de uma. Aqui arredonda-se o total
+            do casal, que é o grão desta tabela. -#}
+        SUM(t1.mercado)::INT     AS total_mercado,
+        SUM(t1.diversos)::INT    AS total_diversos,
+        SUM(t1.assinaturas)::INT AS total_assinaturas,
+        SUM(t1.role)::INT        AS total_role,
+        SUM(t1.transporte)::INT  AS total_transporte,
+        SUM(t1.apartamento)::INT AS total_apartamento,
+        SUM(t1.saude)::INT       AS total_saude,
+        SUM(t1.educacao)::INT    AS total_educacao
     FROM {{ ref('int_consumo_consolidado') }} AS t1
     INNER JOIN {{ ref('dim_datas') }} AS t2
         ON t1.data_debito = t2.date_day

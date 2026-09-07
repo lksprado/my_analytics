@@ -3,7 +3,7 @@
 
   As variantes vêm com a grafia de cada fonte (B3, Avenue, seeds de
   investimentos faltantes) e são reduzidas ao nome padronizado que a carteira
-  usa como coluna em int_carteira_agregada. Adicionar uma variante nova é uma
+  usa como coluna em carteira_agregada. Adicionar uma variante nova é uma
   linha AQUI — antes o mesmo CASE estava copiado em int_renda_variavel,
   int_renda_fixa e int_renda_passiva, e as três cópias já divergiram: o CDB
   Daycoval do seed de faltantes (que chega como 'DAYCOVAL', não

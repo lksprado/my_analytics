@@ -246,32 +246,41 @@ models:
         description: "Primeiro dia do mês de referência da conta."
 
   - name: stg_carteira_classificacao
-    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de int_carteira e de int_carteira_extra (usados por carteira_lucas/carteira_jessica/carteira_deusa) por join as-of na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao): cada mês da carteira recebe a classificação vigente naquele mês. Em int_carteira o padrão sem classificação é 'NAO CLASSIFICADO'; em int_carteira_extra (disponibilidades em conta) é 'RESERVA ESTRATEGICA'."
+    description: >
+      Classificação manual de camada por posição, lida de volta da planilha Google (metade de
+      leitura do loop de retroalimentação). É um cadastro de ESTADO ATUAL, não um histórico: uma
+      linha por ativo que se tem hoje, sem coluna de vigência. A aba já teve `mes_base` e o
+      downstream resolvia a camada por join as-of (SCD2); a coluna saiu da origem, então o lookup
+      passou a ser direto e meses passados carregam a classificação de hoje.
+      Alimenta o campo `camada` do mart `carteira` (e por tabela dos três `carteira_<pessoa>`) por
+      join em pessoa + codigo_ativo + instituicao. Sem linha correspondente, o default aplicado
+      lá é 'NAO CLASSIFICADO'.
     columns:
-      - name: mes_base
-        description: "Primeiro dia do mês a partir do qual esta classificação passa a valer (data de vigência SCD2). No join as-of, cada linha da carteira no mês M recebe a camada da última classificação com mes_base <= M."
-        data_tests:
-          - not_null
       - name: pessoa
         description: "Dono do ativo (lucas / jessica / deusa), em minúsculas. Parte da chave de join com a carteira."
         data_tests:
           - not_null
-      - name: ativo
-        description: "Identificador do ativo (ticker para renda variável; produto normalizado para renda fixa). Parte da chave de join com a carteira."
+      - name: instituicao
+        description: "Instituição onde o ativo está posicionado, na mesma grafia padronizada que a macro normaliza_instituicao produz. Parte da chave de join com a carteira."
         data_tests:
           - not_null
       - name: classe_ativo
-        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
         data_tests:
           - not_null
-      - name: tipo_ativo
-        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+          - accepted_values:
+              arguments:
+                values: ['RENDA FIXA', 'RENDA VARIAVEL', 'DISPONIBILIDADE']
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). Parte da chave de join com a carteira — e a parte que efetivamente identifica a posição."
         data_tests:
           - not_null
-      - name: instituicao
-        description: "Instituição onde o ativo está posicionado."
-        data_tests:
-          - not_null
+      - name: ativo
+        description: "Nome do ativo, para leitura humana na planilha. Não entra na chave de join: o nome muda de grafia entre fontes, o código não."
+      - name: data_vencimento
+        description: "Data de vencimento do título, quando houver. Nula em renda variável e conta corrente. Chega como texto e é convertida aqui; string vazia vira NULL."
+      - name: moeda_ativo
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: camada
         description: >
           Camada de alocação atribuída manualmente na planilha, em MAIÚSCULAS. Só estes quatro
@@ -284,6 +293,7 @@ models:
           - accepted_values:
               arguments:
                 values: ['RESERVA', 'CRESCIMENTO', 'RENDA', 'RESERVA ESTRATEGICA']
+
 
   - name: stg_ajuste
     description: "Histórico de transferências para equilíbrio de despesas proporcional à renda, descontados gastos individuais. Saldos de conta já consideram este valor descontado/recebido no respectivo mês."

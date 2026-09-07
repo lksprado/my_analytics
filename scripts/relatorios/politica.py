@@ -21,7 +21,7 @@ NOME = {"lucas": "Lucas", "jessica": "Jéssica", "deusa": "Deusa"}
 ESCOPOS_INVESTIMENTO = ["lucas", "jessica", "deusa"]
 # Quem tem série de NÍVEL por pessoa em marts.patrimonio — é o que o relatório
 # de fechamento consome para a seção de patrimônio individual. Deusa não entra:
-# a planilha dela alimenta int_patrimonio_mensal_deusa, que traz só o total
+# a planilha dela alimenta marts.patrimonio_deusa, que traz só o total
 # líquido, sem abertura por conta.
 # Atenção: isto NÃO é o mesmo que ter índice em marts.riqueza. Deusa tem índice
 # acumulado lá desde 2026-08 e aparece na seção de desempenho do relatório de

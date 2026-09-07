@@ -1,11 +1,14 @@
 {{
   config(
-    enabled=false,
     materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
 
+
+{#- Lê stg_patrimonio direto (int_patrimonio_mensal foi eliminado no refactor do
+    intermediate). Aqui não é preciso o join com dim_datas: as janelas LAG usam
+    só mes_base. -#}
 
 WITH
 ativos AS (
@@ -30,7 +33,7 @@ ativos AS (
         (saldo_avenue_jessica::NUMERIC / NULLIF(LAG(saldo_avenue_jessica) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3)                             AS saldo_avenue_jessica,
         (vlr_carro::NUMERIC / NULLIF(LAG(vlr_carro) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3)                                                   AS vlr_carro
 
-    FROM {{ ref('int_patrimonio_mensal') }}
+    FROM {{ ref('stg_patrimonio') }}
 )
 
 SELECT

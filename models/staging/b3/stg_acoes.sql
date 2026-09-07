@@ -43,8 +43,8 @@ renamed AS (
         NULLIF(REGEXP_REPLACE(quantidade_disponivel, '[^0-9]', '', 'g'), '')::INT   AS quantidade_disponivel,
         NULLIF(REGEXP_REPLACE(quantidade_indisponivel, '[^0-9]', '', 'g'), '')::INT AS quantidade_indisponivel,
         NULLIF(motivo, '-')                                                         AS motivo_indisponibilidade,
-        preco_de_fechamento                                                         AS vlr_fechamento,
-        valor_atualizado                                                            AS vlr_atualizado_brl,
+        preco_de_fechamento::NUMERIC(18, 2)                                         AS vlr_fechamento,
+        valor_atualizado::NUMERIC(18, 2)                                            AS vlr_atualizado_brl,
         'BRL'                                                                       AS moeda_ativo
     FROM source
 )
