@@ -29,7 +29,7 @@ A separação é por assunto **e** por titular: investimento é individual, orç
 - **Não há leitura de benchmark aqui.** Os indexadores (IPCA, CDI, Selic,
   inflação pessoal) só são publicados por volta do dia 10 e a planilha é
   preenchida depois — no dia em que este relatório roda, o mês de referência
-  ainda não existe em `marts.indicadores` nem em `marts.riqueza`. O desempenho
+  ainda não existe em `marts_financas.indicadores` nem em `marts_financas.riqueza`. O desempenho
   do patrimônio contra CDI e inflação pessoal é assunto da skill
   `relatorio-meio-mes`, que roda entre os dias 15 e 20. Não tente compensar
   citando o mês anterior: o leitor entende como sendo o mês do relatório.
@@ -135,7 +135,7 @@ diagnóstico precisa dizer que os valores estão parciais.
 
 ### Armadilhas dos dados — leia antes de interpretar
 
-- **`marts.resultado` e `marts.consumo` contêm meses futuros pré-lançados** com
+- **`marts_financas.resultado` e `marts_financas.consumo` contêm meses futuros pré-lançados** com
   as despesas fixas recorrentes já agendadas. Não são realizados. A extração já
   corta em `mes_ref`; nunca reintroduza meses posteriores no diagnóstico nem em
   médias.

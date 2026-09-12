@@ -36,7 +36,7 @@
 #   for d in 2026-05-17 2026-06-17 2026-07-17; do
 #       scripts/gerar_relatorio_meio_mes.sh "$d" || echo "pulou $d"
 #   done
-#   # depois compare projecao.total com marts.resultado.total_despesas do mês
+#   # depois compare projecao.total com marts_financas.resultado.total_despesas do mês
 set -euo pipefail
 
 PROJETO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

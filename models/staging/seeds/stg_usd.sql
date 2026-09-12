@@ -13,7 +13,7 @@ source AS (
             'DDMMYYYY'
         )                                                   AS data_usd,
         venda::NUMERIC / POWER(10, LENGTH(venda::TEXT) - 1) AS vlr_usd
-    FROM {{ ref('cotacao_usd') }}
+    FROM {{ ref('seed_cotacao_usd') }}
 ),
 
 ultimo_dia_disponivel AS (

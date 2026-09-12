@@ -19,11 +19,11 @@ SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100",
 NOME = {"lucas": "Lucas", "jessica": "Jéssica", "deusa": "Deusa"}
 # Escopos de relatório de investimento — um por titular.
 ESCOPOS_INVESTIMENTO = ["lucas", "jessica", "deusa"]
-# Quem tem série de NÍVEL por pessoa em marts.patrimonio — é o que o relatório
+# Quem tem série de NÍVEL por pessoa em marts_financas.patrimonio — é o que o relatório
 # de fechamento consome para a seção de patrimônio individual. Deusa não entra:
-# a planilha dela alimenta marts.patrimonio_deusa, que traz só o total
+# a planilha dela alimenta marts_financas.patrimonio_deusa, que traz só o total
 # líquido, sem abertura por conta.
-# Atenção: isto NÃO é o mesmo que ter índice em marts.riqueza. Deusa tem índice
+# Atenção: isto NÃO é o mesmo que ter índice em marts_financas.riqueza. Deusa tem índice
 # acumulado lá desde 2026-08 e aparece na seção de desempenho do relatório de
 # meio de mês; o que ela não tem é nível por conta aqui.
 COM_PATRIMONIO = ["lucas", "jessica"]

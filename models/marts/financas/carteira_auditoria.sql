@@ -5,11 +5,7 @@
   )
 }}
 
-
-{#- Os dois lados são fixados em BIGINT de propósito. SUM() sobre integer já
-    devolve bigint, mas SUM() sobre bigint devolve NUMERIC em PostgreSQL — sem o
-    cast, total_carteira_agregada (que soma o total_geral já agregado) voltava
-    numeric e arrastava `dif` junto, numa tabela cujo ponto é comparar inteiros. -#}
+{#- BIGINT nos dois lados: SUM() sobre bigint devolve NUMERIC em PostgreSQL. -#}
 
 WITH
 carteira_lucas AS (

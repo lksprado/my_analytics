@@ -849,9 +849,9 @@ def rodape_deusa(d, premissas):
   <p>Origem: camada <code>marts</code> do data warehouse pessoal (PostgreSQL),
   domínio finanças. Posição e composição apuradas em
   {mes_extenso(meta['mes_anterior'])}, o último mês fechado.</p>
-  <p>O nível e a composição vêm de <code>marts.carteira_deusa</code>, no grão de
+  <p>O nível e a composição vêm de <code>marts_financas.carteira_deusa</code>, no grão de
   ativo; o índice de desempenho vem da planilha de patrimônio, via
-  <code>marts.riqueza</code>. São duas fontes com totais próprios, e a
+  <code>marts_financas.riqueza</code>. São duas fontes com totais próprios, e a
   conciliação entre elas está impressa na seção de ativos.</p>
   <p>Este patrimônio é <strong>independente do patrimônio do casal</strong> e em
   nenhum momento foi somado a ele. Os dois índices têm bases diferentes e não se

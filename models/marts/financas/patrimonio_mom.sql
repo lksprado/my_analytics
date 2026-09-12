@@ -5,11 +5,6 @@
   )
 }}
 
-
-{#- Lê stg_patrimonio direto (int_patrimonio_mensal foi eliminado no refactor do
-    intermediate). Aqui não é preciso o join com dim_datas: as janelas LAG usam
-    só mes_base. -#}
-
 WITH
 ativos AS (
     SELECT

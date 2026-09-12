@@ -5,11 +5,6 @@
   )
 }}
 
-
-{#- Lê stg_patrimonio direto: int_patrimonio_mensal era passthrough puro da
-    staging com um join de dim_datas, e o refactor do intermediate o eliminou.
-    O join e o fl_mes_atual vieram para cá inalterados. -#}
-
 WITH
 datas AS (
     SELECT DISTINCT

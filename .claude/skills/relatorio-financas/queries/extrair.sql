@@ -10,7 +10,7 @@
 -- pode estar defasada em relação ao DRE — `meta.defasagem_carteira_meses`
 -- reporta isso para que o relatório declare a data de cada número.
 --
--- marts.riqueza NÃO entra aqui. Ela faz INNER JOIN com os indexadores, que são
+-- marts_financas.riqueza NÃO entra aqui. Ela faz INNER JOIN com os indexadores, que são
 -- preenchidos na planilha depois da publicação do IPCA, por volta do dia 10 —
 -- ou seja, no dia em que este relatório roda o mês de referência ainda não
 -- existe naquela tabela, e a série encolheria um mês em silêncio. A leitura de
@@ -32,19 +32,19 @@ carteira AS (
         mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
         classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
-    FROM marts.carteira_lucas
+    FROM marts_financas.carteira_lucas
     UNION ALL
     SELECT
         mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
         classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
-    FROM marts.carteira_jessica
+    FROM marts_financas.carteira_jessica
     UNION ALL
     SELECT
         mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
         classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
-    FROM marts.carteira_deusa
+    FROM marts_financas.carteira_deusa
 ),
 
 -- Último mês de carteira disponível que não ultrapassa o mês de referência.
@@ -83,7 +83,7 @@ gasto_diario AS (
         data,
         total_mercado + total_diversos + total_assinaturas + total_role
         + total_transporte + total_apartamento + total_saude + total_educacao AS total_dia
-    FROM marts.consumo
+    FROM marts_financas.consumo
 ),
 
 cobertura_mes AS (
@@ -102,7 +102,7 @@ cobertura_mes AS (
 meses_fechados AS (
     SELECT c.mes
     FROM cobertura_mes AS c
-    INNER JOIN marts.resultado AS r ON r.mes_debito = c.mes
+    INNER JOIN marts_financas.resultado AS r ON r.mes_debito = c.mes
     WHERE r.total_role + r.total_diversos + r.total_transporte > 0
       AND c.ultimo_dia_com_gasto IS NOT NULL
       AND (c.fim_do_mes - c.ultimo_dia_com_gasto) <= 2
@@ -127,7 +127,7 @@ prontidao AS (
             COUNT(*) > 0 AS presente,
             COALESCE(SUM(r.total_role + r.total_diversos + r.total_transporte), 0) > 0
                 AS com_variaveis
-        FROM marts.resultado AS r
+        FROM marts_financas.resultado AS r
         WHERE r.mes_debito = pa.mes_ref
     ) AS d ON TRUE
 ),
@@ -138,7 +138,7 @@ prontidao AS (
 -- motivo para segurar a leitura de carteira.
 pendencias AS (
     SELECT 'orcamento'::text AS escopo,
-           'Não há lançamento em marts.resultado para o mês de referência.' AS frase
+           'Não há lançamento em marts_financas.resultado para o mês de referência.' AS frase
     FROM prontidao WHERE NOT dre_presente
     UNION ALL
     SELECT 'orcamento',
@@ -168,11 +168,11 @@ b_meta AS (
         'defasagem_carteira_meses',   (SELECT carteira_defasagem_meses FROM prontidao),
         'gerado_em',                  to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
         'hoje',                       current_date,
-        'ultimo_mes_dre_disponivel',  (SELECT MAX(mes_debito) FROM marts.resultado),
+        'ultimo_mes_dre_disponivel',  (SELECT MAX(mes_debito) FROM marts_financas.resultado),
         'ultimo_mes_fechado',         (SELECT ultimo_mes_fechado FROM prontidao),
         'motivos_especiais',          (
             SELECT NULLIF(r.motivo, 'NORMAL')
-            FROM marts.resultado r CROSS JOIN params p
+            FROM marts_financas.resultado r CROSS JOIN params p
             WHERE r.mes_debito = p.mes_ref
         ),
         -- Dois portões, um por família de relatório. `pronto` é o E dos dois e
@@ -209,7 +209,7 @@ b_meta AS (
             )
             FROM prontidao
         ),
-        'aviso_meses_futuros',        'Meses posteriores ao mes_ref em marts.resultado e marts.consumo são lançamentos futuros pré-agendados (despesas fixas), não realizados. Nunca incluir no diagnóstico.'
+        'aviso_meses_futuros',        'Meses posteriores ao mes_ref em marts_financas.resultado e marts_financas.consumo são lançamentos futuros pré-agendados (despesas fixas), não realizados. Nunca incluir no diagnóstico.'
     ) AS j
 ),
 
@@ -217,7 +217,7 @@ b_dre AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_debito), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.resultado
+        FROM marts_financas.resultado
         WHERE mes_debito <= (SELECT mes_ref FROM params)
           AND mes_debito >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
@@ -227,7 +227,7 @@ b_consumo_dia AS (
     SELECT COALESCE(json_agg(t ORDER BY t.data), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.consumo
+        FROM marts_financas.consumo
         WHERE mes = (SELECT mes_ref FROM params)
     ) AS t
 ),
@@ -236,7 +236,7 @@ b_patrimonio AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.patrimonio
+        FROM marts_financas.patrimonio
         WHERE mes_base <= (SELECT mes_ref FROM params)
           AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
@@ -250,7 +250,7 @@ b_patrimonio_mom AS (
                ROUND(total_patrimonio_liquido * 100, 2) AS pct_patrimonio_liquido,
                ROUND(patrimonio_liquido_lucas * 100, 2) AS pct_lucas,
                ROUND(patrimonio_liquido_jessica * 100, 2) AS pct_jessica
-        FROM marts.patrimonio_mom
+        FROM marts_financas.patrimonio_mom
         WHERE mes_base <= (SELECT mes_ref FROM params)
           AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
@@ -260,7 +260,7 @@ b_dividendos AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_base, t.pessoa), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.dividendos
+        FROM marts_financas.dividendos
         WHERE mes_base <= (SELECT mes_ref FROM params)
           AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
@@ -341,11 +341,11 @@ b_vencimentos AS (
 b_fgc AS (
     SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.vlr_liberado), '[]'::json) AS j
     FROM (
-        SELECT 'lucas'   AS pessoa, * FROM marts.risco_fgc_lucas
+        SELECT 'lucas'   AS pessoa, * FROM marts_financas.risco_fgc_lucas
         UNION ALL
-        SELECT 'jessica' AS pessoa, * FROM marts.risco_fgc_jessica
+        SELECT 'jessica' AS pessoa, * FROM marts_financas.risco_fgc_jessica
         UNION ALL
-        SELECT 'deusa'   AS pessoa, * FROM marts.risco_fgc_deusa
+        SELECT 'deusa'   AS pessoa, * FROM marts_financas.risco_fgc_deusa
     ) AS t
 ),
 
@@ -366,7 +366,7 @@ b_luz AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.luz
+        FROM marts_financas.luz
         WHERE mes <= (SELECT mes_ref FROM params)
           AND mes >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t

@@ -5,18 +5,9 @@
   )
 }}
 
--- Crescimento acumulado do patrimônio contra os indexadores, por mês.
---
--- Alinhamento temporal: o índice da linha do mês M tem que refletir o nível de
--- patrimônio DE M, porque é contra o `*_acum` de M que ele é comparado, e o
--- índice dos indexadores já embute a taxa do próprio mês
--- (cdi_acum(M) = cdi_acum(M-1) * (1 + cdi(M))). Por isso a janela vai até
--- CURRENT ROW. Ela já foi `1 PRECEDING`, o que zerava a primeira linha em
--- 1,000 exatos mas defasava a série inteira em um mês: o gráfico comparava o
--- patrimônio de maio com o CDI de junho.
---
--- NÃO É RENTABILIDADE: a variação MoM inclui os aportes do período. Ver a
--- descrição do modelo em _schema.yml.
+-- Janela até CURRENT ROW, não 1 PRECEDING: o *_acum de M já embute a taxa de M,
+-- e com 1 PRECEDING a série inteira fica defasada em um mês.
+-- Não é rentabilidade: a variação MoM inclui os aportes.
 
 WITH casal_mom AS (
     SELECT
@@ -27,11 +18,7 @@ WITH casal_mom AS (
     FROM {{ ref('patrimonio_mom') }}
 ),
 
--- Deusa vem de outra planilha e de outro modelo: `patrimonio_deusa`
--- traz só o total líquido, sem abertura por titular, então não há um
--- `patrimonio_mom` dela para reaproveitar e a variação MoM é calculada aqui.
--- O LAG roda sobre a série inteira, antes do recorte de 2023-11, para que a
--- primeira linha da janela tenha mês anterior com que se comparar.
+-- O LAG roda antes do recorte de 2023-11 para a primeira linha ter mês anterior.
 deusa_mom AS (
     SELECT
         mes_base,
@@ -43,9 +30,8 @@ deusa_mom AS (
     FROM {{ ref('patrimonio_deusa') }}
 ),
 
--- LEFT JOIN e não INNER: um mês sem fechamento da planilha de Deusa não pode
--- derrubar a linha do casal. Onde ela falta, o índice dela repete o anterior
--- (SUM de janela ignora NULL) e a coluna segue legível.
+-- LEFT JOIN: mês sem fechamento de Deusa não derruba a linha do casal; o índice
+-- dela repete o anterior porque SUM de janela ignora NULL.
 mom AS (
     SELECT
         t1.mes_base,

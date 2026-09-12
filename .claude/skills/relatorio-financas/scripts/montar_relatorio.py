@@ -11,7 +11,7 @@ São quatro relatórios, separados por assunto e por titular:
     lucas | jessica    investimentos do titular — patrimônio, carteira, renda
                        passiva, riscos, aporte
     deusa              idem, sem patrimônio: não há dado dela em
-                       marts.patrimonio
+                       marts_financas.patrimonio
 
 O desempenho contra CDI e inflação pessoal não sai aqui. Os indexadores do mês
 só são publicados por volta do dia 10 e a planilha é preenchida depois — no
@@ -492,7 +492,7 @@ def bloco_riscos(d, pessoas):
 
 def montar_investimentos(d, n, pessoa):
     """Relatório de investimentos de um titular. A seção de patrimônio só
-    existe para quem tem série em marts.patrimonio, então a numeração é
+    existe para quem tem série em marts_financas.patrimonio, então a numeração é
     sequencial e não literal: o relatório de Deusa não pode sair com buraco
     de seção."""
     meta = d["meta"]

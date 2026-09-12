@@ -5,13 +5,6 @@
   )
 }}
 
-{#-
-  Recorte por pessoa de carteira_agregada, que já resolve o pivot dinâmico
-  por instituição. Instituição nova entra como coluna aqui sem edição manual e
-  entra nos totais — antes o CTE `final` listava as instituições uma a uma e
-  descartava as que não estivessem na lista.
--#}
-
 SELECT
     mes_base,
     mes_final,

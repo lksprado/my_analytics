@@ -29,8 +29,8 @@ fechamento roda cedo demais para duas coisas:
 
 | Fonte | Quando fica confiável |
 |---|---|
-| `marts.consumo` (gasto diário) | contínuo, ~D+1 |
-| `marts.resultado` (DRE) | primeiros dias do mês seguinte |
+| `marts_financas.consumo` (gasto diário) | contínuo, ~D+1 |
+| `marts_financas.resultado` (DRE) | primeiros dias do mês seguinte |
 | carteira e patrimônio | fecham em cadência própria, costumam vir 1 mês atrás |
 | indexadores IPCA/CDI/Selic/inflação pessoal | **IPCA sai ~dia 10**; a planilha é preenchida depois |
 
@@ -113,8 +113,8 @@ Leia `meta.prontidao`. São **três portões independentes**:
 | flag | o que exige | bloqueia |
 |---|---|---|
 | `pronto_ritmo` | hoje ≥ dia 10; último lançamento a ≤ 3 dias; ≥ 7 dias com gasto | partes 1 a 4 |
-| `pronto_indicadores` | `marts.indicadores` tem o mês anterior com `ipca` preenchido | parte 5 |
-| `pronto_deusa` | `marts.carteira_deusa` tem a posição do mês anterior | parte 6 |
+| `pronto_indicadores` | `marts_financas.indicadores` tem o mês anterior com `ipca` preenchido | parte 5 |
+| `pronto_deusa` | `marts_financas.carteira_deusa` tem a posição do mês anterior | parte 6 |
 
 Cada um passa sem os outros — a carteira de Deusa fecha em cadência
 independente da publicação do IPCA. Se `pronto_indicadores` ou `pronto_deusa`
@@ -159,9 +159,9 @@ mande.
   ou reavaliação de ativo**, nunca rendimento — se o ganho da janela se
   concentra em um ou dois degraus, diga isso, senão o número engana.
 - **São dois patrimônios, não um.** `riqueza` traz o do casal e o de Deusa, que
-  vem de outra planilha (`marts.patrimonio_deusa`, só o total líquido).
+  vem de outra planilha (`marts_financas.patrimonio_deusa`, só o total líquido).
   Carteiras e objetivos distintos: comparam-se ao mesmo benchmark, mas **não se
-  somam** e não viram um total. Deusa não tem série em `marts.patrimonio` — o
+  somam** e não viram um total. Deusa não tem série em `marts_financas.patrimonio` — o
   nível por conta dela não existe, só o índice.
 - **Queda no índice de Deusa não tem causa apurável aqui.** Não há despesa dela
   no warehouse, então não dá para separar resgate planejado de perda de

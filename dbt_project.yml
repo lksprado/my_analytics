@@ -45,25 +45,3 @@ models:
         +enabled: false
     marts:
       +materialized: table
-
-# Tipos fixados nas seeds de investimentos faltantes: sem isso o dbt infere o
-# tipo da coluna a partir do conteúdo, e uma coluna de data inteiramente vazia
-# (data_emissao da Jéssica) vira `integer` — quebrando o UNION de
-# int_renda_fixa_loop contra as seeds do Lucas e da Deusa, onde ela é `date`.
-seeds:
-  my_datawarehouse:
-    investimentos_faltantes_lucas:
-      +column_types:
-        mes_base: date
-        data_emissao: date
-        data_vencimento: date
-    investimentos_faltantes_jessica:
-      +column_types:
-        mes_base: date
-        data_emissao: date
-        data_vencimento: date
-    investimentos_faltantes_deusa:
-      +column_types:
-        mes_base: date
-        data_emissao: date
-        data_vencimento: date

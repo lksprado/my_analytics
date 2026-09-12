@@ -104,7 +104,7 @@ models:
   - name: stg_datas_especiais
     description: >
       Calendário de datas especiais da família (aniversários e efemérides), vindo do seed
-      datas_especiais. Um registro por evento; a data é recorrente por dia+mês, sem ano fixo.
+      seed_datas_especiais. Um registro por evento; a data é recorrente por dia+mês, sem ano fixo.
       Consumido por dim_datas, que dele deriva fl_data_especial e fl_mes_especial — as flags que
       permitem ler pico de gasto em `role` e `diversos` como sazonalidade conhecida.
     columns:

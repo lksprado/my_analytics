@@ -5,10 +5,6 @@
   )
 }}
 
-{#- Recorte por pessoa do mart base `carteira`, que já resolve dim_datas, camada
-    e fl_mes_atual. União por colunas nomeadas, não SELECT *: casar por posição
-    já trocou camada por ativo em silêncio (ambas TEXT). -#}
-
 SELECT
     mes_base,
     mes_final,

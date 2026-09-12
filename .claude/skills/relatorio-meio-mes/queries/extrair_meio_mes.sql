@@ -48,7 +48,7 @@ gasto_diario AS (
         total_transporte, total_apartamento, total_saude, total_educacao,
         total_mercado + total_diversos + total_assinaturas + total_role
         + total_transporte + total_apartamento + total_saude + total_educacao AS total_dia
-    FROM marts.consumo
+    FROM marts_financas.consumo
 ),
 
 -- ----------------------------------------------------------- meses fechados ---
@@ -67,7 +67,7 @@ cobertura_mes AS (
 meses_fechados AS (
     SELECT c.mes
     FROM cobertura_mes AS c
-    INNER JOIN marts.resultado AS r ON r.mes_debito = c.mes
+    INNER JOIN marts_financas.resultado AS r ON r.mes_debito = c.mes
     CROSS JOIN params AS p
     WHERE r.total_role + r.total_diversos + r.total_transporte > 0
       AND c.ultimo_dia_com_gasto IS NOT NULL
@@ -111,16 +111,16 @@ prontidao AS (
           WHERE g.mes = p.mes_corrente AND g.data <= p.hoje
             AND g.total_dia <> 0)::int                                  AS dias_desde_ultimo_lancamento,
         (SELECT COUNT(*) FROM base_6)::int                              AS meses_de_base,
-        (SELECT COUNT(*) FROM marts.indicadores i
+        (SELECT COUNT(*) FROM marts_financas.indicadores i
           WHERE i.mes_base = p.mes_anterior AND i.ipca IS NOT NULL)     AS tem_indicadores,
-        (SELECT MAX(i.mes_base) FROM marts.indicadores i
+        (SELECT MAX(i.mes_base) FROM marts_financas.indicadores i
           WHERE i.ipca IS NOT NULL)                                     AS ultimo_mes_indicador,
         -- A carteira de Deusa fecha em cadência própria e costuma vir um mês
         -- atrás. Portão separado: sem a posição do mês anterior a seção de
         -- ativos sai do relatório, sem derrubar as outras.
-        (SELECT COUNT(*) FROM marts.carteira_deusa c
+        (SELECT COUNT(*) FROM marts_financas.carteira_deusa c
           WHERE c.mes_base = p.mes_anterior)                            AS tem_carteira_deusa,
-        (SELECT MAX(c.mes_base) FROM marts.carteira_deusa c)            AS ultimo_mes_carteira_deusa
+        (SELECT MAX(c.mes_base) FROM marts_financas.carteira_deusa c)            AS ultimo_mes_carteira_deusa
     FROM params AS p
 ),
 
@@ -151,13 +151,13 @@ pendencias AS (
     UNION ALL
     SELECT 'indicadores',
            'Os indexadores do mês anterior ainda não estão preenchidos em '
-           || 'marts.indicadores. O IPCA sai por volta do dia 10 e a planilha é '
+           || 'marts_financas.indicadores. O IPCA sai por volta do dia 10 e a planilha é '
            || 'preenchida depois; sem eles não há leitura de desempenho.'
     FROM prontidao WHERE tem_indicadores = 0
     UNION ALL
     SELECT 'deusa',
            'A carteira de Deusa ainda não tem a posição do mês anterior em '
-           || 'marts.carteira_deusa — a última é de '
+           || 'marts_financas.carteira_deusa — a última é de '
            || COALESCE(to_char(ultimo_mes_carteira_deusa, 'MM/YYYY'), 'nenhum mês')
            || '. Sem ela não há leitura de ativos.'
     FROM prontidao WHERE tem_carteira_deusa = 0
@@ -178,7 +178,7 @@ b_meta AS (
         'meses_de_base',     (SELECT meses_de_base FROM prontidao),
         'motivos_especiais', (
             SELECT NULLIF(r.motivo, 'NORMAL')
-            FROM marts.resultado r CROSS JOIN params p
+            FROM marts_financas.resultado r CROSS JOIN params p
             WHERE r.mes_debito = p.mes_corrente
         ),
         'prontidao', (
@@ -355,7 +355,7 @@ b_dre AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_debito), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.resultado
+        FROM marts_financas.resultado
         WHERE mes_debito <= (SELECT mes_corrente FROM params)
           AND mes_debito >  (SELECT mes_corrente FROM params) - interval '13 months'
     ) AS t
@@ -365,7 +365,7 @@ b_indicadores AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.indicadores
+        FROM marts_financas.indicadores
         WHERE mes_base <= (SELECT mes_anterior FROM params)
           AND mes_base >  (SELECT mes_anterior FROM params) - interval '13 months'
     ) AS t
@@ -375,7 +375,7 @@ b_riqueza AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.riqueza
+        FROM marts_financas.riqueza
         WHERE mes_base <= (SELECT mes_anterior FROM params)
           AND mes_base >  (SELECT mes_anterior FROM params) - interval '13 months'
     ) AS t
@@ -390,16 +390,16 @@ b_riqueza AS (
 -- Duas fontes com totais próprios, e por isso conciliadas explicitamente no
 -- bloco `b_deusa_conciliacao`:
 --
---   marts.carteira_deusa    grão de ativo; é o que dá classe, indexador e a
+--   marts_financas.carteira_deusa    grão de ativo; é o que dá classe, indexador e a
 --                           quebra por instituição
---   marts.patrimonio_deusa  a planilha dela; é o que alimenta o índice de
+--   marts_financas.patrimonio_deusa  a planilha dela; é o que alimenta o índice de
 --                           `riqueza` exibido na mesma seção
 --
 -- Em 07/2026 os dois totais diferem em R$ 2, mas em 12/2024 diferiam em R$ 60
 -- mil. Exibir um número de cada fonte na mesma página sem mostrar a diferença
 -- é o modo de o relatório mentir sem errar nenhuma conta. `patrimonio_deusa`
 -- existe justamente para isso: `riqueza` carrega só o índice e
--- `marts.patrimonio` é o patrimônio do casal, sem coluna dela.
+-- `marts_financas.patrimonio` é o patrimônio do casal, sem coluna dela.
 
 -- A série e a composição saem as duas de `carteira_deusa`, no grão de ativo.
 -- `carteira_deusa_agregada` traria a série pronta e hoje concordaria: desde que
@@ -418,7 +418,7 @@ b_deusa_evolucao AS (
                   FILTER (WHERE c.classe_ativo = 'DISPONIBILIDADE'), 0), 2)  AS disponivel,
             ROUND(COALESCE(SUM(c.vlr_atualizado_brl)
                   FILTER (WHERE c.classe_ativo <> 'DISPONIBILIDADE'), 0), 2) AS investido
-        FROM marts.carteira_deusa AS c
+        FROM marts_financas.carteira_deusa AS c
         CROSS JOIN params AS p
         WHERE c.mes_base <= p.mes_anterior
           AND c.mes_base >  p.mes_anterior - interval '13 months'
@@ -436,7 +436,7 @@ deusa_pos AS (
         c.tipo_ativo,
         COALESCE(NULLIF(TRIM(c.indexador), ''), 'SEM INDEXADOR') AS indexador,
         c.vlr_atualizado_brl                                     AS valor
-    FROM marts.carteira_deusa AS c
+    FROM marts_financas.carteira_deusa AS c
     CROSS JOIN params AS p
     WHERE c.mes_base IN (p.mes_anterior,
                          (p.mes_anterior - interval '1 month')::date)
@@ -497,11 +497,11 @@ b_deusa_conciliacao AS (
     SELECT json_build_object(
         'mes_base',       (SELECT mes_anterior FROM params),
         'total_carteira', (SELECT ROUND(SUM(c.vlr_atualizado_brl), 2)
-                           FROM marts.carteira_deusa AS c
+                           FROM marts_financas.carteira_deusa AS c
                            CROSS JOIN params AS p
                            WHERE c.mes_base = p.mes_anterior),
         'total_planilha', (SELECT x.total_patrimonio_liquido
-                           FROM marts.patrimonio_deusa AS x
+                           FROM marts_financas.patrimonio_deusa AS x
                            CROSS JOIN params AS p
                            WHERE x.mes_base = p.mes_anterior)
     ) AS j

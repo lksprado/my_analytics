@@ -5,39 +5,14 @@
   )
 }}
 
-{#-
-  Base da camada de carteira: toda posição de todo titular, mês a mês, com o
-  enriquecimento que o intermediate deliberadamente não faz.
+{#- Camada é estado atual, não SCD2: a planilha perdeu mes_base, então um mês
+    passado carrega a classificação de hoje.
 
-  int_ativos_consolidados já une renda fixa, renda variável e disponibilidades
-  no mesmo grão — é a "visão única de ativos" crua. O que se acrescenta aqui:
+    A chave do join inclui instituicao: BRSTNCLTN806 da Deusa está no Banco do
+    Brasil e no Nubank, e sem ela a posição duplica.
 
-    mes_final / trimestre / ano   join com dim_datas
-    camada                        classificação manual lida da planilha
-    fl_mes_atual                  a posição pertence ao mês mais recente?
-
-  fonte_dado NÃO nasce aqui: é atribuído lá atrás, no CTE-folha de cada ramo do
-  intermediate (B3, AVENUE, PLANILHA GOOGLE ou SEED), porque depois do UNION ALL
-  a origem já não é recuperável. Aqui ele só é carregado adiante. Serve para
-  separar o que uma extração traz do que é digitado à mão, e para distinguir
-  "a extração não rodou" de "a posição sumiu".
-
-  Feito uma vez só. Os três carteira_<pessoa>, os três risco_fgc_<pessoa>,
-  carteira_agregada, carteira_classificacao e ativos_sem_classificacao são todos
-  recortes deste modelo — antes o mesmo LATERAL de camada estava copiado em dois
-  modelos intermediários e as cópias divergiram, que é a mesma história da macro
-  normaliza_instituicao.
-
-  CAMADA NÃO É MAIS SCD2. A aba "classificacao" da planilha perdeu a coluna
-  mes_base e virou um cadastro de estado atual, então não há vigência a resolver:
-  o join é direto e um mês passado carrega a classificação de hoje. Enquanto
-  havia mes_base, isto era um LEFT JOIN LATERAL pegando a última linha com
-  mes_base <= a do mês da posição.
-
-  A chave é pessoa + codigo_ativo + instituicao. Sem instituicao há fan-out:
-  BRSTNCLTN806 da Deusa está cadastrado no Banco do Brasil e no Nubank, e o join
-  por pessoa + codigo_ativo devolvia 85 linhas para 83 posições.
--#}
+    fonte_dado vem do CTE-folha de cada ramo do intermediate, porque depois do
+    UNION ALL a origem não é recuperável. -#}
 
 WITH
 datas AS (

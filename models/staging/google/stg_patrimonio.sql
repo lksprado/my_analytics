@@ -83,15 +83,9 @@ renamed AS (
     FROM source
 ),
 nulls_treated AS (
-    {#- Célula em branco na planilha vira NULL. Nos SALDOS isso é zero de fato, e
-        o NULL vazava para int_disponibilidades_isoladas e para marts.patrimonio.
-
-        Nos INDEXADORES não: NULL ali quer dizer "o IPCA do mês ainda não saiu e
-        a planilha não foi preenchida", e é justamente o que o portão
-        pronto_indicadores do relatório de meio de mês lê
-        (marts.indicadores ... WHERE ipca IS NOT NULL). Coalescer para 0 faria o
-        portão passar com um IPCA inventado de 0%. Por isso as dez colunas de
-        indexador atravessam sem tratamento. -#}
+    {#- Saldos em branco são zero, mas os indexadores atravessam sem COALESCE: NULL
+        ali é "o IPCA do mês ainda não saiu", e é o que o portão pronto_indicadores
+        lê. Zero faria o portão passar com um IPCA inventado. -#}
     SELECT
         mes_base,
         COALESCE(total_patrimonio_bruto, 0)                  AS total_patrimonio_bruto,

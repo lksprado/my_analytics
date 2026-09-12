@@ -5,22 +5,8 @@
   )
 }}
 
-{#-
-  Patrimônio de Deusa mês a mês, da planilha dela. Mesmo shape de `patrimonio`,
-  mas OUTRO patrimônio: outra planilha, outra carteira, outros objetivos. Os dois
-  aparecem lado a lado em `riqueza` porque enfrentam o mesmo benchmark, e NUNCA
-  devem ser somados.
-
-  Ao contrário do casal, a planilha dela não abre patrimônio líquido por titular
-  — só o total, mais os saldos por conta. Por isso ela não entra em `patrimonio`
-  e a variação MoM dela é calculada dentro de `riqueza`, sem um patrimonio_mom
-  próprio para reaproveitar.
-
-  Existe como mart, e não como modelo intermediário, porque a extração do
-  relatório de meio de mês precisa do total líquido da planilha para imprimir a
-  reconciliação contra marts.carteira_deusa — e as extrações dos relatórios leem
-  exclusivamente a camada marts.
--#}
+{#- Outro patrimônio que o de `patrimonio`: nunca somar os dois. É mart, e não
+    intermediate, porque as extrações dos relatórios só leem marts. -#}
 
 WITH
 datas AS (

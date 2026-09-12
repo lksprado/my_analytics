@@ -11,7 +11,7 @@ seed AS (
     data_extracao::DATE as data_extracao,
     {{ clean_string("nome_conglomerado", "upper") }} as conglomerado,
     {{ clean_string("nome_instituicao", "upper") }} as instituicao    
-    FROM {{ ref('de_para_instituicoes_fgc') }}
+    FROM {{ ref('seed_de_para_instituicoes_fgc') }}
     WHERE score_match > 90
 ),
 

@@ -103,7 +103,7 @@ models:
       mais os saldos por conta; por isso ela não entra em `patrimonio` e a variação MoM dela é
       calculada dentro de `riqueza`, sem um patrimonio_mom próprio.
       Existe como mart porque a extração do relatório de meio de mês precisa do total líquido da
-      planilha para imprimir a reconciliação contra marts.carteira_deusa — e as extrações leem
+      planilha para imprimir a reconciliação contra marts_financas.carteira_deusa — e as extrações leem
       exclusivamente a camada marts.
     columns:
       - name: mes_base
@@ -117,7 +117,7 @@ models:
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês mais recente preenchido na planilha."
       - name: total_patrimonio_liquido
-        description: "Patrimônio líquido total declarado na planilha. É o número conciliado contra a soma de marts.carteira_deusa no relatório de meio de mês; as duas fontes têm cortes próprios e a diferença é impressa, não escondida."
+        description: "Patrimônio líquido total declarado na planilha. É o número conciliado contra a soma de marts_financas.carteira_deusa no relatório de meio de mês; as duas fontes têm cortes próprios e a diferença é impressa, não escondida."
       - name: saldo_banco_brasil_deusa
         description: "Saldo em conta corrente no Banco do Brasil."
       - name: saldo_banco_brasil_investimentos_deusa
@@ -745,7 +745,7 @@ models:
       int_indexadores, classificando cada mês por indexador.
       Cobre DOIS patrimônios independentes: o do casal (com abertura de Lucas e Jéssica, vinda de
       patrimonio_mom) e o de Deusa (vindo de patrimonio_deusa, que traz só o total
-      líquido — por isso ela não tem abertura por conta e não entra em marts.patrimonio). São
+      líquido — por isso ela não tem abertura por conta e não entra em marts_financas.patrimonio). São
       planilhas, carteiras e objetivos distintos: aparecem no mesmo modelo porque enfrentam o mesmo
       benchmark, e NUNCA devem ser somados.
       NÃO É RENTABILIDADE: o índice compõe a variação do patrimônio, que inclui os aportes do

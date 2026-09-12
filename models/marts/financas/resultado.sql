@@ -6,9 +6,7 @@
 }}
 
 WITH
--- Um registro por mês. dim_datas tem uma linha por dia e `motivo` varia dentro
--- do mês, então DISTINCT com motivo na chave duplicaria o mês no join abaixo e
--- repetiria o valor cheio em cada linha.
+-- motivo varia dentro do mês: com ele no DISTINCT o mês duplicaria no join.
 datas AS (
     SELECT
         month_start_date,

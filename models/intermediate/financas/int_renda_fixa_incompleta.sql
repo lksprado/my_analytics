@@ -133,16 +133,9 @@ final AS (
             data_vencimento IS NOT NULL
             AND data_vencimento < CURRENT_DATE
         )                        AS fl_vencido,
-        {#- Dinheiro no warehouse trafega em reais inteiros: int_renda_variavel,
-            int_renda_fixa_loop, int_disponibilidades_isoladas e int_dividendos
-            já entregam ::INT, e patrimonio vem inteiro do staging. Este era o
-            único ramo que deixava numeric passar (market_value * vlr_usd da
-            Avenue e o COALESCE curva/MTM da B3), e bastava ele para contaminar
-            int_renda_fixa -> int_renda_unificada -> int_ativos_consolidados ->
-            marts.carteira e todos os seus recortes.
-
-            O cast fica aqui, no CTE onde os três ramos convergem, e não em cada
-            um deles. ::INT arredonda (não trunca), que é o que se quer. -#}
+        {#- Único ramo que chega em numeric (market_value * vlr_usd da Avenue, COALESCE
+            curva/MTM da B3). O cast fica onde os três ramos convergem, para arredondar
+            uma vez só. -#}
         vlr_atualizado_brl::INT AS vlr_atualizado_brl,
         moeda_ativo,
         fonte_dado

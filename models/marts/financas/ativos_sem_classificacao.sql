@@ -5,21 +5,8 @@
   )
 }}
 
-{#-
-  A pendência do loop da planilha: posições do mês corrente que ainda não têm
-  linha na aba "classificacao" e por isso caem no default 'NAO CLASSIFICADO'
-  dentro do mart base `carteira`.
-
-  Complemento de carteira_classificacao, que publica o retrato inteiro do mês —
-  aqui sai só o que falta digitar.
-
-  O anti-join é NOT EXISTS: PostgreSQL não tem LEFT ANTI JOIN. A chave é
-  pessoa + codigo_ativo + instituicao, a mesma do join de camada; instituicao
-  entra porque um mesmo codigo_ativo pode estar cadastrado em dois bancos.
-
-  O recorte é fl_mes_atual, não uma data fixa: meses antigos sempre terão
-  pendência, porque a planilha só cadastra o que se tem hoje.
--#}
+{#- fl_mes_atual e não uma data fixa: meses antigos sempre têm pendência, porque
+    a planilha só cadastra o que se tem hoje. -#}
 
 WITH
 faltam_classificar AS (
@@ -27,12 +14,10 @@ faltam_classificar AS (
         c.pessoa,
         c.instituicao,
         c.classe_ativo,
-        c.tipo_ativo,
         c.codigo_ativo,
         c.ativo,
         c.data_vencimento,
-        c.moeda_ativo,
-        c.vlr_atualizado_brl
+        c.moeda_ativo
     FROM {{ ref('carteira') }} AS c
     WHERE
         c.fl_mes_atual IS TRUE

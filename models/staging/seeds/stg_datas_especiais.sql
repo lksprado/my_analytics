@@ -12,7 +12,7 @@ seed AS (
         mes_num,
         ano_inicio,
         {{ clean_string("motivo", "upper") }} AS motivo
-    FROM {{ ref('datas_especiais') }}
+    FROM {{ ref('seed_datas_especiais') }}
 )
 
 SELECT * FROM seed

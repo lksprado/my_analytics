@@ -559,7 +559,7 @@ cadência de atualização, e depois do `UNION ALL` isso ficava indistinguível.
 `fonte_dado` é atribuído no CTE-folha de cada ramo, onde a origem ainda é
 conhecida, e viaja intacto por `int_renda_variavel` / `int_renda_fixa_incompleta`
 / `int_renda_fixa_loop` / `int_disponibilidades_isoladas` →
-`int_ativos_consolidados` → `marts.carteira` e seus recortes por pessoa.
+`int_ativos_consolidados` → `marts_financas.carteira` e seus recortes por pessoa.
 
 | Valor | Origem | Modelos de staging |
 |---|---|---|
@@ -572,8 +572,8 @@ Duas leituras que a coluna habilita e antes exigiam abrir o SQL:
 
 1. **Quanto da carteira é digitado à mão.** `SEED` e `PLANILHA GOOGLE` são
    cadastro manual — não se atualizam sozinhos e envelhecem em silêncio. São eles
-   que explicam boa parte da divergência entre `marts.carteira_deusa` e
-   `marts.patrimonio_deusa` (as seeds itemizadas e a Avenue, que não tem coluna
+   que explicam boa parte da divergência entre `marts_financas.carteira_deusa` e
+   `marts_financas.patrimonio_deusa` (as seeds itemizadas e a Avenue, que não tem coluna
    na planilha dela).
 2. **O que se perde se uma extração falhar.** Um mês sem linhas `B3` ou sem
    linhas `AVENUE` é uma extração que não rodou, não um resgate.
