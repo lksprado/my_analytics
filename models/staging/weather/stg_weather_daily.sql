@@ -1,5 +1,5 @@
 WITH
-source AS (SELECT * FROM {{ source('raw', 'openweather_daily') }}),
+source AS (SELECT * FROM {{ source('openweather', 'openweather_daily') }}),
 
 renamed AS (
     SELECT

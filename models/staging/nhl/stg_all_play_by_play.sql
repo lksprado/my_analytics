@@ -13,7 +13,7 @@
 
 with
 source as (
-    select * from {{ source('raw', 'nhl_raw_all_play_by_play') }}
+    select * from {{ source('nhl', 'nhl_raw_all_play_by_play') }}
     {% if is_incremental() %}
         where (payload ->> 'gameDate')::date > (select max(game_date) from {{ this }})
     {% endif %}

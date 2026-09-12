@@ -7,7 +7,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw', 'vide_raw_category_pages') }}
+    SELECT * FROM {{ source('vide_editora', 'vide_raw_category_pages') }}
 ),
 
 renamed AS (

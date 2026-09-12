@@ -6,7 +6,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw','luc_contas') }}
+    SELECT * FROM {{ source('google_finance_sheet', 'luc_contas') }}
 ),
 
 renamed AS (

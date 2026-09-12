@@ -16,7 +16,7 @@ source AS (
             ELSE 'desconhecido'
         END                              AS pessoa,
         *
-    FROM {{ source('raw' ,'renda_fixa') }}
+    FROM {{ source('b3', 'renda_fixa') }}
 ),
 
 renamed AS (

@@ -7,7 +7,7 @@
 
 with
 source as (
-    select * from {{ source('raw','nhl_raw_all_teams_id') }}
+    select * from {{ source('nhl', 'nhl_raw_all_teams_id') }}
 ),
 
 renamed as (

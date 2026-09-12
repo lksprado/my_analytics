@@ -7,7 +7,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw', 'dividends_interest') }}
+    SELECT * FROM {{ source('avenue', 'dividends_interest') }}
 ),
 
 renamed AS (

@@ -13,7 +13,7 @@
 with source as (
 
     select *
-    from {{ source('raw', 'nhl_raw_all_player_game_log') }}
+    from {{ source('nhl', 'nhl_raw_all_player_game_log') }}
 ),
 
 stats_games as (

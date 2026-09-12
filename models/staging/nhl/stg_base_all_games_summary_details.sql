@@ -10,7 +10,7 @@ with source as (
         payload,
         source_filename,
         split_part(source_filename, '_', 2)::int as game_id
-    from {{ source('raw', 'nhl_raw_all_games_summary_details') }}
+    from {{ source('nhl', 'nhl_raw_all_games_summary_details') }}
     where split_part(source_filename, '_', 2) is not null
 )
 

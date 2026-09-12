@@ -7,7 +7,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw', 'atacadao_raw') }}
+    SELECT * FROM {{ source('atacadao', 'atacadao_raw') }}
 ),
 
 renamed AS (

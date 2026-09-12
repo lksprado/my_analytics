@@ -7,7 +7,7 @@
 
 with source as (
     select payload
-    from {{ source('raw', 'nhl_raw_all_games_details') }}
+    from {{ source('nhl', 'nhl_raw_all_games_details') }}
 ),
 
 base_fields as (

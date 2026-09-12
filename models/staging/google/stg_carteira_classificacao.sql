@@ -7,7 +7,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw','carteira_classificacao') }}
+    SELECT * FROM {{ source('google_finance_sheet', 'carteira_classificacao') }}
 ),
 
 renamed AS (

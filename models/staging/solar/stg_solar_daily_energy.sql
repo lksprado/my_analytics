@@ -1,5 +1,5 @@
 WITH
-source AS (SELECT * FROM {{ source('raw', 'solar_daily_energy') }}),
+source AS (SELECT * FROM {{ source('apsystem', 'solar_daily_energy') }}),
 
 renamed AS (
     SELECT

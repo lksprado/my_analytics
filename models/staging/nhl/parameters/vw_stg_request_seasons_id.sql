@@ -8,7 +8,7 @@
 with source as (
 
     select payload::int as season_id
-    from {{ source('raw','nhl_raw_all_seasons_id') }}
+    from {{ source('nhl', 'nhl_raw_all_seasons_id') }}
 
 ),
 

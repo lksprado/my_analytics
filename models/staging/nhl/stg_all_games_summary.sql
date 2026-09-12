@@ -10,7 +10,7 @@
 
 with
 source as (
-    select * from {{ source('raw','nhl_raw_all_games_summary') }}
+    select * from {{ source('nhl', 'nhl_raw_all_games_summary') }}
 ),
 
 renamed as (

@@ -10,7 +10,7 @@
 
 with
 source as (
-    select * from {{ source('raw','hockeyfights_raw_all_fights') }}
+    select * from {{ source('hockeyfights', 'hockeyfights_raw_all_fights') }}
 ),
 
 renamed as (

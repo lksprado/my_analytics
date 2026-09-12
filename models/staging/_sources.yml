@@ -1,81 +1,206 @@
-
 version: 2
 
 sources:
-  - name: raw
-    database: postgres
-    schema: raw
+  - name: apsystem
+    database: raw_ingestion_dev
+    schema: apsystem
     tables:
-    - name: solar_daily_energy
-      description: "Dados de energia solar diario"
-    - name: solar_hourly_energy
-      description: "Dados de energia solar por hora"
-    - name: openweather_daily
-      description: "Dados de clima por dia"
-    - name: nhl_raw_all_games_summary
-      description: "Resumo de todos os jogos que já ocorreram e os agendados. Atualizar diariamente."
-    - name: nhl_raw_all_seasons_id
-      description: "Lista com todas as temporadas."
-    - name: nhl_raw_all_games_details
-      description: "Detalhe dos jogos que já ocorreram. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
-    - name: nhl_raw_all_teams_id
-      description: "Dimensão de todos os times que já existiram. Atualizar anualmente."
-    - name: nhl_raw_all_games_summary_details
-      description: "Estatísticas dos jogos que já ocorreram. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
-    - name: nhl_raw_all_club_stats
-      description: "Estatísticas dos jogadores por time e temporadas. Atualizar diariamente."
-    - name: nhl_raw_all_players
-      description: "Detalhes e  estatísticas dos jogadores por tipo de temporada. Atualizar diariamente."
-    - name: nhl_raw_all_player_game_log
-      description: "Estatísticas dos jogadores por jogo. Atualizar diariamente."
-    - name: nhl_raw_all_play_by_play
-      description: "Todos eventos de um jogo. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
-    - name: hockeyfights_raw_all_fights
-      description: "Todas as brigas entre 1986 e última temporada completa"
-    - name: vide_raw_home_featured
-      description: "Scraping diário dos livros em destaque na Vide"
-    - name: vide_raw_all_books_legacy
-      description: "Scraping legado em Novembro de 2024"
-    - name: vide_raw_category_pages
-      description: "Scraping paginas semanalmente"
-    - name: atacadao_raw
-      description: "Dados atualizados do novo Scraper Atacadao"
-    
-    - name: acoes
-      description: "Portfolio de acões na B3"
-    - name: bdr
-      description: "Portfolio de BDR na B3"
-    - name: renda_fixa
-      description: "Portfolio de Renda Fixa na B3"
-    - name: etf
-      description: "Portfolio de ETF na B3"
-    - name: fundos
-      description: "Portfolio de Fundos na B3"
-    - name: negociacoes
-      description: "Negociacoes de ativos B3"
-    - name: proventos
-      description: "Proventos recebidos"
-    - name: tesouro_direto
-      description: "Portfolio de Tesouro Direto na B3"
-    - name: assets
-      description: "Portfolio de ativos em USD em relatorio atual na Avenue"
-    - name: jsc_consolidado
-      description: "Renda e despesas de Jéssica"
-    - name: luc_consolidado
-      description: "Renda e despesas de Lucas"
-    - name: jsc_contas
-      description: "Gastos por categoria em cartão de crédito e à vista"
-    - name: luc_contas
-      description: "Gastos por categoria em cartão de crédito e à vista"
-    - name: luz
-      description: "Consumo de energia elétrica"
-    - name: patrimonio
-      description: "Total de ativos que compõe o patrimônio do Lucas e Jessica"
-    - name: dividends_interest
-      description: "Dividendos e Impostos pagos"
-    - name: carteira_classificacao
-      description: "Classificação manual de camada por posição, lida de volta da planilha Google (loop de retroalimentação). Colunas: mes_base, pessoa, ativo, classe_ativo, tipo_ativo, instituicao, camada."
-    - name: ajuste
-      description: "Transferências para equilíbrio de despesas proporcional à renda."
-    - name: patrimonio_deusa
-      description: "Total de ativos que compõe o patrimônio da Deusa"
+      - name: solar_daily_energy
+        description: "Dados de energia solar diario"
+      - name: solar_hourly_energy
+        description: "Dados de energia solar por hora"
+
+  - name: openweather
+    database: raw_ingestion_dev
+    schema: openweather
+    tables:
+      - name: openweather_daily
+        description: "Dados de clima por dia"
+
+  - name: nhl
+    database: raw_ingestion_dev
+    schema: nhl
+    tables:
+      - name: nhl_raw_all_games_summary
+        description: "Resumo de todos os jogos que já ocorreram e os agendados. Atualizar diariamente."
+      - name: nhl_raw_all_seasons_id
+        description: "Lista com todas as temporadas."
+      - name: nhl_raw_all_games_details
+        description: "Detalhe dos jogos que já ocorreram. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
+      - name: nhl_raw_all_teams_id
+        description: "Dimensão de todos os times que já existiram. Atualizar anualmente."
+      - name: nhl_raw_all_games_summary_details
+        description: "Estatísticas dos jogos que já ocorreram. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
+      - name: nhl_raw_all_club_stats
+        description: "Estatísticas dos jogadores por time e temporadas. Atualizar diariamente."
+      - name: nhl_raw_all_players
+        description: "Detalhes e  estatísticas dos jogadores por tipo de temporada. Atualizar diariamente."
+      - name: nhl_raw_all_player_game_log
+        description: "Estatísticas dos jogadores por jogo. Atualizar diariamente."
+      - name: nhl_raw_all_play_by_play
+        description: "Todos eventos de um jogo. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
+
+  - name: hockeyfights
+    database: raw_ingestion_dev
+    schema: hockeyfights
+    tables:
+      - name: hockeyfights_raw_all_fights
+        description: "Todas as brigas entre 1986 e última temporada completa"
+
+  - name: vide_editora
+    database: raw_ingestion_dev
+    schema: vide_editora
+    tables:
+      - name: vide_raw_home_featured
+        description: "Scraping diário dos livros em destaque na Vide"
+      - name: vide_raw_all_books_legacy
+        description: "Scraping legado em Novembro de 2024"
+      - name: vide_raw_category_pages
+        description: "Scraping paginas semanalmente"
+
+  - name: atacadao
+    database: raw_ingestion_dev
+    schema: atacadao
+    tables:
+      - name: atacadao_raw
+        description: "Dados atualizados do novo Scraper Atacadao"
+
+  - name: b3
+    database: raw_ingestion_dev
+    schema: b3
+    tables:
+      - name: acoes
+        description: "Portfolio de acões na B3"
+      - name: bdr
+        description: "Portfolio de BDR na B3"
+      - name: renda_fixa
+        description: "Portfolio de Renda Fixa na B3"
+      - name: etf
+        description: "Portfolio de ETF na B3"
+      - name: fundos
+        description: "Portfolio de Fundos na B3"
+      - name: negociacoes
+        description: "Negociacoes de ativos B3"
+      - name: proventos
+        description: "Proventos recebidos"
+      - name: tesouro_direto
+        description: "Portfolio de Tesouro Direto na B3"
+
+  - name: avenue
+    database: raw_ingestion_dev
+    schema: avenue
+    tables:
+      - name: assets
+        description: "Portfolio de ativos em USD em relatorio atual na Avenue"
+      - name: dividends_interest
+        description: "Dividendos e Impostos pagos"
+
+  - name: google_finance_sheet
+    database: raw_ingestion_dev
+    schema: google_finance_sheet
+    tables:
+      - name: jsc_consolidado
+        description: "Renda e despesas de Jéssica"
+      - name: luc_consolidado
+        description: "Renda e despesas de Lucas"
+      - name: jsc_contas
+        description: "Gastos por categoria em cartão de crédito e à vista"
+      - name: luc_contas
+        description: "Gastos por categoria em cartão de crédito e à vista"
+      - name: luz
+        description: "Consumo de energia elétrica"
+      - name: patrimonio
+        description: "Total de ativos que compõe o patrimônio do Lucas e Jessica"
+      - name: carteira_classificacao
+        description: "Classificação manual de camada por posição, lida de volta da planilha Google (loop de retroalimentação). Colunas: mes_base, pessoa, ativo, classe_ativo, tipo_ativo, instituicao, camada."
+      - name: ajuste
+        description: "Transferências para equilíbrio de despesas proporcional à renda."
+      - name: patrimonio_deusa
+        description: "Total de ativos que compõe o patrimônio da Deusa"
+
+  - name: senado
+    description: "Dados oriundos das extrações de endpoints da API https://legis.senado.leg.br/dadosabertos/api-docs/swagger-ui/index.html"
+    database: raw_ingestion_dev
+    schema: senado
+    loaded_at_field: data_carga
+    freshness:
+      warn_after: {count: 160, period: hour}
+    tables:
+      - name: raw_senado_senadores
+        description: "Detalhes dos senadores das legislaturas atuais obtidos da API do Senado Federal. Endpoint: https://legis.senado.leg.br/dadosabertos/senador/lista/atual?v=4"
+        columns:
+          - name: identificacaoparlamentar_codigoparlamentar
+            tests:
+              - not_null
+      - name: raw_senado_legislaturas
+        description: "Todos senadores das legislaturas 50 a 58. Endpoint: https://legis.senado.leg.br/dadosabertos/senador/lista/legislatura/{id_legislatura}?exercicio=S&v=4"
+      - name: raw_senado_status
+        description: "Status e tramitação das proposições legislativas do Senado. Endpoint: https://legis.senado.leg.br/dadosabertos/processo/?sigla={sigla}&numero={numero}&ano={ano}&v=1"
+      - name: raw_senado_votacoes
+        description: "Todas votações do Senado desde 2001. Endpoint: https://legis.senado.leg.br/dadosabertos/votacao/?dataInicio={y}-01-01&dataFim={y}-12-31&v=1"
+      - name: raw_senado_votos_orientacao
+        description: "Orientação de votos das bancadas e partidos no Senado. Endpoint: https://legis.senado.leg.br/dadosabertos/plenario/votacao/orientacaoBancada/{y}0101/{y}1231?v=1"
+      - name: raw_senado_votos_senadores
+        description: "Votos dos senadores em cada matéria. Derivado do Endpoint: https://legis.senado.leg.br/dadosabertos/votacao/?dataInicio={y}-01-01&dataFim={y}-12-31&v=1"
+      - name: raw_senado_processo
+        description: "Votos dos senadores em cada matéria. Derivado do Endpoint: https://legis.senado.leg.br/dadosabertos/processo?idProcesso={id}&v=1"
+
+  - name: camara
+    database: raw_ingestion_dev
+    schema: camara
+    loaded_at_field: data_carga
+    freshness:
+      warn_after: {count: 160, period: hour}
+    tables:
+      - name: raw_camara_deputados
+        description: "Detalhes dos deputados obtidos da API da Câmara dos Deputados. Endpoint: https://dadosabertos.camara.leg.br/api/v2/deputados/{id}"
+      - name: raw_camara_legislaturas
+        description: "Mapeamento de deputados por legislatura. Endpoint: https://dadosabertos.camara.leg.br/api/v2/deputados/?idLegislatura={id_legislatura}&ordem=ASC&ordenarPor=nome"
+      - name: raw_camara_votacoes
+        description: "Sessões de votação da Câmara. Endpoint: https://dadosabertos.camara.leg.br/api/v2/votacoes/?dataInicio={data}&dataFim={data}&itens=100&ordem=DESC&ordenarPor=dataHoraRegistro"
+      - name: raw_camara_votos_deputados
+        description: "Votos individuais por deputado por votação. Endpoint: https://dadosabertos.camara.leg.br/api/v2/votacoes/{id_votacao/votos"
+      - name: raw_camara_votacoes_orientacao
+        description: "Orientação de voto por partido/liderança por votação. Endpoint: https://dadosabertos.camara.leg.br/api/v2/votacoes/{id_votacao}/orientacoes"
+      - name: raw_camara_proposicao_tema
+        description: "Temas da proposição Legislativa. Endpoint: https://dadosabertos.camara.leg.br/api/v2/proposicoes/{id_proposicao}/temas"
+      - name: raw_camara_proposicao
+        description: "Proposições Legislativas. Endpoint: https://dadosabertos.camara.leg.br/api/v2/proposicoes/{id_proposicao}/"
+
+  - name: ecidadania
+    database: raw_ingestion_dev
+    schema: ecidadania
+    loaded_at_field: data_carga
+    freshness:
+      warn_after: {count: 160, period: hour}
+    tables:
+      - name: raw_ecidadania_mais_votados
+        description: "Proposições legislativas em destaque (mais votadas no dia) na plataforma e-Cidadania"
+      - name: raw_ecidadania_paginas
+        description: "Todas as proposições legislativas (em andamento e encerradas) na plataforma e-Cidadania"
+      - name: raw_ecidadania_bignumbers
+        description: "Totais agregados de votações e votantes na plataforma e-Cidadania"
+
+  - name: radar
+    database: raw_ingestion_dev
+    schema: radar_congresso
+    loaded_at_field: data_carga
+    freshness:
+      warn_after: {count: 160, period: hour}
+    tables:
+      - name: raw_radar_governismo_deputados
+        description: "Métricas de alinhamento ao governo por trimestre para deputados (Radar Congresso)"
+      - name: raw_radar_governismo_senadores
+        description: "Métricas de alinhamento ao governo por trimestre para senadores (Radar Congresso)"
+      - name: raw_radar_parlamentares
+        description: "Tabela de-para entre IDs da API oficial (Câmara/Senado) e IDs do Radar Congresso. Contém deputados e senadores"
+
+  - name: ranking
+    database: raw_ingestion_dev
+    schema: ranking_politicos
+    loaded_at_field: data_carga
+    freshness:
+      warn_after: {count: 160, period: hour}
+    tables:
+      - name: raw_ranking_deputados
+      - name: raw_ranking_senadores

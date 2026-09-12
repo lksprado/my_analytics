@@ -16,7 +16,7 @@ source AS (
             WHEN source_path LIKE '%lucas%' THEN 'lucas'
             ELSE 'desconhecido'
         END                              AS pessoa
-    FROM {{ source('raw' ,'fundos') }}
+    FROM {{ source('b3', 'fundos') }}
 ),
 
 renamed AS (
