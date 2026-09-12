@@ -49,3 +49,14 @@ models:
       +materialized: table
     presentation:
       +materialized: table
+
+# Uma coluna inteiramente vazia no CSV é inferida como integer — data_emissao da Jéssica quebrava o UNION de int_renda_fixa_loop.
+seeds:
+  my_datawarehouse:
+    seed_investimentos_faltantes_lucas: &investimentos_faltantes
+      +column_types:
+        mes_base: date
+        data_emissao: date
+        data_vencimento: date
+    seed_investimentos_faltantes_jessica: *investimentos_faltantes
+    seed_investimentos_faltantes_deusa: *investimentos_faltantes

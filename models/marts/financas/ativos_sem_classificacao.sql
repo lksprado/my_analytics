@@ -14,10 +14,12 @@ faltam_classificar AS (
         c.pessoa,
         c.instituicao,
         c.classe_ativo,
+        c.tipo_ativo,
         c.codigo_ativo,
         c.ativo,
         c.data_vencimento,
-        c.moeda_ativo
+        c.moeda_ativo,
+        c.vlr_atualizado_brl
     FROM {{ ref('carteira') }} AS c
     WHERE
         c.fl_mes_atual IS TRUE

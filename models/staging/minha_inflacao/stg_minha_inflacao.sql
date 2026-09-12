@@ -24,14 +24,14 @@ renamed AS (
         "Categoria"                                                             AS category,
         "Mes"                                                                   AS month,
         "Ano"                                                                   AS year,
-        REGEXP_REPLACE(public.unaccent(LOWER("Produto")), '[^a-z0-9]', '', 'g') AS clean_product_name
+        REGEXP_REPLACE({{ clean_string('"Produto"', 'lower') }}, '[^a-z0-9]', '', 'g') AS clean_product_name
     FROM source
 ),
 
 units AS (
     SELECT DISTINCT
         {{ dbt_utils.generate_surrogate_key(['clean_product_name']) }} AS sk_product,
-        REPLACE(LOWER(public.unaccent(product_name)), ' ', '_')          AS product_name,
+        REPLACE({{ clean_string('product_name', 'lower') }}, ' ', '_')          AS product_name,
         REPLACE(TRIM(LOWER(product_unity)), '.', ',')                    AS product_unity,
         CASE
             WHEN LOWER(product_unity) ~* '(kg|quilo|grama|g\\b)' THEN 'weight'

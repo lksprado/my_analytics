@@ -28,7 +28,7 @@ renamed AS (
         "Categoria"                                                                AS category,
         "Mes"                                                                      AS month,
         "Ano"                                                                      AS year,
-        REGEXP_REPLACE({{clean_string("Produto",'lower') }}, '[^a-z0-9]', '', 'g') AS clean_product_name
+        REGEXP_REPLACE({{ clean_string('"Produto"', 'lower') }}, '[^a-z0-9]', '', 'g') AS clean_product_name
     FROM source
 ),
 

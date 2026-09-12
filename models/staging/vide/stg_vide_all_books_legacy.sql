@@ -17,8 +17,8 @@ renamed AS (
         book_category,
         TRIM(REPLACE(REPLACE(REPLACE(book_price_old, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_old,
         TRIM(REPLACE(REPLACE(REPLACE(book_price_new, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_new,
-        REGEXP_REPLACE(public.unaccent(LOWER(book_name)), '[^a-z0-9]', '', 'g')                       AS book_name_clean,
-        REGEXP_REPLACE(public.unaccent(LOWER(book_author)), '[^a-z0-9]', '', 'g')                     AS book_author_clean,
+        REGEXP_REPLACE({{ clean_string('book_name', 'lower') }}, '[^a-z0-9]', '', 'g')                       AS book_name_clean,
+        REGEXP_REPLACE({{ clean_string('book_author', 'lower') }}, '[^a-z0-9]', '', 'g')                     AS book_author_clean,
         TO_DATE(time, 'YYYY-MM-DD HH24:MI:SS')                                                        AS created_at,
         CASE
             WHEN book_category = 'Filósofos Brasileiros' THEN 'Filosofia'
@@ -87,7 +87,7 @@ final AS (
     SELECT
         {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }}            AS book_id,
         {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }}                               AS author_id,
-        REPLACE(REGEXP_REPLACE(public.unaccent(LOWER(book_name)), '[^a-z0-9 ]', '', 'g'), '  ', ' ') AS book_name,
+        REPLACE(REGEXP_REPLACE({{ clean_string('book_name', 'lower') }}, '[^a-z0-9 ]', '', 'g'), '  ', ' ') AS book_name,
         LOWER(book_author)                                                                          AS book_author,
         category                                                                                    AS book_category,
         book_price_old,
