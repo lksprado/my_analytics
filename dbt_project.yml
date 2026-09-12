@@ -37,17 +37,14 @@ models:
     # Config indicated by + and applies to all files under models/example/
     staging:
       +materialized: table
-      +schema: staging
       nhl:
         +enabled: false
     intermediate:
       +materialized: view
-      +schema: intermediate
       nhl:
         +enabled: false
     marts:
       +materialized: table
-      +schema: marts
 
 # Tipos fixados nas seeds de investimentos faltantes: sem isso o dbt infere o
 # tipo da coluna a partir do conteúdo, e uma coluna de data inteiramente vazia
