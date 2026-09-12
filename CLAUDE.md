@@ -18,11 +18,11 @@ dbt run
 # Run a single model
 dbt run --select carteira
 
-# Run a domain using selectors (energia | livros | inflation)
-dbt run --selector energia
-
-# Run a domain by tag (financas | datas)
+# Run a domain by tag (financas | datas | livros | inflacao | nhl)
 dbt run --select tag:financas
+
+# Run a domain by folder, when its tag does not cover every layer (energia: only the marts are tagged)
+dbt run --select path:models/staging/solar path:models/staging/weather path:models/marts/energy
 
 # Run a model and all its downstream dependents
 dbt run --select carteira+
@@ -60,6 +60,7 @@ Never write:
 | Staging | `table` | `staging_<subpasta>` | `stg_` | Extract and type-cast raw sources (JSON payloads, Google Sheets exports, seeds); add indexes via `post_hook` |
 | Intermediate | `view` | `intermediate_<subpasta>` | `int_` (`int_dim_` / `int_fct_` in NHL) | Business logic joins; Kimball dimensions and facts |
 | Marts | `table` | `marts_<subpasta>` | none in most domains, `mrt_` in energy | Analytics-ready models |
+| Presentation | `table` | `presentation` | none | Demodados outputs ready for publication (governismo, e-Cidadania) |
 
 > **Schema = pasta:** `macros/generate_schema_name.sql` derives the schema from the file path — `<camada>_<primeira subpasta>` (`staging_avenue`, `intermediate_financas`, `marts_financas`); snapshots get `snapshots_<subpasta>`. `+schema` is ignored for models and snapshots, so moving a file between folders moves its table between schemas. Seeds always go to `seeds`. Anything outside dbt that queries a table by name (the report extractions in `.claude/skills/*/queries/`) must use the full schema, e.g. `marts_financas.carteira`.
 
@@ -80,13 +81,14 @@ Other domains:
 
 - **inflation** — Price tracking from Atacadão and Minha Inflação scrapers
 - **livros** — Bookstore price history from Vide Editorial scraping
-- **solar** + **weather** — Residential IoT solar generation + OpenWeather API (mart `energy`, selector `energia`)
+- **solar** + **weather** — Residential IoT solar generation + OpenWeather API (mart `energy`)
+- **demodados** — Brazilian legislative data: staging `senado`, `camara_deputados`, `ecidadania`, `radar_congresso` (disabled in each model's config) and `ranking`; intermediate `parlamentares`, `votacoes` and `scores`; mart `demodados`; and the `presentation` layer
 - **conformado** — `int_dates` is the conformed calendar, **1900-01-01 → 2100-12-31**, with `data_sk`, pt-BR names, national holidays (ANBIMA/B3 banking calendar: fixed national holidays, Sexta-feira Santa, Carnaval and Corpus Christi, Easter computed in SQL) and `fl_dia_util` / `dia_util_mes`. Two dimensions sit on it: `dim_datas` (`marts_conformado`, adds the family's special dates — finanças, energia, livros) and its calendar-only twin `dim_dates` (`marts_demodados`, votações — never expose the family dates there). The spine is wide on purpose: every consumer `INNER JOIN`s into it from its own data, so a spine shorter than the data discards rows without a word — it once started in 2020 and dropped set–dez/2019 of Deusa's patrimônio; votações go back to 1991. `dbt_date.get_date_dimension`'s end date is **exclusive** — the old `"2050-12-31"` stopped on 12-30 — so the argument is the day after the last one.
 - **nhl** — NHL hockey analytics. **Currently disabled**: `dbt_project.yml` sets `+enabled: false` for both `staging.nhl` and `intermediate.nhl`, so these models do not build and are excluded from `dbt run`. The code is kept in the repo.
 
 ### Finanças — read this before touching the domain
 
-`models/marts/financas/_docs_financas.md` is the single source of truth for spending categories, investment layers and the investment policy (target allocation, contribution targets, reserve, FGC limits). Change a rule **there**, not in a `schema.yml`.
+`models/marts/financas/_docs_financas.md` is the single source of truth for spending categories, investment layers and the investment policy (target allocation, contribution targets, reserve, FGC limits). Change a rule **there**, not in a `_schema.yml`.
 
 Its numeric parameters are duplicated in `scripts/relatorios/politica.py` (`ALVOS_CAMADA`, `APORTE_ALVO`, `META_RESERVA_*`, `META_POUPANCA_PCT`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`) because the report builders cannot read Markdown. **Edit both in the same pass** — they silently diverged once and the monthly PDF rendered targets that contradicted the written policy. There is exactly **one** Python copy, shared by both report skills; do not make a third.
 
@@ -137,17 +139,15 @@ Projection rule (documented in `{% docs cadencia_relatorios %}`): `realizado + G
 
 **Index post-hooks:** Staging tables add indexes in `post_hook` using `CREATE INDEX IF NOT EXISTS`. Composite indexes exist on high-cardinality join keys (`game_id`, `event_id`, `game_date`).
 
-**Domain selectors:** `selectors.yml` defines path-based selectors for `energia`, `livros` and `inflation`. Finanças and conformado have **no selector** — select them by tag (`--select tag:financas`, `--select tag:datas`).
+**Domain selection:** there is no `selectors.yml` — select a domain by tag (`--select tag:financas`) or by folder (`--select path:models/marts/energy`).
 
 ### Schema/YAML files
 
-- `models/staging/_sources.yml` — all 36 raw source tables
-- `models/staging/<domain>/_schema.yml` — staging documentation and tests, one file per domain folder
-- `models/intermediate/<domain>/_schema.yml` — intermediate documentation and tests
-- `models/marts/<domain>/_schema.yml` — mart documentation
+- `models/staging/_sources.yml` — **every** raw source, 58 tables. Raw data lives in the `raw_ingestion_dev` database, one schema per origin, and each schema is one dbt source named after it — except `radar` (schema `radar_congresso`) and `ranking` (schema `ranking_politicos`). Never declare sources in a subfolder.
+- `models/<camada>/<subpasta>/_schema.yml` — model documentation and tests, one file per folder that has models, documenting only that folder's models (`models/presentation/_schema.yml` for the presentation layer)
 - `models/marts/financas/_docs_financas.md` — `{% docs %}` blocks shared by the finanças schemas
 
-**Naming:** use `_schema.yml` (leading underscore). Two folders still use `schema.yml` — `intermediate/financas`, `intermediate/livros`, `intermediate/nhl`, `marts/energy`, `marts/inflation`, `marts/livros`. Rename on next touch; dbt does not care about the filename.
+**Naming:** always `_schema.yml` and `_sources.yml` — not `schema.yml`, `_<dominio>__models.yml` or `_<dominio>__sources.yml`.
 
 ## Dependencies
 
@@ -162,5 +162,7 @@ Projection rule (documented in `{% docs cadencia_relatorios %}`): `realizado + G
 - Fallback de camada das disponibilidades: é `'NAO CLASSIFICADO'`, mas a intenção registrada era `'RESERVA ESTRATEGICA'` — saldo em conta, que tem camada natural, aparece como pendência de classificação na planilha. Hoje são as três contas Avenue (R$ 295 no mês corrente).
 - Reconciliação de Deusa: `marts_financas.carteira_deusa` somava R$ 835.455 contra R$ 726.736 de `marts_financas.patrimonio_deusa` em 07/2026 — R$ 108 mil, não os R$ 2 de antes. A diferença é da carteira ter passado a itemizar as seeds de investimentos faltantes (R$ 92 mil) e a Avenue, que não tem coluna na planilha dela. O relatório de meio de mês imprime a diferença; ninguém verificou ainda qual dos dois números está certo.
 - Reserva-alvo: o N em meses de despesa (6 casal / 12 Deusa) está marcado `[CONFIRMAR]` na política — nunca foi validado.
-- Sources sem `freshness:` — nenhuma source em `_sources.yml` tem alerta de dados desatualizados configurado.
+- Sources sem `freshness:` — só as cinco sources do demodados têm (`loaded_at_field: data_carga`, aviso em 160 h); finanças e os demais domínios não têm alerta de dados desatualizados.
+- Sources em outro banco: as sources apontam para `raw_ingestion_dev`, mas o profile local conecta em `analytics_dev`, e o PostgreSQL não faz referência entre bancos (`cross-database references are not implemented`) nem há `postgres_fdw`. `dbt parse`/`compile` funcionam; `dbt run` local sobre staging, não.
+- Tabelas declaradas que não existem em `raw_ingestion_dev`: `google_finance_sheet.ajuste` (só existe no antigo `postgres.raw`), `radar_congresso.raw_radar_parlamentares` (só em `demodados.raw`) e `radar_congresso.raw_radar_governismo_senadores` (em nenhum dos dois).
 - Domínio NHL desabilitado (`+enabled: false`): `stg_all_players.sql` duplica ~45 linhas de extração JSON entre `regular` e `playoffs`, e `stg_all_games_details` usa incremental por `game_id > max(game_id)`, que não cobre backfills.
