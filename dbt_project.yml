@@ -47,3 +47,5 @@ models:
         +enabled: false
     marts:
       +materialized: table
+    presentation:
+      +materialized: table
