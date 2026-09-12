@@ -34,7 +34,6 @@ game_details as (
         (game_start_timestamp_utc::timestamptz at time zone 'UTC')::timestamp
             as game_date_timestamp_utc,
         game_schedule_state,
-        -- Campos específicos do game
         (payload -> 'awayTeam' ->> 'id')::int as away_team_id,
         (payload -> 'awayTeam' ->> 'sog')::int as away_team_sog,
         (payload -> 'awayTeam' ->> 'score')::int as away_team_score,

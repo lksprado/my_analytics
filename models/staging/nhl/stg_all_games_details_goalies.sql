@@ -23,7 +23,6 @@ with base as (
 away_goalies as (
     select
         game_id,
-        -- Campos específicos
         'away' as team_side,
         'goalie' as player_type,
         (p ->> 'playerId')::int as player_id,
@@ -49,7 +48,6 @@ away_goalies as (
 home_goalies as (
     select
         game_id,
-        -- Campos específicos
         'home' as team_side,
         'goalie' as player_type,
         (p ->> 'playerId')::int as player_id,

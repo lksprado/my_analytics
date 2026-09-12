@@ -6,18 +6,12 @@
 }}
 
 with
--- -----------------------------------------------------
--- Temporada atual
--- -----------------------------------------------------
 current_season as (
     select season_id
     from {{ ref('vw_stg_request_seasons_id') }}
     where is_current = true
 ),
 
--- -----------------------------------------------------
--- Jogos que já aconteceram (fonte de verdade)
--- -----------------------------------------------------
 games_happened as (
     select distinct game_id
     from {{ ref('stg_all_games_summary') }}
@@ -48,19 +42,14 @@ play_by_play as (
     group by game_id
 ),
 
--- -----------------------------------------------------
--- Consolidação final
--- -----------------------------------------------------
 final as (
     select
         gh.game_id,
 
-        -- flags individuais
         coalesce(gd.has_games_details, false) as has_games_details,
         coalesce(gsd.has_games_summary_details, false) as has_games_summary_details,
         coalesce(pbp.has_play_by_play, false) as has_play_by_play,
 
-        -- flag de prontidão geral
         coalesce(
             coalesce(gd.has_games_details, false)
             and coalesce(gsd.has_games_summary_details, false)

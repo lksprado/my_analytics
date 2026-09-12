@@ -23,7 +23,6 @@ with base as (
 away_defense as (
     select
         game_id,
-        -- Campos específicos do game
         'away' as team_side,
         'defense' as player_type,
         (p ->> 'playerId')::int as player_id,
@@ -45,7 +44,6 @@ away_defense as (
 away_forwards as (
     select
         game_id,
-        -- Campos específicos
         'away' as team_side,
         'forward' as player_type,
         (p ->> 'playerId')::int as player_id,
@@ -67,7 +65,6 @@ away_forwards as (
 home_defense as (
     select
         game_id,
-        -- Campos específicos
         'home' as team_side,
         'defense' as player_type,
         (p ->> 'playerId')::int as player_id,
@@ -89,7 +86,6 @@ home_defense as (
 home_forwards as (
     select
         game_id,
-        -- Campos específicos
         'home' as team_side,
         'forward' as player_type,
         (p ->> 'playerId')::int as player_id,

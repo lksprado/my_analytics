@@ -15,7 +15,6 @@ with
 source as (
     select * from {{ source('raw', 'nhl_raw_all_play_by_play') }}
     {% if is_incremental() %}
-    -- Filtra na SOURCE antes de processar
         where (payload ->> 'gameDate')::date > (select max(game_date) from {{ this }})
     {% endif %}
 ),

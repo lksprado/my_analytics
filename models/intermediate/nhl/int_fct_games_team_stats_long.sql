@@ -5,7 +5,6 @@
     )
 }}
 
--- Unpivot home stats
 with
 wide_game_stats as (
     select * from {{ ref('int_fct_games_team_stats_wide') }}

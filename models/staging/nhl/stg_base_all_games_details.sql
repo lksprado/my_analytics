@@ -1,4 +1,3 @@
--- models/staging/nhl/base/base_nhl_raw_all_games_details.sql
 {{
   config(
     materialized = 'ephemeral',
@@ -14,7 +13,6 @@ with source as (
 base_fields as (
     select
         payload,
-        -- Campos comuns já parseados
         (payload ->> 'id')::int as game_id,
         (payload ->> 'season')::int as season_id,
         (payload ->> 'gameType')::int as game_type_id,
