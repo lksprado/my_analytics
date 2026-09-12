@@ -7,7 +7,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw', 'atacadao_historico') }}
+    SELECT * FROM {{ ref('seed_atacadao_historico') }}
 ),
 
 renamed AS (
@@ -33,15 +33,11 @@ units AS (
     SELECT
         *,
         CASE
-        -- PESO
             WHEN product_unity ~* '(kg|quilo|g|grama|g\\b)' THEN 'weight'
-            -- VOLUME
             WHEN product_unity ~* '(litro|l|l\\b|ml)' THEN 'volume'
-            -- UNIDADE / EMBALAGEM CONTÁVEL
             WHEN product_unity ~* '(un)' THEN 'unit'
             ELSE 'unknown'
         END AS quantity_type,
-        -- VALOR NUMÉRICO BRUTO
         CASE
             WHEN product_unity ~* '^(kg|quilo|litro|l|ml)$' THEN 1::NUMERIC
 

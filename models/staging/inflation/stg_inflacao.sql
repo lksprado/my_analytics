@@ -7,7 +7,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw', 'minha_inflacao') }}
+    SELECT * FROM {{ ref('seed_minha_inflacao') }}
 ),
 
 units AS (

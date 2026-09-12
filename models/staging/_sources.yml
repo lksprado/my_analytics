@@ -38,12 +38,8 @@ sources:
       description: "Scraping legado em Novembro de 2024"
     - name: vide_raw_category_pages
       description: "Scraping paginas semanalmente"
-    - name: minha_inflacao
-      description: "Dados históricos do site Minha Inflação"
     - name: atacadao_raw
       description: "Dados atualizados do novo Scraper Atacadao"
-    - name: atacadao_historico
-      description: "Dados legados do antigo Scraper do Atacadao"
     
     - name: acoes
       description: "Portfolio de acões na B3"

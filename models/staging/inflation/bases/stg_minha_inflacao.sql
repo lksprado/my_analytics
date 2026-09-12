@@ -7,7 +7,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw', 'minha_inflacao') }}
+    SELECT * FROM {{ ref('seed_minha_inflacao') }}
 ),
 
 renamed AS (
@@ -34,15 +34,11 @@ units AS (
         REPLACE(LOWER(public.unaccent(product_name)), ' ', '_')          AS product_name,
         REPLACE(TRIM(LOWER(product_unity)), '.', ',')                    AS product_unity,
         CASE
-        -- PESO
             WHEN LOWER(product_unity) ~* '(kg|quilo|grama|g\\b)' THEN 'weight'
-            -- VOLUME
             WHEN LOWER(product_unity) ~* '(litro|l\\b|ml)' THEN 'volume'
-            -- UNIDADE / EMBALAGEM CONTÁVEL
             WHEN LOWER(product_unity) ~* '(fardo|caixa|pacote|barra|pote|maço|unidade|sabonete)' THEN 'unit'
             ELSE 'unknown'
         END                                                            AS quantity_type,
-        -- VALOR NUMÉRICO BRUTO
         CASE
             WHEN LOWER(product_unity) ~* '^(kg|quilo|litro|l|ml)$' THEN 1::NUMERIC
 
@@ -64,7 +60,6 @@ final AS (
         *,
         ROW_NUMBER() OVER (PARTITION BY product_name) AS rn,
 
-        -- VALOR PADRONIZADO (g / ml / unidades)
         CASE
             WHEN LOWER(product_unity) ~* 'kg' THEN quantity_value_raw * 1000
             WHEN LOWER(product_unity) ~* '(grama|g\b)' THEN quantity_value_raw

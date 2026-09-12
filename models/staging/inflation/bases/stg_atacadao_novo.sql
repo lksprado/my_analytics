@@ -20,7 +20,7 @@ renamed AS (
         high_price,
         low_price,
         CASE
-        -- CASO 1: existe número + unidade → pega a última ocorrência
+        -- Com número + unidade no nome, vale a última ocorrência.
             WHEN
                 REGEXP_COUNT(
                     LOWER(product_name),
@@ -36,7 +36,7 @@ renamed AS (
                     )
                 )
 
-            -- CASO 2: não tem número → unidade explícita (assume 1)
+            -- Sem número, unidade explícita conta como 1.
             WHEN LOWER(product_name) ~* '(^|\s)(un)(\s|$)'
                 THEN 'un'
             WHEN LOWER(product_name) ~* '(^|\s)(maço)(\s|$)'
@@ -51,15 +51,11 @@ units AS (
     SELECT
         *,
         CASE
-        -- PESO
             WHEN product_unity ~* '(kg|quilo|g|grama|g\\b)' THEN 'weight'
-            -- VOLUME
             WHEN product_unity ~* '(litro|l|l\\b|ml)' AND product_unity NOT LIKE '%folhas%' THEN 'volume'
-            -- UNIDADE / EMBALAGEM CONTÁVEL
             WHEN product_unity ~* '(un|folhas|dúzias|dúzia)' THEN 'unit'
             ELSE 'unknown'
         END AS quantity_type,
-        -- VALOR NUMÉRICO BRUTO
         CASE
             WHEN product_unity ~* '^(kg|quilo|litro|l|ml)$' THEN 1::NUMERIC
 

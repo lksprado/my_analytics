@@ -23,7 +23,6 @@ unioned AS (
 renamed AS (
     SELECT
         *,
-        -- pega só as letras: "300g" -> "g", "500ml" -> "ml", "1,5l" -> "l"
         REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') AS unit_raw,
 
         CASE
