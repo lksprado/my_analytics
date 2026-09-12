@@ -3,20 +3,123 @@ version: 2
 models:
   - name: int_dates
     description: >
-      Dimensão de datas conformada, gerada pela macro dbt_date.get_date_dimension para o intervalo
-      fixo 2020-01-01 a 2050-12-31, no fuso America/Sao_Paulo (var dbt_date:time_zone). Um registro
-      por dia. Não tem regra de negócio própria — é a base que dim_datas enriquece com as datas
-      especiais. Ao precisar de datas fora do intervalo, alterar os argumentos da macro no .sql.
+      Calendário conformado do warehouse, de 1900-01-01 a 2100-12-31, um registro por dia. Base
+      comum de dim_datas (finanças, energia, livros — acrescenta as datas especiais da família) e
+      de dim_dates (votações — só o calendário). Os atributos em inglês vêm da macro
+      dbt_date.get_date_dimension; os em português (nomes, feriados, dia útil) são calculados aqui.
+      A espinha é larga de propósito: todo consumidor faz INNER JOIN a partir do próprio dado, e
+      uma espinha mais curta descarta linhas sem aviso. Feriados seguem o calendário bancário
+      nacional (ANBIMA/B3) — nacionais fixos, Sexta-feira Santa, Carnaval e Corpus Christi; sem
+      estaduais e municipais. Antes de ~1950 é a regra atual aplicada para trás, não a legislação
+      da época.
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "fl_dia_util = (NOT fl_fim_de_semana AND NOT fl_feriado)"
     columns:
+      - name: data_sk
+        description: "Chave surrogate da data, AAAAMMDD como inteiro (ex.: 20260131)."
+        tests:
+          - not_null
+          - unique
       - name: date_day
         description: "Data do dia — chave natural da dimensão."
+        tests:
+          - not_null
+          - unique
+      - name: prior_date_day
+        description: "Dia anterior."
+      - name: next_date_day
+        description: "Dia seguinte."
+      - name: prior_year_date_day
+        description: "Mesma data no ano anterior (29/02 cai em 28/02)."
+      - name: prior_year_over_year_date_day
+        description: "Data 364 dias antes — mesmo dia da semana no ano anterior."
+      - name: day_of_week
+        description: "Dia da semana ISO: 1 = segunda … 7 = domingo."
+      - name: day_of_week_name
+        description: "Nome do dia da semana em inglês (Monday)."
+      - name: day_of_week_name_short
+        description: "Nome abreviado do dia da semana em inglês (Mon)."
       - name: day_of_month
-        description: "Dia do mês (1-31)."
-      - name: month_of_year
-        description: "Mês do ano (1-12)."
-      - name: year_number
-        description: "Ano com quatro dígitos."
-      - name: quarter_of_year
-        description: "Trimestre do ano (1-4)."
+        description: "Dia do mês (1-31), integer."
+      - name: day_of_year
+        description: "Dia do ano (1-366), integer."
+      - name: week_start_date
+        description: "Início da semana (domingo)."
+      - name: week_end_date
+        description: "Fim da semana (sábado)."
+      - name: prior_year_week_start_date
+        description: "Início da semana equivalente no ano anterior."
+      - name: prior_year_week_end_date
+        description: "Fim da semana equivalente no ano anterior."
       - name: week_of_year
         description: "Semana do ano."
+      - name: iso_week_start_date
+        description: "Início da semana ISO (segunda)."
+      - name: iso_week_end_date
+        description: "Fim da semana ISO (domingo)."
+      - name: prior_year_iso_week_start_date
+        description: "Início da semana ISO equivalente no ano anterior."
+      - name: prior_year_iso_week_end_date
+        description: "Fim da semana ISO equivalente no ano anterior."
+      - name: iso_week_of_year
+        description: "Semana ISO do ano."
+      - name: prior_year_week_of_year
+        description: "Semana do ano da data equivalente no ano anterior."
+      - name: prior_year_iso_week_of_year
+        description: "Semana ISO da data equivalente no ano anterior."
+      - name: month_of_year
+        description: "Mês do ano (1-12)."
+      - name: month_name
+        description: "Nome do mês em inglês (January)."
+      - name: month_name_short
+        description: "Nome abreviado do mês em inglês (Jan)."
+      - name: month_start_date
+        description: "Primeiro dia do mês."
+      - name: month_end_date
+        description: "Último dia do mês."
+      - name: prior_year_month_start_date
+        description: "Primeiro dia do mesmo mês no ano anterior."
+      - name: prior_year_month_end_date
+        description: "Último dia do mesmo mês no ano anterior."
+      - name: quarter_of_year
+        description: "Trimestre do ano (1-4)."
+      - name: quarter_start_date
+        description: "Primeiro dia do trimestre."
+      - name: quarter_end_date
+        description: "Último dia do trimestre."
+      - name: year_number
+        description: "Ano com quatro dígitos."
+      - name: year_start_date
+        description: "Primeiro dia do ano."
+      - name: year_end_date
+        description: "Último dia do ano."
+      - name: mes_sk
+        description: "Mês no formato AAAAMM como inteiro (ex.: 202601)."
+      - name: semestre
+        description: "Semestre do ano (1 ou 2)."
+      - name: nome_dia_semana
+        description: "Nome do dia da semana em português, maiúsculo e sem acento (SEGUNDA-FEIRA … DOMINGO)."
+      - name: nome_dia_semana_abrev
+        description: "Dia da semana abreviado em português (SEG … DOM)."
+      - name: nome_mes
+        description: "Nome do mês em português, maiúsculo e sem acento (JANEIRO … DEZEMBRO)."
+      - name: nome_mes_abrev
+        description: "Mês abreviado em português (JAN … DEZ)."
+      - name: fl_fim_de_semana
+        description: "TRUE aos sábados e domingos."
+      - name: fl_feriado
+        description: "TRUE quando o dia é feriado nacional ou ponto facultativo bancário (Carnaval, Corpus Christi)."
+      - name: nome_feriado
+        description: "Nome do feriado; dois feriados no mesmo dia vêm juntos separados por ' / ' (21/04/2000: SEXTA-FEIRA SANTA / TIRADENTES). NULL fora de feriado."
+      - name: tipo_feriado
+        description: "NACIONAL ou PONTO FACULTATIVO (Carnaval e Corpus Christi, que fecham banco e bolsa). NULL fora de feriado."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['NACIONAL', 'PONTO FACULTATIVO']
+      - name: fl_dia_util
+        description: "TRUE de segunda a sexta quando não é feriado — dia útil bancário nacional."
+      - name: dia_util_mes
+        description: "Ordinal do dia útil dentro do mês (1 = primeiro dia útil); NULL em dia não útil. Ex.: o 5º dia útil é dia_util_mes = 5."

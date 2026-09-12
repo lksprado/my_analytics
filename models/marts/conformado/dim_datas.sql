@@ -2,6 +2,8 @@
     tags=["datas"]
 ) }}
 
+{#- Contém datas da família: não servir a domínios publicáveis (use dim_dates). -#}
+
 WITH
 date_dimension AS (
     SELECT * FROM {{ ref("int_dates") }}
@@ -14,7 +16,6 @@ datas_especiais AS (
 final AS (
     SELECT
         d.*,
-        CAST(TO_CHAR(d.date_day, 'YYYYMMDD') AS INTEGER)   AS data_sk,
         CASE
             WHEN EXISTS (
                 SELECT 1
@@ -29,8 +30,7 @@ final AS (
     LEFT JOIN datas_especiais de
         ON d.month_of_year = de.mes_num
         AND d.day_of_month = de.dia
-        -- eventos com data de início (ex.: casamento) só valem a partir do ano informado
         AND d.year_number >= COALESCE(de.ano_inicio, d.year_number)
 )
 
-SELECT * FROM final ORDER BY data_sk 
+SELECT * FROM final ORDER BY data_sk
