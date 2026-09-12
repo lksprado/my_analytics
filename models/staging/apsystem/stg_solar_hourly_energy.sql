@@ -3,8 +3,8 @@ source AS (SELECT * FROM {{ source('apsystem', 'solar_hourly_energy') }}),
 
 renamed AS (
     SELECT
-        datetime::DATE      AS dt,
-        datetime::TIMESTAMP AS dt_hora,
+        datetime::DATE      AS generation_date,
+        datetime::TIMESTAMP AS generated_at,
         energy::FLOAT       AS kwh
     FROM source
 )

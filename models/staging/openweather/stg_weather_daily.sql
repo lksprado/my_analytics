@@ -3,18 +3,18 @@ source AS (SELECT * FROM {{ source('openweather', 'openweather_daily') }}),
 
 renamed AS (
     SELECT
-        date::DATE                   AS dt,
-        cloud_cover_afternoon::FLOAT AS nebulosidade_tarde,
-        humidity_afternoon::FLOAT    AS humidade_tarde,
-        precipitation_total::FLOAT   AS precipitacao_total,
-        temperature_min::FLOAT       AS temperatura_min,
-        temperature_max::FLOAT       AS temperatura_max,
-        temperature_afternoon::FLOAT AS temperatura_tarde,
-        temperature_night::FLOAT     AS temperatura_noite,
-        temperature_morning::FLOAT   AS temperatura_manha,
-        pressure_afternoon::FLOAT    AS pressao_tarde,
-        wind_max_speed::FLOAT        AS velocidade_vento_max,
-        wind_max_direction::FLOAT    AS direcao_vento_max
+        date::DATE                   AS weather_date,
+        cloud_cover_afternoon::FLOAT AS cloud_cover_afternoon,
+        humidity_afternoon::FLOAT    AS humidity_afternoon,
+        precipitation_total::FLOAT   AS precipitation_total,
+        temperature_min::FLOAT       AS temperature_min,
+        temperature_max::FLOAT       AS temperature_max,
+        temperature_afternoon::FLOAT AS temperature_afternoon,
+        temperature_night::FLOAT     AS temperature_night,
+        temperature_morning::FLOAT   AS temperature_morning,
+        pressure_afternoon::FLOAT    AS pressure_afternoon,
+        wind_max_speed::FLOAT        AS wind_max_speed,
+        wind_max_direction::FLOAT    AS wind_max_direction
     FROM source
 )
 

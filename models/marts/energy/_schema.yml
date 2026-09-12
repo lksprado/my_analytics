@@ -2,7 +2,7 @@
 version: 2
 
 models:
-  - name: mrt_energia_clima
+  - name: solar_energy_daily_weather_conditions
     description: "Histórico diário de geração de energia solar cruzado com condições climáticas (temperatura, chuva, vento, nebulosidade)."
-  - name: mrt_energia_hora
+  - name: solar_energy_hourly_generation
     description: "Série horária de geração de energia solar em kWh."
