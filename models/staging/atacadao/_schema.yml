@@ -1,9 +1,6 @@
 version: 2
 
 models:
-  - name: stg_minha_inflacao
-    description: "Modelo ephemeral de padronização de unidades e quantidades dos produtos da base Minha Inflação."
-
   - name: stg_atacadao_historico
     description: "Base histórica do Atacadão com extração de unidade, tipo de quantidade e valor numérico padronizável."
 
@@ -12,6 +9,3 @@ models:
 
   - name: stg_atacadao
     description: "Consolidação do histórico e da base nova do Atacadão com normalização final de unidades e quantidades."
-
-  - name: stg_inflacao
-    description: "Base tratada da Minha Inflação com chave de produto, categoria, preços e variações mensais."

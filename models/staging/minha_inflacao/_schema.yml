@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: stg_minha_inflacao
+    description: "Modelo ephemeral de padronização de unidades e quantidades dos produtos da base Minha Inflação."
+
+  - name: stg_inflacao
+    description: "Base tratada da Minha Inflação com chave de produto, categoria, preços e variações mensais."
