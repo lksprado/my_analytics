@@ -1,0 +1,13 @@
+
+version: 2
+
+sources:
+  - name: ranking
+    database: demodados
+    schema: raw
+    loaded_at_field: data_carga
+    freshness:
+      warn_after: {count: 160, period: hour}
+    tables:
+      - name: raw_ranking_deputados
+      - name: raw_ranking_senadores

@@ -10,6 +10,8 @@ profile: 'my_datawarehouse'
 
 vars:
   "dbt_date:time_zone": "America/Sao_Paulo"
+  null_key: "0"
+  null_string: "desconhecido"
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be

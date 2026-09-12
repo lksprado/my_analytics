@@ -1,0 +1,105 @@
+version: 2
+
+models:
+  - name: stg_ranking_deputados
+    description: "Dados brutos do Ranking dos Políticos para deputados federais, com ID do Congresso extraído da URL e nomes padronizados."
+    columns:
+      - name: ranking_id_nk
+        description: "Chave natural do deputado no site Ranking dos Políticos."
+      - name: congresso_id_fk
+        description: "FK do deputado na API da Câmara, extraído via regex da URL da foto."
+      - name: nome
+        description: "Nome completo padronizado (upper)."
+      - name: nome_eleitoral
+        description: "Nome eleitoral padronizado (upper)."
+      - name: nome_civil
+        description: "Nome civil padronizado (upper)."
+      - name: url_foto
+        description: "URL da foto oficial do deputado."
+      - name: cargo
+        description: "Cargo do parlamentar (Deputado Federal)."
+      - name: partido
+        description: "Sigla do partido padronizada (upper)."
+      - name: situacao
+        description: "Situação do mandato padronizada (upper)."
+      - name: uf
+        description: "UF de representação padronizada (upper)."
+      - name: slug
+        description: "Slug do parlamentar no site Ranking dos Políticos."
+      - name: composicao_pontuacao_pontuacao
+        description: "Pontuação total atual no Ranking dos Políticos."
+      - name: composicao_pontuacao_anos
+        description: "Histórico anual de pontuações em formato JSON (array de objetos por ano). Usado em int_deputados_pontuacao_explodida."
+      - name: composicao_pontuacao_ranking_geral
+        description: "Posição no ranking geral."
+      - name: composicao_pontuacao_ranking_geral_variacao
+        description: "Variação da posição no ranking geral."
+      - name: composicao_pontuacao_ranking_casa
+        description: "Posição no ranking dentro da casa (Câmara)."
+      - name: composicao_pontuacao_ranking_casa_variacao
+        description: "Variação da posição no ranking da casa."
+      - name: composicao_pontuacao_ranking_partido
+        description: "Posição no ranking dentro do partido."
+      - name: composicao_pontuacao_ranking_partido_variacao
+        description: "Variação da posição no ranking do partido."
+      - name: composicao_pontuacao_ranking_estado
+        description: "Posição no ranking dentro do estado."
+      - name: composicao_pontuacao_ranking_estado_variacao
+        description: "Variação da posição no ranking do estado."
+      - name: composicao_pontuacao_ranking_casa_estado
+        description: "Posição no ranking da casa dentro do estado."
+      - name: composicao_pontuacao_ranking_casa_estado_variacao
+        description: "Variação da posição no ranking da casa por estado."
+
+  - name: stg_ranking_senadores
+    description: "Dados brutos do Ranking dos Políticos para senadores, com ID do Congresso extraído da URL e nomes padronizados. Sem nome_eleitoral (campo não existe na fonte do Senado)."
+    columns:
+      - name: ranking_id_nk
+        description: "Chave natural do senador no site Ranking dos Políticos."
+        tests:
+          - not_null
+          - unique
+      - name: congresso_id_fk
+        description: "FK do senador na API do Senado, extraído via regex da URL da foto."
+        tests:
+          - not_null
+      - name: nome
+        description: "Nome completo padronizado (upper)."
+      - name: nome_civil
+        description: "Nome civil padronizado (upper)."
+      - name: url_foto
+        description: "URL da foto oficial do senador."
+      - name: cargo
+        description: "Cargo do parlamentar (Senador)."
+      - name: partido
+        description: "Sigla do partido padronizada (upper)."
+      - name: situacao
+        description: "Situação do mandato padronizada (upper)."
+      - name: uf
+        description: "UF de representação padronizada (upper)."
+      - name: slug
+        description: "Slug do parlamentar no site Ranking dos Políticos."
+      - name: composicao_pontuacao_pontuacao
+        description: "Pontuação total atual no Ranking dos Políticos."
+      - name: composicao_pontuacao_anos
+        description: "Histórico anual de pontuações em formato JSON (array de objetos por ano). Usado em int_senadores_pontuacao_explodida."
+      - name: composicao_pontuacao_ranking_geral
+        description: "Posição no ranking geral."
+      - name: composicao_pontuacao_ranking_geral_variacao
+        description: "Variação da posição no ranking geral."
+      - name: composicao_pontuacao_ranking_casa
+        description: "Posição no ranking dentro da casa (Senado)."
+      - name: composicao_pontuacao_ranking_casa_variacao
+        description: "Variação da posição no ranking da casa."
+      - name: composicao_pontuacao_ranking_partido
+        description: "Posição no ranking dentro do partido."
+      - name: composicao_pontuacao_ranking_partido_variacao
+        description: "Variação da posição no ranking do partido."
+      - name: composicao_pontuacao_ranking_estado
+        description: "Posição no ranking dentro do estado."
+      - name: composicao_pontuacao_ranking_estado_variacao
+        description: "Variação da posição no ranking do estado."
+      - name: composicao_pontuacao_ranking_casa_estado
+        description: "Posição no ranking da casa dentro do estado."
+      - name: composicao_pontuacao_ranking_casa_estado_variacao
+        description: "Variação da posição no ranking da casa por estado."

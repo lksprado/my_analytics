@@ -1,0 +1,262 @@
+version: 2
+
+models:
+
+  - name: stg_senado_senadores
+    description: "Senadores atuais com atributos de identificação e mandato. Renaming e limpeza adicionais ocorrem em int_senadores_padronizados."
+    columns:
+      - name: senador_id_nk
+        description: "Chave natural do senador na API do Senado."
+      - name: codigo_publico_na_leg_atual
+        description: "Código público do senador na legislatura atual."
+      - name: nome
+        description: "Nome parlamentar do senador."
+      - name: nome_completo
+        description: "Nome civil completo do senador."
+      - name: sexo
+        description: "Sexo informado no cadastro (M/F)."
+      - name: forma_tratamento
+        description: "Forma de tratamento do senador (ex: Senador, Senadora)."
+      - name: email
+        description: "E-mail institucional do senador."
+      - name: telefones_telefone
+        description: "Telefone(s) do gabinete em formato semi-estruturado."
+      - name: sigla_partido
+        description: "Sigla do partido no momento mais recente da carga."
+      - name: uf
+        description: "UF representada pelo senador."
+      - name: bloco_codigo_bloco
+        description: "Código do bloco parlamentar ao qual o senador pertence."
+      - name: bloco_nome_bloco
+        description: "Nome do bloco parlamentar."
+      - name: bloco_nome_apelido
+        description: "Nome/apelido do bloco parlamentar."
+      - name: membro_mesa
+        description: "Indica se o senador é membro da Mesa Diretora."
+      - name: membro_lideranca
+        description: "Indica se o senador exerce função de liderança."
+      - name: mandato_codigomandato
+        description: "Código identificador do mandato."
+      - name: mandato_ufparlamentar
+        description: "UF do mandato (pode diferir da UF de identificação)."
+      - name: mandato_primeiralegislaturadomandato_numerolegislatura
+        description: "Número da primeira legislatura coberta pelo mandato."
+      - name: mandato_segundalegislaturadomandato_numerolegislatura
+        description: "Número da segunda legislatura coberta pelo mandato."
+      - name: mandato_descricaoparticipacao
+        description: "Descrição da condição de participação no mandato (TITULAR, SUPLENTE)."
+      - name: mandato_suplentes_suplente
+        description: "Dados do(s) suplente(s) do senador em formato semi-estruturado."
+      - name: mandato_exercicios_exercicio
+        description: "Exercícios do mandato (períodos de exercício) em formato semi-estruturado."
+      - name: identificacaoparlamentar_bloco_datacriacao
+        description: "Data de criação do bloco parlamentar."
+      - name: mandato_primeiralegislaturadomandato_datainicio
+        description: "Data de início da primeira legislatura do mandato."
+      - name: mandato_primeiralegislaturadomandato_datafim
+        description: "Data de fim da primeira legislatura do mandato."
+      - name: mandato_segundalegislaturadomandato_datainicio
+        description: "Data de início da segunda legislatura do mandato."
+      - name: mandato_segundalegislaturadomandato_datafim
+        description: "Data de fim da segunda legislatura do mandato."
+      - name: mandato_titular_descricaoparticipacao
+        description: "Descrição da participação do titular (nulo se o próprio senador é titular)."
+      - name: mandato_titular_codigoparlamentar
+        description: "Código do titular do mandato (nulo se o próprio senador é titular)."
+      - name: mandato_titular_nomeparlamentar
+        description: "Nome do titular do mandato (nulo se o próprio senador é titular)."
+
+  - name: stg_senado_legislaturas
+    description: "Todos os senadores das legislaturas 50 a 58, com dados de identificação e mandato em formato semi-estruturado."
+    columns:
+      - name: senador_id_nk
+        description: "Chave natural do senador na API do Senado."
+      - name: nome
+        description: "Nome parlamentar do senador (upper)."
+      - name: nome_completo
+        description: "Nome completo do senador (upper)."
+      - name: sexo
+        description: "Sexo do senador (upper)."
+      - name: forma_tratamento
+        description: "Forma de tratamento do senador (upper)."
+      - name: mandatos_mandato
+        description: "Dados dos mandatos em formato JSON/semi-estruturado. Processado em int_senadores_padronizados."
+      - name: email
+        description: "E-mail institucional do senador."
+      - name: sigla_partido
+        description: "Sigla do partido do senador."
+      - name: codigo_publico_na_leg_atual
+        description: "Código público do senador na legislatura atual."
+      - name: uf
+        description: "UF representada pelo senador."
+
+  - name: stg_senado_processos
+    description: "Processos legislativos do Senado, usados como dimensão de proposição em int_proposicoes_unificadas."
+    columns:
+      - name: processo_id_nk
+        description: "Chave natural do processo legislativo na API do Senado."
+      - name: tramitando
+        description: "Indica se o processo está em tramitação."
+      - name: autoria
+        description: "Autoria do processo."
+      - name: codigo_materia
+        description: "Código da matéria associada ao processo."
+      - name: data_apresentacao
+        description: "Data de apresentação do processo."
+      - name: data_liberacao
+        description: "Data de deliberação do processo."
+      - name: data_situacao_atual
+        description: "Data da situação atual do processo."
+      - name: codigo_tipo
+        description: "Sigla do tipo do processo, derivada da identificação (apenas letras)."
+      - name: identificacao
+        description: "Identificação textual do processo (ex: PL 123/2024)."
+      - name: normagerada
+        description: "Norma gerada pelo processo, quando houver."
+      - name: objetivo
+        description: "Objetivo do processo (upper)."
+      - name: sigla_tipo_deliberacao
+        description: "Sigla do tipo de deliberação."
+      - name: situacao_atual
+        description: "Situação atual do processo (upper)."
+      - name: tipo_conteudo
+        description: "Tipo de conteúdo do processo (upper)."
+      - name: tipo_documento
+        description: "Tipo de documento do processo (upper)."
+
+  - name: stg_senado_votacoes
+    description: "Todas as votações do Senado desde 2001, com resultado e totais de votos por sessão."
+    columns:
+      - name: codigo_materia
+        description: "Código da matéria votada."
+      - name: codigo_sessao
+        description: "Código da sessão."
+      - name: codigo_sessao_legislativa
+        description: "Código da sessão legislativa."
+      - name: codigo_sessao_votacao
+        description: "Código da sessão de votação."
+      - name: codigo_votacao
+        description: "Código único da votação."
+      - name: processo_id_nk
+        description: "Chave natural do processo legislativo associado à votação."
+      - name: identificacao
+        description: "Identificação da matéria votada."
+      - name: numero
+        description: "Número da matéria."
+      - name: numero_sessao
+        description: "Número da sessão."
+      - name: sigla
+        description: "Sigla do tipo de matéria (PL, PEC, etc.)."
+      - name: descricao_votacao
+        description: "Descrição textual da votação."
+      - name: sigla_tipo_sessao
+        description: "Sigla do tipo de sessão (ex. O, E)."
+      - name: total_votos_abstencao
+        description: "Total de votos de abstenção."
+      - name: total_votos_contra
+        description: "Total de votos contrários."
+      - name: total_votos_favor
+        description: "Total de votos favoráveis."
+      - name: data_sessao
+        description: "Data da sessão de votação."
+      - name: resultado_votacao
+        description: "Resultado da votação (APROVADO, REPROVADO, PREJUDICADO, EMPATE)."
+      - name: votacao_secreta
+        description: "Indica se a votação foi secreta (SIM/NAO)."
+
+  - name: stg_senado_votos_senadores
+    description: "Votos individuais de cada senador em cada matéria, derivado do endpoint de votações do Senado."
+    columns:
+      - name: codigo_materia
+        description: "Código da matéria votada."
+      - name: codigo_sessao
+        description: "Código da sessão."
+      - name: codigo_sessao_legislativa
+        description: "Código da sessão legislativa."
+      - name: codigo_sessao_votacao
+        description: "Código da sessão de votação."
+      - name: codigo_votacao
+        description: "Código único da votação."
+      - name: data_sessao
+        description: "Data da sessão de votação."
+      - name: processo_id_nk
+        description: "Chave natural do processo legislativo associado à votação."
+      - name: identificacao
+        description: "Identificação da matéria votada."
+      - name: numero
+        description: "Número da matéria."
+      - name: numero_sessao
+        description: "Número da sessão."
+      - name: sigla
+        description: "Sigla do tipo de matéria."
+      - name: sigla_tipo_sessao
+        description: "Sigla do tipo de sessão."
+      - name: senador_id_nk
+        description: "Chave natural do senador na API do Senado."
+      - name: descricao_voto
+        description: "Descrição textual do voto do senador (upper)."
+      - name: sigla_partido
+        description: "Sigla do partido do senador no momento do voto (upper)."
+      - name: sigla_voto
+        description: "Sigla do voto registrado (SIM, NAO, ABSTENCAO, etc.) (upper)."
+      - name: data_carga
+        description: "Data/hora de ingestão do registro na camada raw."
+
+  - name: stg_senado_votacoes_orientacao
+    description: "Orientação de votos das bancadas e partidos no Senado por votação."
+    columns:
+      - name: codigo_votacao
+        description: "Código único da votação."
+      - name: sigla_tipo_materia
+        description: "Sigla do tipo de matéria votada."
+      - name: numero_materia
+        description: "Número da matéria votada."
+      - name: total_votos_favor
+        description: "Total de votos favoráveis registrados."
+      - name: total_votos_contra
+        description: "Total de votos contrários registrados."
+      - name: total_votos_abstencao
+        description: "Total de abstenções registradas."
+      - name: data
+        description: "Data da votação."
+      - name: partido
+        description: "Sigla do partido que recebeu a orientação (upper)."
+      - name: orientacao_voto
+        description: "Orientação de voto (SIM, NAO, OBSTRUCAO, LIBERADO)."
+
+  - name: stg_senado_tipos_decisao
+    description: "Modelo staging auxiliar com o descritivo dos tipos de deliberações de proposições"
+    columns:
+      - name: codigo_deliberacao
+        description: "Código identificador do tipo de deliberação"
+      - name: descricao_deliberacao
+        description: "Descrição textual do tipo de deliberação"
+      - name: tipo_deliberacao
+        description: "Categoria do tipo de deliberação"
+
+  - name: stg_senado_tipos_entes
+    description: "Modelo staging auxiliar com o descritivo dos tipos de entes vinculados às proposições"
+    columns:
+      - name: codigo_ente
+        description: "Código identificador do ente"
+        tests:
+          - not_null
+          - unique
+      - name: nome_ente
+        description: "Nome do ente (ex: Senado Federal, Câmara dos Deputados)"
+      - name: tipo_ente
+        description: "Categoria do ente"
+      - name: codigo_casa
+        description: "Código da casa legislativa à qual o ente pertence"
+
+  - name: stg_senado_tipos_projetos
+    description: "Modelo staging auxiliar com siglas e descrições dos tipos de proposições legislativas"
+    columns:
+      - name: sigla_proposicao
+        description: "Sigla do tipo de proposição (ex: PL, PEC, MPV)"
+      - name: descricao_proposicao
+        description: "Descrição completa do tipo de proposição"
+      - name: data_inicio
+        description: "Data de início de vigência do tipo de proposição"
+      - name: data_fim
+        description: "Data de encerramento de vigência do tipo de proposição (nulo se ainda ativo)"
