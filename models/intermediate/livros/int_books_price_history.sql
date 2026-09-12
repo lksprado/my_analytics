@@ -46,9 +46,7 @@ unioned AS (
     FROM categorias
 ),
 
--- Grão do histórico: uma observação por livro por dia.
--- As três fontes se sobrepõem; quando divergem no mesmo dia (~1,6% dos pares)
--- mantém o menor preço anunciado, que é o relevante para acompanhar oportunidade.
+-- As três fontes se sobrepõem; quando divergem no mesmo dia vale o menor preço.
 diario AS (
     SELECT DISTINCT ON (book_id, created_at)
         created_at,
@@ -86,14 +84,12 @@ com_janelas AS (
             ORDER BY created_at ASC
         ) AS prev_observed_at,
 
-        -- menor preço observado ANTES desta linha (não inclui a linha atual)
         MIN(book_price_new) OVER (
             PARTITION BY book_id
             ORDER BY created_at ASC
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         ) AS min_price_before,
 
-        -- última observação conhecida do livro
         MAX(created_at) OVER (
             PARTITION BY book_id
         ) AS last_observed_at
@@ -121,7 +117,6 @@ final AS (
         COALESCE(book_price_new < prev_price, FALSE)              AS is_price_drop,
         COALESCE(book_price_new > prev_price, FALSE)              AS is_price_increase,
 
-        -- recorde no momento da observação: mais barato que tudo que veio antes
         COALESCE(book_price_new < min_price_before, FALSE)        AS is_record_low
     FROM com_janelas
 )

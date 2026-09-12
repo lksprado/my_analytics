@@ -4,10 +4,8 @@
     )
 }}
 
--- Estado atual de cada livro: o último preço CONHECIDO, venha ele da coleta de
--- hoje ou da última varredura completa. A coleta alterna entre ~30 destaques
--- diários e varreduras do catálogo inteiro, então ancorar em max(created_at)
--- global enxergaria menos de 1% dos livros.
+-- A coleta alterna ~30 destaques diários com varreduras do catálogo inteiro:
+-- ancorar em max(created_at) global enxergaria menos de 1% dos livros.
 
 WITH
 historico AS (
@@ -32,7 +30,6 @@ agregados AS (
     GROUP BY book_id
 ),
 
--- data mais recente do dataset, usada como "hoje" para medir defasagem
 referencia AS (
     SELECT MAX(created_at) AS reference_date
     FROM historico
@@ -65,13 +62,10 @@ final AS (
                 THEN ROUND(100.0 * (t1.book_price_new - t2.min_price_ever) / t2.min_price_ever, 2)
         END                              AS pct_above_min_ever,
 
-        -- oportunidade: o preço conhecido hoje empata ou bate o mínimo histórico
         (t1.book_price_new <= t2.min_price_ever) AS is_at_record_low,
 
-        -- o recorde foi estabelecido justamente na última observação
         t1.is_record_low                 AS is_new_record_low,
 
-        -- preço defasado: livro não é observado há mais de uma semana
         ((t3.reference_date - t1.created_at) > 7) AS is_stale_price
     FROM ultima_observacao AS t1
     INNER JOIN agregados AS t2

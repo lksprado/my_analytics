@@ -4,9 +4,6 @@
     )
 }}
 
--- Uma linha por livro com o preço conhecido mais recente e as métricas de
--- oportunidade. É este o modelo para responder "o que vale comprar agora".
-
 WITH
 author AS (
     SELECT * FROM {{ ref('dim_authors') }}
