@@ -1,0 +1,162 @@
+version: 2
+
+models:
+  - name: livros_oportunidades
+    description: >
+      Lista ranqueada de oportunidades de compra na observação mais recente de cada livro
+      da Vide Editorial. Grão: um livro (coautores colapsados em `autores`). Entra só livro
+      observado há no máximo 7 dias, com pelo menos 3 observações anteriores e preço atual
+      abaixo da mediana do próprio histórico. Toda comparação é com as observações
+      ANTERIORES, nunca com a atual.
+      A loja faz campanhas no catálogo inteiro (desconto mediano oscila entre ~12% e ~32%),
+      então muitos mínimos são da campanha e não do livro: `percentil_desconto_catalogo`
+      diz se a loja está em promoção agora e `desconto_extra_vs_catalogo_pp` separa o
+      desconto próprio do livro. O preço de lista muda (~26% dos livros já mudaram), por
+      isso a faixa desconto recorde existe além das faixas por preço.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - nome_livro
+              - autores
+              - preco
+    columns:
+      - name: ranking
+        description: "Ordem de prioridade: faixa, depois maior economia contra a mediana."
+        data_tests:
+          - unique
+          - not_null
+      - name: faixa_oportunidade
+        description: >
+          novo minimo (abaixo de todo preço anterior), empata com o minimo,
+          desconto recorde (maior % de desconto já visto, com preço acima do mínimo porque
+          a lista subiu) ou ate 5% acima do minimo — nesta ordem de precedência.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['novo minimo', 'empata com o minimo', 'desconto recorde', 'ate 5% acima do minimo']
+      - name: nome_livro
+      - name: autores
+        description: "Autores separados por vírgula, em ordem alfabética."
+      - name: categoria
+      - name: data_observacao
+        description: "Data da observação mais recente do livro."
+      - name: tipo_coleta
+        description: "varredura completa (catálogo inteiro) ou destaques (coleta diária da home)."
+      - name: preco_lista
+        description: "Preço 'de' anunciado."
+      - name: preco
+        description: "Preço 'por' na observação mais recente."
+      - name: desconto_pct
+        description: "Desconto sobre o preço de lista, em %."
+      - name: preco_anterior
+        description: "Preço na observação imediatamente anterior."
+      - name: preco_minimo_anterior
+        description: "Menor preço das observações anteriores."
+      - name: preco_mediano_anterior
+        description: "Mediana do preço nas observações anteriores."
+      - name: preco_maximo_anterior
+        description: "Maior preço das observações anteriores."
+      - name: economia_vs_mediana
+        description: "Quanto o preço atual está abaixo da mediana anterior, em R$."
+      - name: economia_vs_mediana_pct
+        description: "Idem, em %."
+      - name: pct_acima_minimo_anterior
+        description: "Quanto o preço atual está acima do mínimo anterior, em % (negativo em novo minimo)."
+      - name: desconto_maximo_anterior_pct
+        description: "Maior desconto das observações anteriores, em %."
+      - name: ultima_vez_tao_barato
+        description: "Última data anterior com preço igual ou menor que o atual; NULL se nunca esteve tão barato."
+      - name: pct_observacoes_mais_caras
+        description: "% das observações anteriores com preço acima do atual."
+      - name: desconto_mediano_catalogo_pct
+        description: "Desconto mediano do catálogo na varredura mais recente até a data."
+      - name: percentil_desconto_catalogo
+        description: "Posição dessa varredura entre todas (0 = menor desconto, 1 = maior) — alto indica campanha em curso."
+      - name: desconto_extra_vs_catalogo_pp
+        description: "Desconto do livro menos o desconto mediano do catálogo, em pontos percentuais."
+      - name: qtd_observacoes_anteriores
+      - name: primeira_observacao
+
+  - name: livros_campanhas
+    description: >
+      Uma linha por varredura completa do catálogo — o termômetro de campanha da loja.
+      Varredura é o dia com pelo menos metade do maior volume diário já coletado; os
+      demais dias são a coleta de ~30 destaques e ficam de fora. Coautores contam como
+      um livro.
+    columns:
+      - name: data_varredura
+        data_tests:
+          - unique
+          - not_null
+      - name: qtd_livros
+      - name: preco_medio
+        description: "Média do preço praticado — sensível à mudança do mix do catálogo."
+      - name: desconto_mediano_pct
+        description: "Desconto mediano sobre o preço de lista, em %. Os descontos da loja são redondos, então a mediana anda em degraus."
+      - name: desconto_medio_pct
+      - name: variacao_desconto_pp
+        description: "Diferença do desconto mediano para a varredura anterior, em pontos percentuais."
+      - name: percentil_desconto
+        description: "Posição do desconto mediano entre todas as varreduras (0 = menor, 1 = maior)."
+      - name: qtd_livros_novo_minimo
+        description: "Livros cujo preço ficou abaixo de todo preço anterior nesta varredura."
+      - name: pct_livros_novo_minimo
+      - name: fl_ultima_varredura
+
+  - name: livros_precos_obt
+    description: >
+      One big table dos preços da editora ao longo do tempo: fct_book_pricing com livro,
+      calendário (dim_datas, só colunas de calendário) e contexto de campanha.
+      Grão: livro × autor × dia observado — coautores repetem a linha; filtre
+      `fl_linha_principal` para contar ou somar livros. Colunas `*_historico`,
+      `qtd_observacoes`, `primeira/ultima_observacao` e `fl_preco_desatualizado` são
+      vistas de hoje (iguais em todas as linhas do livro); as demais valem para a data.
+      Dias de destaques herdam a campanha da varredura mais recente até a data.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - book_sk
+              - data_observacao
+    columns:
+      - name: book_sk
+        data_tests:
+          - not_null
+      - name: data_sk
+        description: "Chave AAAAMMDD para dim_datas."
+      - name: data_observacao
+        data_tests:
+          - not_null
+      - name: qtd_autores_livro
+        description: "Quantas linhas (autores) o mesmo livro tem neste dia."
+      - name: fl_linha_principal
+        description: "TRUE numa única linha por livro por dia (primeiro autor em ordem alfabética)."
+      - name: tipo_coleta
+        description: "varredura completa ou destaques."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['varredura completa', 'destaques']
+      - name: data_varredura_referencia
+        description: "Varredura cujo contexto de campanha foi atribuído à linha."
+      - name: desconto_mediano_catalogo_pct
+      - name: percentil_desconto_catalogo
+      - name: desconto_extra_vs_catalogo_pp
+        description: "Desconto do livro menos o desconto mediano do catálogo, em pontos percentuais."
+      - name: preco_lista
+      - name: preco
+        data_tests:
+          - not_null
+      - name: desconto_pct
+      - name: fl_mudanca_preco_lista
+        description: "TRUE quando o preço de lista mudou em relação à observação anterior do livro."
+      - name: variacao_preco_pct
+        description: "Variação contra a observação anterior, em %. Oscila com as campanhas semanais — não lê como tendência."
+      - name: preco_minimo_ate_entao
+        description: "Menor preço antes desta linha."
+      - name: fl_novo_minimo
+        description: "TRUE se o preço desta linha ficou abaixo de todo preço anterior."
+      - name: fl_preco_desatualizado
+        description: "TRUE se o livro não é observado há mais de 7 dias."
