@@ -42,6 +42,7 @@ dedup AS (
 
 final AS (
     SELECT
+        {{ dbt_utils.generate_surrogate_key(['description', 'game_date', 'time_in_period']) }} AS fight_id,
         season_id,
         game_type_id,
         description,
@@ -59,12 +60,16 @@ final AS (
             WHEN team_1_abbrev_name LIKE 'MON' THEN 'MTL'
             WHEN team_1_abbrev_name LIKE 'WAS' THEN 'WSH'
             WHEN team_1_abbrev_name LIKE 'CAL' THEN 'CGY'
+            WHEN team_1_abbrev_name LIKE 'ARI' AND game_date < '2014-07-01' THEN 'PHX'
+            WHEN team_1_abbrev_name LIKE 'WPG' AND game_date < '2011-07-01' THEN 'WIN'
             ELSE team_1_abbrev_name
         END AS team_1_abbrev_name,
         CASE
             WHEN team_2_abbrev_name LIKE 'MON' THEN 'MTL'
             WHEN team_2_abbrev_name LIKE 'WAS' THEN 'WSH'
             WHEN team_2_abbrev_name LIKE 'CAL' THEN 'CGY'
+            WHEN team_2_abbrev_name LIKE 'ARI' AND game_date < '2014-07-01' THEN 'PHX'
+            WHEN team_2_abbrev_name LIKE 'WPG' AND game_date < '2011-07-01' THEN 'WIN'
             ELSE team_2_abbrev_name
         END AS team_2_abbrev_name
     FROM dedup

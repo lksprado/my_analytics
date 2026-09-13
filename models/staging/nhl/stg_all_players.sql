@@ -58,6 +58,7 @@ source AS (
 renamed AS (
     SELECT 
         id,
+        CONCAT(LOWER(LEFT(first_name,1)), '.', ' ',  LOWER(last_name)) AS abbrev_name,
         CONCAT(LOWER(first_name), ' ', LOWER(last_name)) AS full_name,
         LOWER(first_name) AS first_name,
         LOWER(last_name) AS last_name,
