@@ -65,5 +65,6 @@ final AS (
 )
 
 SELECT * FROM final
-WHERE unit_normalized IS NOT NULL
-AND product_name IS NOT NULL
+WHERE
+    unit_normalized IS NOT NULL
+    AND product_name IS NOT NULL

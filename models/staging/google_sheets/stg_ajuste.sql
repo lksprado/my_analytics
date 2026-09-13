@@ -11,6 +11,9 @@ source AS (
 
 renamed AS (
     SELECT
+        REGEXP_REPLACE(ajuste_feito, '[^0-9]', '', 'g')::INT AS ajuste_realizado,
+
+        para                                                 AS pessoa,
         TO_DATE(
             CASE
                 WHEN mes LIKE 'jan.%' THEN '01/' || RIGHT(mes, 2)
@@ -26,10 +29,7 @@ renamed AS (
                 WHEN mes LIKE 'nov.%' THEN '11/' || RIGHT(mes, 2)
                 WHEN mes LIKE 'dez.%' THEN '12/' || RIGHT(mes, 2)
             END, 'MM/YY'
-        )                                                        AS mes,
-
-        REGEXP_REPLACE(ajuste_feito, '[^0-9]', '', 'g')::INT     AS ajuste_realizado,
-        para                                                     AS pessoa
+        )                                                    AS mes
     FROM source
 )
 

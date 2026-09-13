@@ -8,14 +8,14 @@
 WITH
 source AS (
     SELECT
-        substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
-        CASE 
+        *,
+        SUBSTRING(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
+        CASE
             WHEN source_path LIKE '%deusa%' THEN 'deusa'
             WHEN source_path LIKE '%jessica%' THEN 'jessica'
             WHEN source_path LIKE '%lucas%' THEN 'lucas'
             ELSE 'desconhecido'
-        END                              AS pessoa,
-        *
+        END                                                            AS pessoa
     FROM {{ source('b3', 'renda_fixa') }}
 ),
 
@@ -53,36 +53,37 @@ renamed AS (
         'BRL'                                                                                  AS moeda_ativo
     FROM source
 ),
+
 final AS (
-    SELECT 
-    mes_base,
-    pessoa,
-    CASE 
-        WHEN produto LIKE '%DEB - LIGHT SERVICOS DE ELETRICIDADE S/A%'
-            THEN 'DEB - LIGHT'
-        WHEN produto LIKE '%CDB - NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO%'
-            THEN 'CDB - NUBANK'
-        WHEN produto LIKE '%DEB - CONC. ECOVIAS DOS IMIGRANTES S.A.%'
-            THEN 'DEB - ECOVIAS'
-        ELSE produto        
-    END AS produto,
-    instituicao,
-    emissor,
-    codigo,
-    indexador,
-    tipo_de_regime,
-    data_emissao,
-    data_vencimento,
-    quantidade,
-    quantidade_disponivel,
-    quantidade_indisponivel,
-    motivo_indisponibilidade,
-    contraparte,
-    preco_atualizado_mtm,
-    vlr_atualizado_mtm,
-    preco_atualizado_curva,
-    vlr_atualizado_curva,
-    moeda_ativo
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        emissor,
+        codigo,
+        indexador,
+        tipo_de_regime,
+        data_emissao,
+        data_vencimento,
+        quantidade,
+        quantidade_disponivel,
+        quantidade_indisponivel,
+        motivo_indisponibilidade,
+        contraparte,
+        preco_atualizado_mtm,
+        vlr_atualizado_mtm,
+        preco_atualizado_curva,
+        vlr_atualizado_curva,
+        moeda_ativo,
+        CASE
+            WHEN produto LIKE '%DEB - LIGHT SERVICOS DE ELETRICIDADE S/A%'
+                THEN 'DEB - LIGHT'
+            WHEN produto LIKE '%CDB - NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO%'
+                THEN 'CDB - NUBANK'
+            WHEN produto LIKE '%DEB - CONC. ECOVIAS DOS IMIGRANTES S.A.%'
+                THEN 'DEB - ECOVIAS'
+            ELSE produto
+        END AS produto
     FROM renamed
 )
 

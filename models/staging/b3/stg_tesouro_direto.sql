@@ -9,13 +9,13 @@ WITH
 source AS (
     SELECT
         *,
-        substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
-        CASE 
+        SUBSTRING(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
+        CASE
             WHEN source_path LIKE '%deusa%' THEN 'deusa'
             WHEN source_path LIKE '%jessica%' THEN 'jessica'
             WHEN source_path LIKE '%lucas%' THEN 'lucas'
             ELSE 'desconhecido'
-        END                              AS pessoa
+        END                                                            AS pessoa
     FROM {{ source('b3', 'tesouro_direto') }}
 ),
 
@@ -31,22 +31,22 @@ renamed AS (
                 {{ clean_string("split_part(mes_base, '-', 2)", "lower") }}
             ),
             1
-        )                                           AS mes_base,
+        )                                          AS mes_base,
         pessoa,
-        {{ clean_string("produto", "upper") }}      AS produto,
-        {{ clean_string("instituicao", "upper") }}  AS instituicao,
+        {{ clean_string("produto", "upper") }}     AS produto,
+        {{ clean_string("instituicao", "upper") }} AS instituicao,
         codigo_isin,
-        NULLIF(UPPER(indexador), '-')               AS indexador,
-        TO_DATE(vencimento, 'dd/MM/yyyy')           AS data_vencimento,
+        NULLIF(UPPER(indexador), '-')              AS indexador,
+        TO_DATE(vencimento, 'dd/MM/yyyy')          AS data_vencimento,
         quantidade,
         quantidade_disponivel,
         quantidade_indisponivel,
-        NULLIF(motivo, '-')                         AS motivo_indisponibilidade,
-        valor_aplicado::NUMERIC(18, 2)              AS vlr_aplicado,
-        valor_bruto::NUMERIC(18, 2)                 AS vlr_bruto,
-        valor_liquido::NUMERIC(18, 2)               AS vlr_liquido,
-        valor_atualizado::NUMERIC(18, 2)            AS vlr_atualizado_brl,
-        'BRL'                                       AS moeda_ativo
+        NULLIF(motivo, '-')                        AS motivo_indisponibilidade,
+        valor_aplicado::NUMERIC(18, 2)             AS vlr_aplicado,
+        valor_bruto::NUMERIC(18, 2)                AS vlr_bruto,
+        valor_liquido::NUMERIC(18, 2)              AS vlr_liquido,
+        valor_atualizado::NUMERIC(18, 2)           AS vlr_atualizado_brl,
+        'BRL'                                      AS moeda_ativo
     FROM source
 )
 

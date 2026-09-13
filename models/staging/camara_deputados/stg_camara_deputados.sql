@@ -8,15 +8,15 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        id AS deputado_id_nk,
-        nomecivil as nome_civil,
-        ultimostatus_nomeeleitoral as nome_eleitoral,
+        id                                                                    AS deputado_id_nk,
+        nomecivil                                                             AS nome_civil,
+        ultimostatus_nomeeleitoral                                            AS nome_eleitoral,
         sexo,
-        redesocial as rede_social,
-        datanascimento as data_nascimento,
-        datafalecimento as data_falecimento,
-        ufnascimento as uf_nascimento,
-        municipionascimento as uf_municipio_nascimento,
+        redesocial                                                            AS rede_social,
+        datanascimento                                                        AS data_nascimento,
+        datafalecimento                                                       AS data_falecimento,
+        ufnascimento                                                          AS uf_nascimento,
+        municipionascimento                                                   AS uf_municipio_nascimento,
         escolaridade,
         COALESCE(ultimostatus_email::TEXT, ultimostatus_gabinete_email::TEXT) AS email
     FROM source

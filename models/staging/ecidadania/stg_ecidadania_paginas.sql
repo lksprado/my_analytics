@@ -9,14 +9,14 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        TO_DATE(dt_extracao, 'YYYY-MM-DD') AS data_extracao,
+        TO_DATE(dt_extracao, 'YYYY-MM-DD')                 AS data_extracao,
         {{ dbt_utils.generate_surrogate_key(['titulo']) }} AS sk_proposicao,
-        titulo AS proposicao_id_nk,
+        titulo                                             AS proposicao_id_nk,
         tipo_proposicao,
-        descritivo AS ementa,
+        descritivo                                         AS ementa,
         votos_sim,
         votos_nao,
-        (votos_sim + votos_nao) AS total_votos,
+        (votos_sim + votos_nao)                            AS total_votos,
         link
     FROM source
     WHERE total_votos IS NOT NULL AND total_votos > 0
@@ -25,8 +25,8 @@ renamed AS (
 votos_agrupados AS (
     SELECT
         proposicao_id_nk,
-        SUM(votos_sim) AS vt_sim,
-        SUM(votos_nao) AS vt_nao,
+        SUM(votos_sim)   AS vt_sim,
+        SUM(votos_nao)   AS vt_nao,
         SUM(total_votos) AS total_vt
     FROM renamed
     GROUP BY proposicao_id_nk
@@ -50,15 +50,15 @@ SELECT
     t1.ementa,
     t1.link,
     CAST(SPLIT_PART(UPPER(t1.proposicao_id_nk), '/', 2) AS INT) AS ano_proposicao,
-    CAST(t2.vt_sim AS INT) AS votos_sim,
-    CAST(t2.vt_nao AS INT) AS votos_nao,
-    CAST(t2.total_vt AS INT) AS total_votos,
-    SPLIT_PART(UPPER(t1.proposicao_id_nk), ' ', 1) AS sigla_proposicao,
+    CAST(t2.vt_sim AS INT)                                      AS votos_sim,
+    CAST(t2.vt_nao AS INT)                                      AS votos_nao,
+    CAST(t2.total_vt AS INT)                                    AS total_votos,
+    SPLIT_PART(UPPER(t1.proposicao_id_nk), ' ', 1)              AS sigla_proposicao,
     CASE
         WHEN t2.vt_sim > t2.vt_nao THEN 'A FAVOR'
         WHEN t2.vt_nao > t2.vt_sim THEN 'CONTRA'
         WHEN t2.vt_nao = t2.vt_sim THEN 'EMPATE'
-    END AS vontade_popular
+    END                                                         AS vontade_popular
 FROM linha_representativa AS t1
 INNER JOIN votos_agrupados AS t2
     ON t1.proposicao_id_nk = t2.proposicao_id_nk

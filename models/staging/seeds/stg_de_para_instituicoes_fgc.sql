@@ -8,74 +8,77 @@
 WITH
 seed AS (
     SELECT
-    data_extracao::DATE as data_extracao,
-    {{ clean_string("nome_conglomerado", "upper") }} as conglomerado,
-    {{ clean_string("nome_instituicao", "upper") }} as instituicao    
+        data_extracao::DATE                              AS data_extracao,
+        {{ clean_string("nome_conglomerado", "upper") }} AS conglomerado,
+        {{ clean_string("nome_instituicao", "upper") }}  AS instituicao
     FROM {{ ref('seed_de_para_instituicoes_fgc') }}
     WHERE score_match > 90
 ),
 
-renamed as (
+renamed AS (
     SELECT
-      data_extracao,
-      TRIM(
-          REGEXP_REPLACE(
-              REGEXP_REPLACE(
-                  REGEXP_REPLACE(
-                      conglomerado,
-                      '\s+S(?:\.|/)?A\.?\s*$',
-                      '',
-                      'i'
-                  ),
-                  '[[:punct:]]+',
-                  ' ',
-                  'g'
-              ),
-              '\s+',
-              ' ',
-              'g'
-          )
-      ) as conglomerado,
-      TRIM(
-          REGEXP_REPLACE(
-              REGEXP_REPLACE(
-                  REGEXP_REPLACE(
-                      instituicao,
-                      '\s+S(?:\.|/)?A\.?\s*$',
-                      '',
-                      'i'
-                  ),
-                  '[[:punct:]]+',
-                  ' ',
-                  'g'
-              ),
-              '\s+',
-              ' ',
-              'g'
-          )
-      ) as instituicao
+        data_extracao,
+        TRIM(
+            REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                    REGEXP_REPLACE(
+                        conglomerado,
+                        '\s+S(?:\.|/)?A\.?\s*$',
+                        '',
+                        'i'
+                    ),
+                    '[[:punct:]]+',
+                    ' ',
+                    'g'
+                ),
+                '\s+',
+                ' ',
+                'g'
+            )
+        ) AS conglomerado,
+        TRIM(
+            REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                    REGEXP_REPLACE(
+                        instituicao,
+                        '\s+S(?:\.|/)?A\.?\s*$',
+                        '',
+                        'i'
+                    ),
+                    '[[:punct:]]+',
+                    ' ',
+                    'g'
+                ),
+                '\s+',
+                ' ',
+                'g'
+            )
+        ) AS instituicao
     FROM seed
 ),
+
 renamed_2 AS (
     SELECT DISTINCT
-    CASE 
-        WHEN instituicao LIKE 'NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
-        WHEN instituicao LIKE 'NU FINANCEIRA S A SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
-        WHEN instituicao LIKE 'NU FINANCEIRA SA SOCIEDADE CFI' THEN 'NUBANK'
-        ELSE instituicao
-    END AS instituicao,
-    CASE 
-        WHEN conglomerado LIKE 'NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
-        WHEN conglomerado LIKE 'NU FINANCEIRA S A SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
-        ELSE conglomerado
-    END AS conglomerado
+        CASE
+            WHEN instituicao LIKE 'NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
+            WHEN instituicao LIKE 'NU FINANCEIRA S A SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
+            WHEN instituicao LIKE 'NU FINANCEIRA SA SOCIEDADE CFI' THEN 'NUBANK'
+            ELSE instituicao
+        END AS instituicao,
+        CASE
+            WHEN conglomerado LIKE 'NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
+            WHEN conglomerado LIKE 'NU FINANCEIRA S A SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
+            ELSE conglomerado
+        END AS conglomerado
     FROM renamed
 ),
-filler as (
+
+filler AS (
     SELECT
-    'BANCO MASTER' AS conglomerado,
-    'BANCO MASTER' AS instituicao
+        'BANCO MASTER' AS conglomerado,
+        'BANCO MASTER' AS instituicao
 )
-SELECT * FROM renamed_2 
+
+SELECT * FROM renamed_2
 UNION ALL
 SELECT * FROM filler

@@ -9,13 +9,13 @@ WITH
 source AS (
     SELECT
         *,
-        substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
-        CASE 
+        SUBSTRING(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
+        CASE
             WHEN source_path LIKE '%b3/deusa%' THEN 'deusa'
             WHEN source_path LIKE '%b3/jessica%' THEN 'jessica'
             WHEN source_path LIKE '%b3/lucas%' THEN 'lucas'
             ELSE 'desconhecido'
-        END                             AS pessoa
+        END                                                            AS pessoa
     FROM {{ source('b3', 'acoes') }}
 ),
 

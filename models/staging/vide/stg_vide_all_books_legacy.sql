@@ -12,16 +12,16 @@ source AS (
 
 renamed AS (
     SELECT
-        NULLIF({{ clean_string('book_name', 'lower') }},'')                                           AS name,
-        NULLIF({{ clean_string('book_author','lower') }},'')                                          AS author,
+        NULLIF({{ clean_string('book_name', 'lower') }}, '')                                           AS name,
+        NULLIF({{ clean_string('book_author','lower') }}, '')                                          AS author,
         TRIM(REPLACE(REPLACE(REPLACE(book_price_old, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS price_old,
         TRIM(REPLACE(REPLACE(REPLACE(book_price_new, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS price_new,
         TO_DATE(time, 'YYYY-MM-DD HH24:MI:SS')                                                        AS created_date,
         CASE
-            WHEN 
-                LOWER(book_category) LIKE '%filósofo%' 
-                OR  LOWER(book_category) LIKE '%filosofia%' 
-                OR  LOWER(book_category) LIKE '%filosófico%' THEN 'filosofia'
+            WHEN
+                LOWER(book_category) LIKE '%filósofo%'
+                OR LOWER(book_category) LIKE '%filosofia%'
+                OR LOWER(book_category) LIKE '%filosófico%' THEN 'filosofia'
             WHEN LOWER(book_category) = 'lógica e dialética' THEN 'filosofia'
             WHEN LOWER(book_category) = 'oratória e retórica' THEN 'filosofia'
             WHEN LOWER(book_category) = 'metafísica' THEN 'filosofia'
@@ -37,13 +37,13 @@ renamed AS (
             WHEN LOWER(book_category) = 'autoconhecimento' THEN 'autoconhecimento'
             WHEN LOWER(book_category) = 'auto-ajuda' THEN 'autoconhecimento'
 
-            WHEN LOWER(book_category) LIKE '%literatura%' THEN 'literatura'  
-            WHEN LOWER(book_category) LIKE '%teatro%' THEN 'literatura'   
+            WHEN LOWER(book_category) LIKE '%literatura%' THEN 'literatura'
+            WHEN LOWER(book_category) LIKE '%teatro%' THEN 'literatura'
 
             WHEN LOWER(book_category) = 'biografias' THEN 'biografias'
             WHEN LOWER(book_category) = 'ensino e estudo de línguas' THEN 'linguas'
             WHEN LOWER(book_category) = 'políticos' THEN 'ciencia politica '
-            
+
         END                                                                                           AS category
     FROM source
     WHERE book_category IN (
@@ -84,14 +84,14 @@ renamed AS (
 final AS (
     SELECT
         name,
-        TRIM(a.author) as author,
         category,
         price_old,
         price_new,
         ((price_new - price_old) / price_old)::NUMERIC(6, 2) AS discount,
-        created_date
+        created_date,
+        TRIM(a.author)                                       AS author
     FROM renamed
-    CROSS JOIN LATERAL unnest(string_to_array(renamed.author, ',')) a(author)
+    CROSS JOIN LATERAL UNNEST(STRING_TO_ARRAY(renamed.author, ',')) AS a (author)
 )
 
 SELECT * FROM final

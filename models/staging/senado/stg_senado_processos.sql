@@ -7,16 +7,16 @@ WITH source AS (
 )
 
 SELECT
-    id::INT                                    AS processo_id_nk,
+    id::INT                                     AS processo_id_nk,
     tramitando,
     autoria,
-    codigomateria::INT                         AS codigo_materia,
-    dataapresentacao::DATE                     AS data_apresentacao,
-    datadeliberacao::DATE                      AS data_liberacao,
-    datasituacaoatual::DATE                    AS data_situacao_atual,
+    codigomateria::INT                          AS codigo_materia,
+    dataapresentacao::DATE                      AS data_apresentacao,
+    datadeliberacao::DATE                       AS data_liberacao,
+    datasituacaoatual::DATE                     AS data_situacao_atual,
     NULLIF(
         REGEXP_REPLACE(
-            COALESCE(CAST(identificacao AS TEXT), ''),
+            COALESCE(identificacao::TEXT, ''),
             '[^[:alpha:]]',
             '',
             'g'
