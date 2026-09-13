@@ -11,65 +11,65 @@
     )
 }}
 
-with
-source as (
-    select * from {{ source('nhl', 'nhl_raw_all_play_by_play') }}
+WITH
+source AS (
+    SELECT * FROM {{ source('nhl', 'nhl_raw_all_play_by_play') }}
     {% if is_incremental() %}
         where (payload ->> 'gameDate')::date > (select max(game_date) from {{ this }})
     {% endif %}
 ),
 
-renamed as (
-    select
-        (payload ->> 'id')::int as game_id,
-        (payload ->> 'season')::int as season_id,
-        (payload -> 'clock' ->> 'running')::boolean as is_running,
-        (payload -> 'clock' ->> 'inIntermission')::boolean as is_in_intermission,
-        (payload ->> 'otInUse')::boolean as overtime_in_use,
-        (payload ->> 'gameDate')::date as game_date,
-        (payload ->> 'gameType')::int as game_type_id,
-        (payload ->> 'maxPeriods')::int as max_periods,
-        (payload ->> 'regPeriods')::int as reg_periods,
-        (payload ->> 'startTimeUTC')::timestamp as start_time_utc,
-        (payload ->> 'shootoutInUse')::boolean as shootout_in_use,
-        (p ->> 'eventId')::int as event_id,
-        (p ->> 'typeCode')::int as type_code,
-        (p ->> 'sortOrder')::int as sort_order,
-        (p ->> 'situationCode')::int as situation_code,
-        (p -> 'periodDescriptor' ->> 'number')::int as period_number,
-        (p -> 'details' ->> 'xCoord')::int as x_coord,
-        (p -> 'details' ->> 'yCoord')::int as y_coord,
-        (p -> 'details' ->> 'duration')::int as duration,
-        (p -> 'details' ->> 'drawnByPlayerId')::int as drawn_by_player_id,
-        (p -> 'details' ->> 'eventOwnerTeamId')::int as event_owner_team_id,
-        (p -> 'details' ->> 'committedByPlayerId')::int as commited_by_player_id,
-        (p -> 'details' ->> 'hitteePlayerId')::int as hittee_player_id,
-        (p -> 'details' ->> 'hittingPlayerId')::int as hitting_player_id,
-        (p -> 'details' ->> 'losingPlayerId')::int as losing_player_id,
-        (p -> 'details' ->> 'winningPlayerId')::int as winning_player_id,
-        (p -> 'details' ->> 'awaySOG')::int as away_sog,
-        (p -> 'details' ->> 'homeSOG')::int as home_sog,
-        (p -> 'details' ->> 'goalieInNetId')::int as goalie_in_net_player_id,
-        (p -> 'details' ->> 'shootingPlayerId')::int as shooting_player_id,
-        (p -> 'details' ->> 'awayScore')::int as away_score,
-        (p -> 'details' ->> 'homeScore')::int as home_score,
-        (payload -> 'clock' ->> 'timeRemaining') as time_remaining,
-        (payload -> 'clock' ->> 'secondsRemaining') as seconds_remaining,
-        (payload ->> 'gameState') as game_state,
-        (payload -> 'gameOutcome' ->> 'lastPeriodType') as outcome_last_period_type,
-        (payload ->> 'gameScheduleState') as game_schedule_state,
-        (p ->> 'typeDescKey') as type_desc_key,
-        (p ->> 'timeInPeriod') as time_in_period,
-        (p -> 'periodDescriptor' ->> 'periodType') as period_type,
-        (p ->> 'homeTeamDefendingSide') as home_team_defending_side,
-        (p -> 'details' ->> 'descKey') as desc_key,
-        (p -> 'details' ->> 'typeCode') as penalty_type_code,
-        (p -> 'details' ->> 'zoneCode') as zone_code,
-        (p -> 'details' ->> 'reason') as reason,
-        (p -> 'details' ->> 'secondaryReason') as secondary_reason,
-        (p -> 'details' ->> 'shotType') as shot_type
-    from source,
-        jsonb_array_elements(payload -> 'plays') as p
+renamed AS (
+    SELECT
+        (payload ->> 'id')::INT                            AS game_id,
+        (payload ->> 'season')::INT                        AS season_id,
+        (payload -> 'clock' ->> 'running')::BOOLEAN        AS is_running,
+        (payload -> 'clock' ->> 'inIntermission')::BOOLEAN AS is_in_intermission,
+        (payload ->> 'otInUse')::BOOLEAN                   AS overtime_in_use,
+        (payload ->> 'gameDate')::DATE                     AS game_date,
+        (payload ->> 'gameType')::INT                      AS game_type_id,
+        (payload ->> 'maxPeriods')::INT                    AS max_periods,
+        (payload ->> 'regPeriods')::INT                    AS reg_periods,
+        (payload ->> 'startTimeUTC')::TIMESTAMP            AS start_time_utc,
+        (payload ->> 'shootoutInUse')::BOOLEAN             AS shootout_in_use,
+        (p ->> 'eventId')::INT                             AS event_id,
+        (p ->> 'typeCode')::INT                            AS type_code,
+        (p ->> 'sortOrder')::INT                           AS sort_order,
+        (p ->> 'situationCode')::INT                       AS situation_code,
+        (p -> 'periodDescriptor' ->> 'number')::INT        AS period_number,
+        (p -> 'details' ->> 'xCoord')::INT                 AS x_coord,
+        (p -> 'details' ->> 'yCoord')::INT                 AS y_coord,
+        (p -> 'details' ->> 'duration')::INT               AS duration,
+        (p -> 'details' ->> 'drawnByPlayerId')::INT        AS drawn_by_player_id,
+        (p -> 'details' ->> 'eventOwnerTeamId')::INT       AS event_owner_team_id,
+        (p -> 'details' ->> 'committedByPlayerId')::INT    AS commited_by_player_id,
+        (p -> 'details' ->> 'hitteePlayerId')::INT         AS hittee_player_id,
+        (p -> 'details' ->> 'hittingPlayerId')::INT        AS hitting_player_id,
+        (p -> 'details' ->> 'losingPlayerId')::INT         AS losing_player_id,
+        (p -> 'details' ->> 'winningPlayerId')::INT        AS winning_player_id,
+        (p -> 'details' ->> 'awaySOG')::INT                AS away_sog,
+        (p -> 'details' ->> 'homeSOG')::INT                AS home_sog,
+        (p -> 'details' ->> 'goalieInNetId')::INT          AS goalie_in_net_player_id,
+        (p -> 'details' ->> 'shootingPlayerId')::INT       AS shooting_player_id,
+        (p -> 'details' ->> 'awayScore')::INT              AS away_score,
+        (p -> 'details' ->> 'homeScore')::INT              AS home_score,
+        (payload -> 'clock' ->> 'timeRemaining')           AS time_remaining,
+        (payload -> 'clock' ->> 'secondsRemaining')        AS seconds_remaining,
+        (payload ->> 'gameState')                          AS game_state,
+        (payload -> 'gameOutcome' ->> 'lastPeriodType')    AS outcome_last_period_type,
+        (payload ->> 'gameScheduleState')                  AS game_schedule_state,
+        (p ->> 'typeDescKey')                              AS type_desc_key,
+        (p ->> 'timeInPeriod')                             AS time_in_period,
+        (p -> 'periodDescriptor' ->> 'periodType')         AS period_type,
+        (p ->> 'homeTeamDefendingSide')                    AS home_team_defending_side,
+        (p -> 'details' ->> 'descKey')                     AS desc_key,
+        (p -> 'details' ->> 'typeCode')                    AS penalty_type_code,
+        (p -> 'details' ->> 'zoneCode')                    AS zone_code,
+        (p -> 'details' ->> 'reason')                      AS reason,
+        (p -> 'details' ->> 'secondaryReason')             AS secondary_reason,
+        (p -> 'details' ->> 'shotType')                    AS shot_type
+    FROM source,
+        JSONB_ARRAY_ELEMENTS(payload -> 'plays') AS p
 )
 
-select * from renamed
+SELECT * FROM renamed

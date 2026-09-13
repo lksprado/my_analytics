@@ -5,23 +5,23 @@
   )
 }}
 
-with
-base as (
-    select
+WITH
+base AS (
+    SELECT
         season_id,
-        max(game_type_id) as game_type_id
-    from {{ ref('stg_all_games_summary') }}
-    where season_id = (select max(season_id) from {{ ref('stg_all_games_summary') }})
-    group by season_id
+        MAX(game_type_id) AS game_type_id
+    FROM {{ ref('stg_all_games_summary') }}
+    WHERE season_id = (SELECT MAX(season_id) FROM {{ ref('stg_all_games_summary') }})
+    GROUP BY season_id
 ),
 
-players as (
-    select * from {{ ref('vw_stg_request_players_id') }}
+players AS (
+    SELECT * FROM {{ ref('vw_stg_request_players_id') }}
 ),
 
-final as (
-    select * from base,
+final AS (
+    SELECT * FROM base,
         players
 )
 
-select * from final
+SELECT * FROM final

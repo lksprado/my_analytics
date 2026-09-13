@@ -5,29 +5,29 @@
   )
 }}
 
-with source as (
+WITH source AS (
 
-    select payload::int as season_id
-    from {{ source('nhl', 'nhl_raw_all_seasons_id') }}
-
-),
-
-max_season as (
-
-    select max(season_id) as max_season_id
-    from source
+    SELECT payload::INT AS season_id
+    FROM {{ source('nhl', 'nhl_raw_all_seasons_id') }}
 
 ),
 
-final as (
+max_season AS (
 
-    select distinct
+    SELECT MAX(season_id) AS max_season_id
+    FROM source
+
+),
+
+final AS (
+
+    SELECT DISTINCT
         s.season_id,
-        s.season_id = m.max_season_id as is_current
-    from source as s
-    cross join max_season as m
-    order by s.season_id desc
+        s.season_id = m.max_season_id AS is_current
+    FROM source AS s
+    CROSS JOIN max_season AS m
+    ORDER BY s.season_id DESC
 
 )
 
-select * from final
+SELECT * FROM final

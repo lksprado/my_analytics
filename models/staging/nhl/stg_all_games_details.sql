@@ -9,9 +9,9 @@
   )
 }}
 
-with base as (
-    select *
-    from {{ ref('stg_base_all_games_details') }}
+WITH base AS (
+    SELECT *
+    FROM {{ ref('stg_base_all_games_details') }}
     {% if is_incremental() %}
         where game_id > (
             select coalesce(max(game_id), 0)
@@ -20,8 +20,8 @@ with base as (
     {% endif %}
 ),
 
-game_details as (
-    select
+game_details AS (
+    SELECT
         game_id,
         season_id,
         game_type_id,
@@ -31,26 +31,26 @@ game_details as (
         game_outcome_last_period,
         game_outcome_total_periods,
         special_event_name,
-        (game_start_timestamp_utc::timestamptz at time zone 'UTC')::timestamp
-            as game_date_timestamp_utc,
+        (game_start_timestamp_utc::TIMESTAMPTZ AT TIME ZONE 'UTC')::TIMESTAMP
+            AS game_date_timestamp_utc,
         game_schedule_state,
-        (payload -> 'awayTeam' ->> 'id')::int as away_team_id,
-        (payload -> 'awayTeam' ->> 'sog')::int as away_team_sog,
-        (payload -> 'awayTeam' ->> 'score')::int as away_team_score,
-        (payload -> 'homeTeam' ->> 'id')::int as home_team_id,
-        (payload -> 'homeTeam' ->> 'sog')::int as home_team_sog,
-        (payload -> 'homeTeam' ->> 'score')::int as home_team_score,
-        (payload -> 'awayTeam' ->> 'abbrev') as away_team_abbrev,
-        (payload -> 'awayTeam' -> 'placeName' ->> 'default') as away_team_placename,
-        (payload -> 'awayTeam' -> 'commonName' ->> 'default') as away_team_commonname,
-        (payload -> 'awayTeam' ->> 'logo') as away_team_logo,
-        (payload -> 'awayTeam' ->> 'darkLogo') as away_team_darklogo,
-        (payload -> 'homeTeam' ->> 'abbrev') as home_team_abbrev,
-        (payload -> 'homeTeam' -> 'placeName' ->> 'default') as home_team_placename,
-        (payload -> 'homeTeam' -> 'commonName' ->> 'default') as home_team_commonname,
-        (payload -> 'homeTeam' ->> 'logo') as home_team_logo,
-        (payload -> 'homeTeam' ->> 'darkLogo') as home_team_darklogo
-    from base
+        (payload -> 'awayTeam' ->> 'id')::INT                                 AS away_team_id,
+        (payload -> 'awayTeam' ->> 'sog')::INT                                AS away_team_sog,
+        (payload -> 'awayTeam' ->> 'score')::INT                              AS away_team_score,
+        (payload -> 'homeTeam' ->> 'id')::INT                                 AS home_team_id,
+        (payload -> 'homeTeam' ->> 'sog')::INT                                AS home_team_sog,
+        (payload -> 'homeTeam' ->> 'score')::INT                              AS home_team_score,
+        (payload -> 'awayTeam' ->> 'abbrev')                                  AS away_team_abbrev,
+        (payload -> 'awayTeam' -> 'placeName' ->> 'default')                  AS away_team_placename,
+        (payload -> 'awayTeam' -> 'commonName' ->> 'default')                 AS away_team_commonname,
+        (payload -> 'awayTeam' ->> 'logo')                                    AS away_team_logo,
+        (payload -> 'awayTeam' ->> 'darkLogo')                                AS away_team_darklogo,
+        (payload -> 'homeTeam' ->> 'abbrev')                                  AS home_team_abbrev,
+        (payload -> 'homeTeam' -> 'placeName' ->> 'default')                  AS home_team_placename,
+        (payload -> 'homeTeam' -> 'commonName' ->> 'default')                 AS home_team_commonname,
+        (payload -> 'homeTeam' ->> 'logo')                                    AS home_team_logo,
+        (payload -> 'homeTeam' ->> 'darkLogo')                                AS home_team_darklogo
+    FROM base
 )
 
-select * from game_details
+SELECT * FROM game_details

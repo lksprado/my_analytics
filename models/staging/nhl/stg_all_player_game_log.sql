@@ -10,51 +10,51 @@
   )
 }}
 
-with source as (
+WITH source AS (
 
-    select *
-    from {{ source('nhl', 'nhl_raw_all_player_game_log') }}
+    SELECT *
+    FROM {{ source('nhl', 'nhl_raw_all_player_game_log') }}
 ),
 
-stats_games as (
-    select
-        split_part(source_filename, '_', 1)::int as player_id,
-        (payload ->> 'seasonId')::int as season_id,
-        (payload ->> 'gameTypeId')::int as game_type_id,
-        (p ->> 'pim')::int as pim,
-        (p ->> 'goals')::int as goals,
-        (p ->> 'shots')::int as shots,
-        (p ->> 'gameId')::int as game_id,
-        (p ->> 'points')::int as points,
-        (p ->> 'shifts')::int as shifts,
-        (p ->> 'assists')::int as assists,
-        (p ->> 'otGoals')::int as overtime_goals,
-        (p ->> 'gameDate')::date as game_date,
-        (p ->> 'plusMinus')::int as plus_minus,
-        (p ->> 'powerPlayGoals')::int as powerplay_goals,
-        (p ->> 'powerPlayPoints')::int as powerplay_points,
-        (p ->> 'gameWinningGoals')::int as game_winning_goals,
-        (p ->> 'shorthandedGoals')::int as shorthanded_goals,
-        (p ->> 'shorthandedPoints')::int as shorthanded_points,
-        (p ->> 'savePctg')::float as save_pctg,
-        (p ->> 'shutouts')::int as is_shutout,
-        (p ->> 'gamesStarted')::int as is_starter,
-        (p ->> 'goalsAgainst')::int as goals_against,
-        (p ->> 'shotsAgainst')::int as shots_against,
-        (p ->> 'toi') as toi,
-        (p ->> 'teamAbbrev') as team_abbrev,
-        (p ->> 'homeRoadFlag') as home_road_flag,
-        (p ->> 'opponentAbbrev') as opponent_abbrev,
-        (p ->> 'decision') as game_decision
-    from source,
-        jsonb_array_elements(payload -> 'gameLog') as p
+stats_games AS (
+    SELECT
+        SPLIT_PART(source_filename, '_', 1)::INT AS player_id,
+        (payload ->> 'seasonId')::INT            AS season_id,
+        (payload ->> 'gameTypeId')::INT          AS game_type_id,
+        (p ->> 'pim')::INT                       AS pim,
+        (p ->> 'goals')::INT                     AS goals,
+        (p ->> 'shots')::INT                     AS shots,
+        (p ->> 'gameId')::INT                    AS game_id,
+        (p ->> 'points')::INT                    AS points,
+        (p ->> 'shifts')::INT                    AS shifts,
+        (p ->> 'assists')::INT                   AS assists,
+        (p ->> 'otGoals')::INT                   AS overtime_goals,
+        (p ->> 'gameDate')::DATE                 AS game_date,
+        (p ->> 'plusMinus')::INT                 AS plus_minus,
+        (p ->> 'powerPlayGoals')::INT            AS powerplay_goals,
+        (p ->> 'powerPlayPoints')::INT           AS powerplay_points,
+        (p ->> 'gameWinningGoals')::INT          AS game_winning_goals,
+        (p ->> 'shorthandedGoals')::INT          AS shorthanded_goals,
+        (p ->> 'shorthandedPoints')::INT         AS shorthanded_points,
+        (p ->> 'savePctg')::FLOAT                AS save_pctg,
+        (p ->> 'shutouts')::INT                  AS is_shutout,
+        (p ->> 'gamesStarted')::INT              AS is_starter,
+        (p ->> 'goalsAgainst')::INT              AS goals_against,
+        (p ->> 'shotsAgainst')::INT              AS shots_against,
+        (p ->> 'toi')                            AS toi,
+        (p ->> 'teamAbbrev')                     AS team_abbrev,
+        (p ->> 'homeRoadFlag')                   AS home_road_flag,
+        (p ->> 'opponentAbbrev')                 AS opponent_abbrev,
+        (p ->> 'decision')                       AS game_decision
+    FROM source,
+        JSONB_ARRAY_ELEMENTS(payload -> 'gameLog') AS p
 )
 
-select
+SELECT
     *,
-    row_number() over (partition by player_id, season_id order by game_id)::int
-        as game_played_number
-from stats_games
+    ROW_NUMBER() OVER (PARTITION BY player_id, season_id ORDER BY game_id)::INT
+        AS game_played_number
+FROM stats_games
 {% if is_incremental() %}
     where game_date >= (select max(game_date) from {{ this }})
 {% endif %}

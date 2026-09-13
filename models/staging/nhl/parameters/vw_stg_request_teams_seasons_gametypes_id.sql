@@ -5,30 +5,30 @@
   )
 }}
 
-with
-away as (
-    select distinct
-        away_team_abbrev as team_id,
+WITH
+away AS (
+    SELECT DISTINCT
+        away_team_abbrev AS team_id,
         season_id,
         game_type_id
-    from {{ ref('stg_all_games_details') }}
+    FROM {{ ref('stg_all_games_details') }}
 ),
 
-home as (
-    select distinct
-        home_team_abbrev as team_id,
+home AS (
+    SELECT DISTINCT
+        home_team_abbrev AS team_id,
         season_id,
         game_type_id
-    from {{ ref('stg_all_games_details') }}
+    FROM {{ ref('stg_all_games_details') }}
 ),
 
-final as (
-    select * from away
-    union
-    select * from home
+final AS (
+    SELECT * FROM away
+    UNION
+    SELECT * FROM home
 )
 
-select *
-from final
-where season_id = (select max(season_id) from final) and game_type_id in (2, 3)
-order by 1 asc, 2 desc
+SELECT *
+FROM final
+WHERE season_id = (SELECT MAX(season_id) FROM final) AND game_type_id IN (2, 3)
+ORDER BY 1 ASC, 2 DESC

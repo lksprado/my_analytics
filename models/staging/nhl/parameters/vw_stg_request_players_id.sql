@@ -5,39 +5,39 @@
   )
 }}
 
-with
-base as (
-    select
+WITH
+base AS (
+    SELECT
         season_id,
-        max(game_type_id) as game_type_id
-    from {{ ref('stg_all_games_summary') }}
-    where season_id = (select max(season_id) from {{ ref('stg_all_games_summary') }})
-    group by season_id
+        MAX(game_type_id) AS game_type_id
+    FROM {{ ref('stg_all_games_summary') }}
+    WHERE season_id = (SELECT MAX(season_id) FROM {{ ref('stg_all_games_summary') }})
+    GROUP BY season_id
 ),
 
-goalies_club_stats as (
-    select distinct player_id
-    from {{ ref('stg_all_club_stats_goalies') }} as t1
-    inner join base as t2
-        on
-            t1.season_id = t2.season_id
-            and t1.game_type_id = t2.game_type_id
+goalies_club_stats AS (
+    SELECT DISTINCT player_id
+    FROM {{ ref('stg_all_club_stats_goalies') }} AS t1
+    INNER JOIN base AS t2
+        ON
+        t1.season_id = t2.season_id
+        AND t1.game_type_id = t2.game_type_id
 ),
 
-skaters_club_stats as (
-    select distinct player_id
-    from {{ ref('stg_all_club_stats_skaters') }} as t1
-    inner join base as t2
-        on
-            t1.season_id = t2.season_id
-            and t1.game_type_id = t2.game_type_id
+skaters_club_stats AS (
+    SELECT DISTINCT player_id
+    FROM {{ ref('stg_all_club_stats_skaters') }} AS t1
+    INNER JOIN base AS t2
+        ON
+        t1.season_id = t2.season_id
+        AND t1.game_type_id = t2.game_type_id
 ),
 
-final as (
-    select * from goalies_club_stats
-    union
-    select * from skaters_club_stats
+final AS (
+    SELECT * FROM goalies_club_stats
+    UNION
+    SELECT * FROM skaters_club_stats
 )
 
-select *
-from final
+SELECT *
+FROM final

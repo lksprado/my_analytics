@@ -9,9 +9,9 @@
   )
 }}
 
-with base as (
-    select *
-    from {{ ref('stg_base_all_games_details') }}
+WITH base AS (
+    SELECT *
+    FROM {{ ref('stg_base_all_games_details') }}
     {% if is_incremental() %}
         where game_id not in (
             select distinct game_id
@@ -20,98 +20,98 @@ with base as (
     {% endif %}
 ),
 
-away_defense as (
-    select
+away_defense AS (
+    SELECT
         game_id,
-        'away' as team_side,
-        'defense' as player_type,
-        (p ->> 'playerId')::int as player_id,
-        (p -> 'name' ->> 'default') as player_name,
-        (p ->> 'position') as position,
-        (p ->> 'sweaterNumber')::int as sweater_number,
-        (p ->> 'toi') as time_on_ice,
-        (p ->> 'goals')::int as goals,
-        (p ->> 'assists')::int as assists,
-        (p ->> 'points')::int as points,
-        (p ->> 'sog')::int as shots_on_goal,
-        (p ->> 'hits')::int as hits,
-        (p ->> 'blockedShots')::int as blocked_shots,
-        (p ->> 'plusMinus')::int as plus_minus
-    from base,
-        jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'defense') as p
+        'away'                       AS team_side,
+        'defense'                    AS player_type,
+        (p ->> 'playerId')::INT      AS player_id,
+        (p -> 'name' ->> 'default')  AS player_name,
+        (p ->> 'position')           AS position,
+        (p ->> 'sweaterNumber')::INT AS sweater_number,
+        (p ->> 'toi')                AS time_on_ice,
+        (p ->> 'goals')::INT         AS goals,
+        (p ->> 'assists')::INT       AS assists,
+        (p ->> 'points')::INT        AS points,
+        (p ->> 'sog')::INT           AS shots_on_goal,
+        (p ->> 'hits')::INT          AS hits,
+        (p ->> 'blockedShots')::INT  AS blocked_shots,
+        (p ->> 'plusMinus')::INT     AS plus_minus
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'awayTeam' -> 'defense') AS p
 ),
 
-away_forwards as (
-    select
+away_forwards AS (
+    SELECT
         game_id,
-        'away' as team_side,
-        'forward' as player_type,
-        (p ->> 'playerId')::int as player_id,
-        (p -> 'name' ->> 'default') as player_name,
-        (p ->> 'position') as position,
-        (p ->> 'sweaterNumber')::int as sweater_number,
-        (p ->> 'toi') as time_on_ice,
-        (p ->> 'goals')::int as goals,
-        (p ->> 'assists')::int as assists,
-        (p ->> 'points')::int as points,
-        (p ->> 'sog')::int as shots_on_goal,
-        (p ->> 'hits')::int as hits,
-        (p ->> 'blockedShots')::int as blocked_shots,
-        (p ->> 'plusMinus')::int as plus_minus
-    from base,
-        jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'forwards') as p
+        'away'                       AS team_side,
+        'forward'                    AS player_type,
+        (p ->> 'playerId')::INT      AS player_id,
+        (p -> 'name' ->> 'default')  AS player_name,
+        (p ->> 'position')           AS position,
+        (p ->> 'sweaterNumber')::INT AS sweater_number,
+        (p ->> 'toi')                AS time_on_ice,
+        (p ->> 'goals')::INT         AS goals,
+        (p ->> 'assists')::INT       AS assists,
+        (p ->> 'points')::INT        AS points,
+        (p ->> 'sog')::INT           AS shots_on_goal,
+        (p ->> 'hits')::INT          AS hits,
+        (p ->> 'blockedShots')::INT  AS blocked_shots,
+        (p ->> 'plusMinus')::INT     AS plus_minus
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'awayTeam' -> 'forwards') AS p
 ),
 
-home_defense as (
-    select
+home_defense AS (
+    SELECT
         game_id,
-        'home' as team_side,
-        'defense' as player_type,
-        (p ->> 'playerId')::int as player_id,
-        (p -> 'name' ->> 'default') as player_name,
-        (p ->> 'position') as position,
-        (p ->> 'sweaterNumber')::int as sweater_number,
-        (p ->> 'toi') as time_on_ice,
-        (p ->> 'goals')::int as goals,
-        (p ->> 'assists')::int as assists,
-        (p ->> 'points')::int as points,
-        (p ->> 'sog')::int as shots_on_goal,
-        (p ->> 'hits')::int as hits,
-        (p ->> 'blockedShots')::int as blocked_shots,
-        (p ->> 'plusMinus')::int as plus_minus
-    from base,
-        jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'defense') as p
+        'home'                       AS team_side,
+        'defense'                    AS player_type,
+        (p ->> 'playerId')::INT      AS player_id,
+        (p -> 'name' ->> 'default')  AS player_name,
+        (p ->> 'position')           AS position,
+        (p ->> 'sweaterNumber')::INT AS sweater_number,
+        (p ->> 'toi')                AS time_on_ice,
+        (p ->> 'goals')::INT         AS goals,
+        (p ->> 'assists')::INT       AS assists,
+        (p ->> 'points')::INT        AS points,
+        (p ->> 'sog')::INT           AS shots_on_goal,
+        (p ->> 'hits')::INT          AS hits,
+        (p ->> 'blockedShots')::INT  AS blocked_shots,
+        (p ->> 'plusMinus')::INT     AS plus_minus
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'homeTeam' -> 'defense') AS p
 ),
 
-home_forwards as (
-    select
+home_forwards AS (
+    SELECT
         game_id,
-        'home' as team_side,
-        'forward' as player_type,
-        (p ->> 'playerId')::int as player_id,
-        (p -> 'name' ->> 'default') as player_name,
-        (p ->> 'position') as position,
-        (p ->> 'sweaterNumber')::int as sweater_number,
-        (p ->> 'toi') as time_on_ice,
-        (p ->> 'goals')::int as goals,
-        (p ->> 'assists')::int as assists,
-        (p ->> 'points')::int as points,
-        (p ->> 'sog')::int as shots_on_goal,
-        (p ->> 'hits')::int as hits,
-        (p ->> 'blockedShots')::int as blocked_shots,
-        (p ->> 'plusMinus')::int as plus_minus
-    from base,
-        jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'forwards') as p
+        'home'                       AS team_side,
+        'forward'                    AS player_type,
+        (p ->> 'playerId')::INT      AS player_id,
+        (p -> 'name' ->> 'default')  AS player_name,
+        (p ->> 'position')           AS position,
+        (p ->> 'sweaterNumber')::INT AS sweater_number,
+        (p ->> 'toi')                AS time_on_ice,
+        (p ->> 'goals')::INT         AS goals,
+        (p ->> 'assists')::INT       AS assists,
+        (p ->> 'points')::INT        AS points,
+        (p ->> 'sog')::INT           AS shots_on_goal,
+        (p ->> 'hits')::INT          AS hits,
+        (p ->> 'blockedShots')::INT  AS blocked_shots,
+        (p ->> 'plusMinus')::INT     AS plus_minus
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'homeTeam' -> 'forwards') AS p
 ),
 
-all_skaters as (
-    select * from away_defense
-    union all
-    select * from away_forwards
-    union all
-    select * from home_defense
-    union all
-    select * from home_forwards
+all_skaters AS (
+    SELECT * FROM away_defense
+    UNION ALL
+    SELECT * FROM away_forwards
+    UNION ALL
+    SELECT * FROM home_defense
+    UNION ALL
+    SELECT * FROM home_forwards
 )
 
-select * from all_skaters
+SELECT * FROM all_skaters

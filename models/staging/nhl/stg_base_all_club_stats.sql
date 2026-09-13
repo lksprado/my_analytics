@@ -5,8 +5,8 @@
   )
 }}
 
-select
+SELECT
     payload,
-    (payload ->> 'season')::int as season_id,
-    (payload ->> 'gameType')::int as game_type_id
-from {{ source('nhl', 'nhl_raw_all_club_stats') }}
+    (payload ->> 'season')::INT   AS season_id,
+    (payload ->> 'gameType')::INT AS game_type_id
+FROM {{ source('nhl', 'nhl_raw_all_club_stats') }}

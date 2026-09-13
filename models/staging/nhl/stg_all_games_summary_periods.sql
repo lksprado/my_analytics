@@ -9,38 +9,38 @@
   )
 }}
 
-with base as (
-    select *
-    from {{ ref('stg_base_all_games_summary_details') }}
+WITH base AS (
+    SELECT *
+    FROM {{ ref('stg_base_all_games_summary_details') }}
     {% if is_incremental() %}
         where game_id >= (select max(game_id) from {{ this }})
     {% endif %}
 ),
 
-shots as (
-    select
+shots AS (
+    SELECT
         game_id,
-        (p -> 'periodDescriptor' ->> 'number')::int as period_number,
-        (p ->> 'away')::int as away_shots,
-        (p ->> 'home')::int as home_shots,
-        (p -> 'periodDescriptor' ->> 'periodType') as period_type
-    from base,
-        jsonb_array_elements(payload -> 'shotsByPeriod') as p
+        (p -> 'periodDescriptor' ->> 'number')::INT AS period_number,
+        (p ->> 'away')::INT                         AS away_shots,
+        (p ->> 'home')::INT                         AS home_shots,
+        (p -> 'periodDescriptor' ->> 'periodType')  AS period_type
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'shotsByPeriod') AS p
 ),
 
-goals as (
-    select
+goals AS (
+    SELECT
         game_id,
-        (p -> 'periodDescriptor' ->> 'number')::int as period_number,
-        (p ->> 'away')::int as away_goals,
-        (p ->> 'home')::int as home_goals,
-        (p -> 'periodDescriptor' ->> 'periodType') as period_type
-    from base,
-        jsonb_array_elements(payload -> 'linescore' -> 'byPeriod') as p
+        (p -> 'periodDescriptor' ->> 'number')::INT AS period_number,
+        (p ->> 'away')::INT                         AS away_goals,
+        (p ->> 'home')::INT                         AS home_goals,
+        (p -> 'periodDescriptor' ->> 'periodType')  AS period_type
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'linescore' -> 'byPeriod') AS p
 ),
 
-joined as (
-    select
+joined AS (
+    SELECT
         s.game_id,
         s.period_number,
         s.period_type,
@@ -48,12 +48,12 @@ joined as (
         s.home_shots,
         g.away_goals,
         g.home_goals
-    from shots as s
-    inner join goals as g
-        on
-            s.game_id = g.game_id
-            and s.period_number = g.period_number
+    FROM shots AS s
+    INNER JOIN goals AS g
+        ON
+        s.game_id = g.game_id
+        AND s.period_number = g.period_number
 )
 
-select * from joined
-order by game_id, period_number
+SELECT * FROM joined
+ORDER BY game_id, period_number

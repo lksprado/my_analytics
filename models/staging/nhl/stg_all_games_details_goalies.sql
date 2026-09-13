@@ -9,9 +9,9 @@
   )
 }}
 
-with base as (
-    select *
-    from {{ ref('stg_base_all_games_details') }}
+WITH base AS (
+    SELECT *
+    FROM {{ ref('stg_base_all_games_details') }}
     {% if is_incremental() %}
         where game_id not in (
             select distinct game_id
@@ -20,56 +20,56 @@ with base as (
     {% endif %}
 ),
 
-away_goalies as (
-    select
+away_goalies AS (
+    SELECT
         game_id,
-        'away' as team_side,
-        'goalie' as player_type,
-        (p ->> 'playerId')::int as player_id,
-        (p -> 'name' ->> 'default') as player_name,
-        (p ->> 'position') as position,
-        (p ->> 'sweaterNumber')::int as sweater_number,
-        (p ->> 'toi') as time_on_ice,
-        (p ->> 'starter')::boolean as is_starter,
-        (p ->> 'goalsAgainst')::int as goals_against,
-        (p ->> 'shotsAgainst')::int as shots_against,
-        split_part((p ->> 'saveShotsAgainst'), '/', 1)::int as saves,
-        (p ->> 'powerPlayGoalsAgainst')::int as powerplay_goals_against,
-        split_part((p ->> 'powerPlayShotsAgainst'), '/', 1)::int as powerplay_saves,
-        split_part((p ->> 'powerPlayShotsAgainst'), '/', 2)::int as powerplay_shots_against,
-        (p ->> 'shorthandedGoalsAgainst')::int as shorthanded_goals_against,
-        (p ->> 'evenStrengthGoalsAgainst')::int as evenstrenght_goals_against,
-        split_part((p ->> 'evenStrengthShotsAgainst'), '/', 1)::int as evenstrenght_saves,
-        split_part((p ->> 'evenStrengthShotsAgainst'), '/', 2)::int as evenstrenght_shots_against
-    from base,
-        jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'goalies') as p
+        'away'                                                      AS team_side,
+        'goalie'                                                    AS player_type,
+        (p ->> 'playerId')::INT                                     AS player_id,
+        (p -> 'name' ->> 'default')                                 AS player_name,
+        (p ->> 'position')                                          AS position,
+        (p ->> 'sweaterNumber')::INT                                AS sweater_number,
+        (p ->> 'toi')                                               AS time_on_ice,
+        (p ->> 'starter')::BOOLEAN                                  AS is_starter,
+        (p ->> 'goalsAgainst')::INT                                 AS goals_against,
+        (p ->> 'shotsAgainst')::INT                                 AS shots_against,
+        SPLIT_PART((p ->> 'saveShotsAgainst'), '/', 1)::INT         AS saves,
+        (p ->> 'powerPlayGoalsAgainst')::INT                        AS powerplay_goals_against,
+        SPLIT_PART((p ->> 'powerPlayShotsAgainst'), '/', 1)::INT    AS powerplay_saves,
+        SPLIT_PART((p ->> 'powerPlayShotsAgainst'), '/', 2)::INT    AS powerplay_shots_against,
+        (p ->> 'shorthandedGoalsAgainst')::INT                      AS shorthanded_goals_against,
+        (p ->> 'evenStrengthGoalsAgainst')::INT                     AS evenstrenght_goals_against,
+        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 1)::INT AS evenstrenght_saves,
+        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 2)::INT AS evenstrenght_shots_against
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'awayTeam' -> 'goalies') AS p
 ),
 
-home_goalies as (
-    select
+home_goalies AS (
+    SELECT
         game_id,
-        'home' as team_side,
-        'goalie' as player_type,
-        (p ->> 'playerId')::int as player_id,
-        (p -> 'name' ->> 'default') as player_name,
-        (p ->> 'position') as position,
-        (p ->> 'sweaterNumber')::int as sweater_number,
-        (p ->> 'toi') as time_on_ice,
-        (p ->> 'starter')::boolean as is_starter,
-        (p ->> 'goalsAgainst')::int as goals_against,
-        (p ->> 'shotsAgainst')::int as shots_against,
-        split_part((p ->> 'saveShotsAgainst'), '/', 1)::int as saves,
-        (p ->> 'powerPlayGoalsAgainst')::int as powerplay_goals_against,
-        split_part((p ->> 'powerPlayShotsAgainst'), '/', 1)::int as powerplay_saves,
-        split_part((p ->> 'powerPlayShotsAgainst'), '/', 2)::int as powerplay_shots_against,
-        (p ->> 'shorthandedGoalsAgainst')::int as shorthanded_goals_against,
-        (p ->> 'evenStrengthGoalsAgainst')::int as evenstrenght_goals_against,
-        split_part((p ->> 'evenStrengthShotsAgainst'), '/', 1)::int as evenstrenght_saves,
-        split_part((p ->> 'evenStrengthShotsAgainst'), '/', 2)::int as evenstrenght_shots_against
-    from base,
-        jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'goalies') as p
+        'home'                                                      AS team_side,
+        'goalie'                                                    AS player_type,
+        (p ->> 'playerId')::INT                                     AS player_id,
+        (p -> 'name' ->> 'default')                                 AS player_name,
+        (p ->> 'position')                                          AS position,
+        (p ->> 'sweaterNumber')::INT                                AS sweater_number,
+        (p ->> 'toi')                                               AS time_on_ice,
+        (p ->> 'starter')::BOOLEAN                                  AS is_starter,
+        (p ->> 'goalsAgainst')::INT                                 AS goals_against,
+        (p ->> 'shotsAgainst')::INT                                 AS shots_against,
+        SPLIT_PART((p ->> 'saveShotsAgainst'), '/', 1)::INT         AS saves,
+        (p ->> 'powerPlayGoalsAgainst')::INT                        AS powerplay_goals_against,
+        SPLIT_PART((p ->> 'powerPlayShotsAgainst'), '/', 1)::INT    AS powerplay_saves,
+        SPLIT_PART((p ->> 'powerPlayShotsAgainst'), '/', 2)::INT    AS powerplay_shots_against,
+        (p ->> 'shorthandedGoalsAgainst')::INT                      AS shorthanded_goals_against,
+        (p ->> 'evenStrengthGoalsAgainst')::INT                     AS evenstrenght_goals_against,
+        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 1)::INT AS evenstrenght_saves,
+        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 2)::INT AS evenstrenght_shots_against
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'homeTeam' -> 'goalies') AS p
 )
 
-select * from away_goalies
-union all
-select * from home_goalies
+SELECT * FROM away_goalies
+UNION ALL
+SELECT * FROM home_goalies

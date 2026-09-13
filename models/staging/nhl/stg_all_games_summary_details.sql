@@ -9,48 +9,48 @@
   )
 }}
 
-with base as (
-    select *
-    from {{ ref('stg_base_all_games_summary_details') }}
+WITH base AS (
+    SELECT *
+    FROM {{ ref('stg_base_all_games_summary_details') }}
     {% if is_incremental() %}
         where game_id >= (select max(game_id) from {{ this }})
     {% endif %}
 ),
 
-exploded as (
-    select
+exploded AS (
+    SELECT
         game_id,
-        p ->> 'category' as metric,
-        (p ->> 'awayValue') as away_value,
-        (p ->> 'homeValue') as home_value
-    from base,
-        jsonb_array_elements(payload -> 'teamGameStats') as p
+        p ->> 'category'    AS metric,
+        (p ->> 'awayValue') AS away_value,
+        (p ->> 'homeValue') AS home_value
+    FROM base,
+        JSONB_ARRAY_ELEMENTS(payload -> 'teamGameStats') AS p
 ),
 
-wide as (
-    select
+wide AS (
+    SELECT
         game_id,
-        max(away_value) filter (where metric = 'sog')::int as away_sog,
-        max(home_value) filter (where metric = 'sog')::int as home_sog,
-        max(away_value) filter (where metric = 'faceoffWinningPctg')::float
-            as away_faceoff_winning_pctg,
-        max(home_value) filter (where metric = 'faceoffWinningPctg')::float
-            as home_faceoff_winning_pctg,
-        max(away_value) filter (where metric = 'powerPlayPctg')::float as away_powerplay_pctg,
-        max(home_value) filter (where metric = 'powerPlayPctg')::float as home_powerplay_pctg,
-        max(away_value) filter (where metric = 'pim')::int as away_pim,
-        max(home_value) filter (where metric = 'pim')::int as home_pim,
-        max(away_value) filter (where metric = 'hits')::int as away_hits,
-        max(home_value) filter (where metric = 'hits')::int as home_hits,
-        max(away_value) filter (where metric = 'blockedShots')::int as away_blocked_shots,
-        max(home_value) filter (where metric = 'blockedShots')::int as home_blocked_shots,
-        max(away_value) filter (where metric = 'giveaways')::int as away_giveaways,
-        max(home_value) filter (where metric = 'giveaways')::int as home_giveaways,
-        max(away_value) filter (where metric = 'takeaways')::int as away_takeaways,
-        max(home_value) filter (where metric = 'takeaways')::int as home_takeaways
-    from exploded
-    group by game_id
+        MAX(away_value) FILTER (WHERE metric = 'sog')::INT                  AS away_sog,
+        MAX(home_value) FILTER (WHERE metric = 'sog')::INT                  AS home_sog,
+        MAX(away_value) FILTER (WHERE metric = 'faceoffWinningPctg')::FLOAT
+            AS away_faceoff_winning_pctg,
+        MAX(home_value) FILTER (WHERE metric = 'faceoffWinningPctg')::FLOAT
+            AS home_faceoff_winning_pctg,
+        MAX(away_value) FILTER (WHERE metric = 'powerPlayPctg')::FLOAT      AS away_powerplay_pctg,
+        MAX(home_value) FILTER (WHERE metric = 'powerPlayPctg')::FLOAT      AS home_powerplay_pctg,
+        MAX(away_value) FILTER (WHERE metric = 'pim')::INT                  AS away_pim,
+        MAX(home_value) FILTER (WHERE metric = 'pim')::INT                  AS home_pim,
+        MAX(away_value) FILTER (WHERE metric = 'hits')::INT                 AS away_hits,
+        MAX(home_value) FILTER (WHERE metric = 'hits')::INT                 AS home_hits,
+        MAX(away_value) FILTER (WHERE metric = 'blockedShots')::INT         AS away_blocked_shots,
+        MAX(home_value) FILTER (WHERE metric = 'blockedShots')::INT         AS home_blocked_shots,
+        MAX(away_value) FILTER (WHERE metric = 'giveaways')::INT            AS away_giveaways,
+        MAX(home_value) FILTER (WHERE metric = 'giveaways')::INT            AS home_giveaways,
+        MAX(away_value) FILTER (WHERE metric = 'takeaways')::INT            AS away_takeaways,
+        MAX(home_value) FILTER (WHERE metric = 'takeaways')::INT            AS home_takeaways
+    FROM exploded
+    GROUP BY game_id
 )
 
-select * from wide
-order by game_id desc
+SELECT * FROM wide
+ORDER BY game_id DESC

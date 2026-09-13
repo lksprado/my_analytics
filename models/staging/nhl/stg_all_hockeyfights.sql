@@ -8,44 +8,44 @@
     )
 }}
 
-with
-source as (
-    select * from {{ source('hockeyfights', 'hockeyfights_raw_all_fights') }}
+WITH
+source AS (
+    SELECT * FROM {{ source('hockeyfights', 'hockeyfights_raw_all_fights') }}
 ),
 
-renamed as (
-    select
-        replace(season, '-', '')::int as season_id,
-        case
-            when season_type like 'reg' then 2
-            when season_type like 'pos' then 3
-        end as game_type_id,
-        {{ dbt_utils.generate_surrogate_key(['fight', 'date', 'gametime']) }} as fight_id,
-        fight as fight_desc,
+renamed AS (
+    SELECT
+        REPLACE(season, '-', '')::INT                                         AS season_id,
+        CASE
+            WHEN season_type LIKE 'reg' THEN 2
+            WHEN season_type LIKE 'pos' THEN 3
+        END                                                                   AS game_type_id,
+        {{ dbt_utils.generate_surrogate_key(['fight', 'date', 'gametime']) }} AS fight_id,
+        fight                                                                 AS fight_desc,
         player_1_name,
         player_2_name,
         player_1_team,
         player_2_team,
-        split_part(split_part(fight, '(', 2), ')', 1) as team_1_code,
-        split_part(split_part(fight, '(', 3), ')', 1) as team_2_code,
-        to_date(date, 'MM/DD/YY') as game_date,
+        SPLIT_PART(SPLIT_PART(fight, '(', 2), ')', 1)                         AS team_1_code,
+        SPLIT_PART(SPLIT_PART(fight, '(', 3), ')', 1)                         AS team_2_code,
+        TO_DATE(date, 'MM/DD/YY')                                             AS game_date,
         period,
-        gametime as time_in_period,
-        winner as fight_winner,
-        rating::float as rating,
-        vote_count::int as vote_count
-    from source
+        gametime                                                              AS time_in_period,
+        winner                                                                AS fight_winner,
+        rating::FLOAT                                                         AS rating,
+        vote_count::INT                                                       AS vote_count
+    FROM source
 ),
 
-dedup as (
-    select
+dedup AS (
+    SELECT
         *,
-        row_number() over (partition by fight_id) as rn
-    from renamed
+        ROW_NUMBER() OVER (PARTITION BY fight_id) AS rn
+    FROM renamed
 ),
 
-final as (
-    select
+final AS (
+    SELECT
         fight_id,
         fight_desc,
         season_id,
@@ -60,20 +60,20 @@ final as (
         fight_winner,
         rating,
         vote_count,
-        case
-            when team_1_code like 'MON' then 'MTL'
-            when team_1_code like 'WAS' then 'WSH'
-            when team_1_code like 'CAL' then 'CGY'
-            else team_1_code
-        end as team_1_code,
-        case
-            when team_2_code like 'MON' then 'MTL'
-            when team_2_code like 'WAS' then 'WSH'
-            when team_2_code like 'CAL' then 'CGY'
-            else team_2_code
-        end as team_2_code
-    from dedup
-    where rn = 1
+        CASE
+            WHEN team_1_code LIKE 'MON' THEN 'MTL'
+            WHEN team_1_code LIKE 'WAS' THEN 'WSH'
+            WHEN team_1_code LIKE 'CAL' THEN 'CGY'
+            ELSE team_1_code
+        END AS team_1_code,
+        CASE
+            WHEN team_2_code LIKE 'MON' THEN 'MTL'
+            WHEN team_2_code LIKE 'WAS' THEN 'WSH'
+            WHEN team_2_code LIKE 'CAL' THEN 'CGY'
+            ELSE team_2_code
+        END AS team_2_code
+    FROM dedup
+    WHERE rn = 1
 )
 
-select * from final
+SELECT * FROM final

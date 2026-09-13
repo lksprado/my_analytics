@@ -5,27 +5,27 @@
   )
 }}
 
-with source as (
-    select payload
-    from {{ source('nhl', 'nhl_raw_all_games_details') }}
+WITH source AS (
+    SELECT payload
+    FROM {{ source('nhl', 'nhl_raw_all_games_details') }}
 ),
 
-base_fields as (
-    select
+base_fields AS (
+    SELECT
         payload,
-        (payload ->> 'id')::int as game_id,
-        (payload ->> 'season')::int as season_id,
-        (payload ->> 'gameType')::int as game_type_id,
-        (payload ->> 'gameDate')::date as game_date,
-        (payload ->> 'regPeriods')::int as regular_periods,
-        (payload -> 'periodDescriptor' ->> 'number')::int as game_outcome_total_periods,
-        (payload ->> 'gameState') as game_state,
-        (payload -> 'gameOutcome' ->> 'lastPeriodType') as game_outcome_last_period,
-        (payload -> 'specialEvent' -> 'name' ->> 'default') as special_event_name,
-        (payload ->> 'startTimeUTC') as game_start_timestamp_utc,
-        (payload ->> 'gameScheduleState') as game_schedule_state
-    from source
-    where (payload ->> 'id') is not null
+        (payload ->> 'id')::INT                             AS game_id,
+        (payload ->> 'season')::INT                         AS season_id,
+        (payload ->> 'gameType')::INT                       AS game_type_id,
+        (payload ->> 'gameDate')::DATE                      AS game_date,
+        (payload ->> 'regPeriods')::INT                     AS regular_periods,
+        (payload -> 'periodDescriptor' ->> 'number')::INT   AS game_outcome_total_periods,
+        (payload ->> 'gameState')                           AS game_state,
+        (payload -> 'gameOutcome' ->> 'lastPeriodType')     AS game_outcome_last_period,
+        (payload -> 'specialEvent' -> 'name' ->> 'default') AS special_event_name,
+        (payload ->> 'startTimeUTC')                        AS game_start_timestamp_utc,
+        (payload ->> 'gameScheduleState')                   AS game_schedule_state
+    FROM source
+    WHERE (payload ->> 'id') IS NOT NULL
 )
 
-select * from base_fields
+SELECT * FROM base_fields

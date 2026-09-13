@@ -5,19 +5,19 @@
     )
 }}
 
-with
-source as (
-    select * from {{ source('nhl', 'nhl_raw_all_teams_id') }}
+WITH
+source AS (
+    SELECT * FROM {{ source('nhl', 'nhl_raw_all_teams_id') }}
 ),
 
-renamed as (
-    select
-        (payload ->> 'id')::int as team_id,
-        (payload ->> 'franchiseId')::int as franchise_id,
-        (payload ->> 'triCode') as team_code,
-        (payload ->> 'fullName') as team_fullname
-    from source
-    where (payload ->> 'id')::int <> 70
+renamed AS (
+    SELECT
+        (payload ->> 'id')::INT          AS team_id,
+        (payload ->> 'franchiseId')::INT AS franchise_id,
+        (payload ->> 'triCode')          AS team_code,
+        (payload ->> 'fullName')         AS team_fullname
+    FROM source
+    WHERE (payload ->> 'id')::INT <> 70
 )
 
-select * from renamed
+SELECT * FROM renamed

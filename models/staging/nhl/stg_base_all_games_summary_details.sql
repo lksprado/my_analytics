@@ -5,13 +5,13 @@
   )
 }}
 
-with source as (
-    select
+WITH source AS (
+    SELECT
         payload,
         source_filename,
-        split_part(source_filename, '_', 2)::int as game_id
-    from {{ source('nhl', 'nhl_raw_all_games_summary_details') }}
-    where split_part(source_filename, '_', 2) is not null
+        SPLIT_PART(source_filename, '_', 2)::INT AS game_id
+    FROM {{ source('nhl', 'nhl_raw_all_games_summary_details') }}
+    WHERE SPLIT_PART(source_filename, '_', 2) IS NOT NULL
 )
 
-select * from source
+SELECT * FROM source

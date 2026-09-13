@@ -5,66 +5,66 @@
   )
 }}
 
-with
-current_season as (
-    select season_id
-    from {{ ref('vw_stg_request_seasons_id') }}
-    where is_current = true
+WITH
+current_season AS (
+    SELECT season_id
+    FROM {{ ref('vw_stg_request_seasons_id') }}
+    WHERE is_current = TRUE
 ),
 
-games_happened as (
-    select distinct game_id
-    from {{ ref('stg_all_games_summary') }}
-    where
-        has_happened_by_status = true
-        and season_id = (select season_id from current_season)
+games_happened AS (
+    SELECT DISTINCT game_id
+    FROM {{ ref('stg_all_games_summary') }}
+    WHERE
+        has_happened_by_status = TRUE
+        AND season_id = (SELECT season_id FROM current_season)
 ),
 
-games_details as (
-    select distinct
+games_details AS (
+    SELECT DISTINCT
         game_id,
-        true as has_games_details
-    from {{ ref('stg_all_games_details') }}
+        TRUE AS has_games_details
+    FROM {{ ref('stg_all_games_details') }}
 ),
 
-games_summary_details as (
-    select distinct
+games_summary_details AS (
+    SELECT DISTINCT
         game_id,
-        true as has_games_summary_details
-    from {{ ref('stg_all_games_summary_details') }}
+        TRUE AS has_games_summary_details
+    FROM {{ ref('stg_all_games_summary_details') }}
 ),
 
-play_by_play as (
-    select
+play_by_play AS (
+    SELECT
         game_id,
-        true as has_play_by_play
-    from {{ ref('stg_all_play_by_play') }}
-    group by game_id
+        TRUE AS has_play_by_play
+    FROM {{ ref('stg_all_play_by_play') }}
+    GROUP BY game_id
 ),
 
-final as (
-    select
+final AS (
+    SELECT
         gh.game_id,
 
-        coalesce(gd.has_games_details, false) as has_games_details,
-        coalesce(gsd.has_games_summary_details, false) as has_games_summary_details,
-        coalesce(pbp.has_play_by_play, false) as has_play_by_play,
+        COALESCE(gd.has_games_details, FALSE)          AS has_games_details,
+        COALESCE(gsd.has_games_summary_details, FALSE) AS has_games_summary_details,
+        COALESCE(pbp.has_play_by_play, FALSE)          AS has_play_by_play,
 
-        coalesce(
-            coalesce(gd.has_games_details, false)
-            and coalesce(gsd.has_games_summary_details, false)
-            and coalesce(pbp.has_play_by_play, false), false
-        ) as is_fully_synced
+        COALESCE(
+            COALESCE(gd.has_games_details, FALSE)
+            AND COALESCE(gsd.has_games_summary_details, FALSE)
+            AND COALESCE(pbp.has_play_by_play, FALSE), FALSE
+        )                                              AS is_fully_synced
 
-    from games_happened as gh
-    left join games_details as gd
-        on gh.game_id = gd.game_id
-    left join games_summary_details as gsd
-        on gh.game_id = gsd.game_id
-    left join play_by_play as pbp
-        on gh.game_id = pbp.game_id
+    FROM games_happened AS gh
+    LEFT JOIN games_details AS gd
+        ON gh.game_id = gd.game_id
+    LEFT JOIN games_summary_details AS gsd
+        ON gh.game_id = gsd.game_id
+    LEFT JOIN play_by_play AS pbp
+        ON gh.game_id = pbp.game_id
 )
 
-select *
-from final
-where is_fully_synced is false
+SELECT *
+FROM final
+WHERE is_fully_synced IS FALSE

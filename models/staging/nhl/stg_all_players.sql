@@ -8,118 +8,118 @@
     )
 }}
 
-with
-source as (
-    select * from {{ source('nhl', 'nhl_raw_all_players') }}
+WITH
+source AS (
+    SELECT * FROM {{ source('nhl', 'nhl_raw_all_players') }}
 ),
 
-regular as (
-    select
-        (payload ->> 'playerId')::int as player_id,
-        (payload -> 'firstName' ->> 'default') as player_firstname,
-        (payload -> 'lastName' ->> 'default') as player_lastname,
-        (payload ->> 'isActive')::boolean as is_active,
-        (payload ->> 'position') as position,
-        (payload -> 'birthCity' ->> 'default') as birth_city,
-        (payload ->> 'birthDate')::date as birthdate,
-        (payload ->> 'birthCountry') as birth_country,
-        (payload -> 'birthStateProvince' ->> 'default') as birth_state_province,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'pim')::int as pim,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'goals')::int as goals,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shots')::int as shots,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'avgToi') as avg_toi,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'points')::int as points,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'assists')::int as assists,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'otGoals')::int as overtime_goals,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'plusMinus')::int as plus_minus,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'gamesPlayed')::int as games_played,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shootingPctg')::float as shooting_pctg,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'powerPlayGoals')::int as powerplay_goals,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'powerPlayPoints')::int
-            as powerplay_points,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'gameWinningGoals')::int
-            as game_winning_goals,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shorthandedGoals')::int
-            as shorthanded_goals,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shorthandedPoints')::int
-            as shorthanded_points,
-        (payload -> 'careerTotals' -> 'regularSeason' ->> 'faceoffWinningPctg')::float
-            as faceoff_win_pctg,
-        (payload -> 'draftDetails' ->> 'year')::int as draft_year,
-        (payload -> 'draftDetails' ->> 'round')::int as draft_round,
-        (payload -> 'draftDetails' ->> 'teamAbbrev') as draft_team_id,
-        (payload -> 'draftDetails' ->> 'overallPick')::int as draft_overall_pick,
-        (payload -> 'draftDetails' ->> 'pickInRound')::int as draft_pick_in_round,
-        (payload -> 'fullTeamName' ->> 'default') as team_full_name,
-        (payload ->> 'currentTeamId')::int as current_team_id,
-        (payload ->> 'shootsCatches') as shoots_catches,
-        (payload ->> 'sweaterNumber')::int as sweater_number,
-        (payload ->> 'heightInInches')::int as height_inches,
-        (payload ->> 'weightInPounds')::int as weight_pounds,
-        (payload ->> 'heightInCentimeters')::int as height_centimeters,
-        (payload ->> 'weightInKilograms')::int as weight_kilogram,
-        'regular' as season_type
-    from source
-    where
-        payload is not null
-        and payload <> 'null'
+regular AS (
+    SELECT
+        (payload ->> 'playerId')::INT                                                  AS player_id,
+        (payload -> 'firstName' ->> 'default')                                         AS player_firstname,
+        (payload -> 'lastName' ->> 'default')                                          AS player_lastname,
+        (payload ->> 'isActive')::BOOLEAN                                              AS is_active,
+        (payload ->> 'position')                                                       AS position,
+        (payload -> 'birthCity' ->> 'default')                                         AS birth_city,
+        (payload ->> 'birthDate')::DATE                                                AS birthdate,
+        (payload ->> 'birthCountry')                                                   AS birth_country,
+        (payload -> 'birthStateProvince' ->> 'default')                                AS birth_state_province,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'pim')::INT                  AS pim,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'goals')::INT                AS goals,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shots')::INT                AS shots,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'avgToi')                    AS avg_toi,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'points')::INT               AS points,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'assists')::INT              AS assists,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'otGoals')::INT              AS overtime_goals,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'plusMinus')::INT            AS plus_minus,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'gamesPlayed')::INT          AS games_played,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shootingPctg')::FLOAT       AS shooting_pctg,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'powerPlayGoals')::INT       AS powerplay_goals,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'powerPlayPoints')::INT
+            AS powerplay_points,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'gameWinningGoals')::INT
+            AS game_winning_goals,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shorthandedGoals')::INT
+            AS shorthanded_goals,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'shorthandedPoints')::INT
+            AS shorthanded_points,
+        (payload -> 'careerTotals' -> 'regularSeason' ->> 'faceoffWinningPctg')::FLOAT
+            AS faceoff_win_pctg,
+        (payload -> 'draftDetails' ->> 'year')::INT                                    AS draft_year,
+        (payload -> 'draftDetails' ->> 'round')::INT                                   AS draft_round,
+        (payload -> 'draftDetails' ->> 'teamAbbrev')                                   AS draft_team_id,
+        (payload -> 'draftDetails' ->> 'overallPick')::INT                             AS draft_overall_pick,
+        (payload -> 'draftDetails' ->> 'pickInRound')::INT                             AS draft_pick_in_round,
+        (payload -> 'fullTeamName' ->> 'default')                                      AS team_full_name,
+        (payload ->> 'currentTeamId')::INT                                             AS current_team_id,
+        (payload ->> 'shootsCatches')                                                  AS shoots_catches,
+        (payload ->> 'sweaterNumber')::INT                                             AS sweater_number,
+        (payload ->> 'heightInInches')::INT                                            AS height_inches,
+        (payload ->> 'weightInPounds')::INT                                            AS weight_pounds,
+        (payload ->> 'heightInCentimeters')::INT                                       AS height_centimeters,
+        (payload ->> 'weightInKilograms')::INT                                         AS weight_kilogram,
+        'regular'                                                                      AS season_type
+    FROM source
+    WHERE
+        payload IS NOT NULL
+        AND payload <> 'null'
 ),
 
-playoffs as (
-    select
-        (payload ->> 'playerId')::int as player_id,
-        (payload -> 'firstName' ->> 'default') as player_firstname,
-        (payload -> 'lastName' ->> 'default') as player_lastname,
-        (payload ->> 'isActive')::boolean as is_active,
-        (payload ->> 'position') as position,
-        (payload -> 'birthCity' ->> 'default') as birth_city,
-        (payload ->> 'birthDate')::date as birthdate,
-        (payload ->> 'birthCountry') as birth_country,
-        (payload -> 'birthStateProvince' ->> 'default') as birth_state_province,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'pim')::int as pim,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'goals')::int as goals,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'shots')::int as shots,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'avgToi') as avg_toi,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'points')::int as points,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'assists')::int as assists,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'otGoals')::int as overtime_goals,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'plusMinus')::int as plus_minus,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'gamesPlayed')::int as games_played,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'shootingPctg')::float as shooting_pctg,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'powerPlayGoals')::int as powerplay_goals,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'powerPlayPoints')::int as powerplay_points,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'gameWinningGoals')::int as game_winning_goals,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'shorthandedGoals')::int as shorthanded_goals,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'shorthandedPoints')::int
-            as shorthanded_points,
-        (payload -> 'careerTotals' -> 'playoffs' ->> 'faceoffWinningPctg')::float
-            as faceoff_win_pctg,
-        (payload -> 'draftDetails' ->> 'year')::int as draft_year,
-        (payload -> 'draftDetails' ->> 'round')::int as draft_round,
-        (payload -> 'draftDetails' ->> 'teamAbbrev') as draft_team_id,
-        (payload -> 'draftDetails' ->> 'overallPick')::int as draft_overall_pick,
-        (payload -> 'draftDetails' ->> 'pickInRound')::int as draft_pick_in_round,
-        (payload -> 'fullTeamName' ->> 'default') as team_full_name,
-        (payload ->> 'currentTeamId')::int as current_team_id,
-        (payload ->> 'shootsCatches') as shoots_catches,
-        (payload ->> 'sweaterNumber')::int as sweater_number,
-        (payload ->> 'heightInInches')::int as height_inches,
-        (payload ->> 'weightInPounds')::int as weight_pounds,
-        (payload ->> 'heightInCentimeters')::int as height_centimeters,
-        (payload ->> 'weightInKilograms')::int as weight_kilogram,
-        'playoffs' as season_type
-    from source
-    where
-        payload is not null
-        and payload <> 'null'
+playoffs AS (
+    SELECT
+        (payload ->> 'playerId')::INT                                             AS player_id,
+        (payload -> 'firstName' ->> 'default')                                    AS player_firstname,
+        (payload -> 'lastName' ->> 'default')                                     AS player_lastname,
+        (payload ->> 'isActive')::BOOLEAN                                         AS is_active,
+        (payload ->> 'position')                                                  AS position,
+        (payload -> 'birthCity' ->> 'default')                                    AS birth_city,
+        (payload ->> 'birthDate')::DATE                                           AS birthdate,
+        (payload ->> 'birthCountry')                                              AS birth_country,
+        (payload -> 'birthStateProvince' ->> 'default')                           AS birth_state_province,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'pim')::INT                  AS pim,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'goals')::INT                AS goals,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'shots')::INT                AS shots,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'avgToi')                    AS avg_toi,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'points')::INT               AS points,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'assists')::INT              AS assists,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'otGoals')::INT              AS overtime_goals,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'plusMinus')::INT            AS plus_minus,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'gamesPlayed')::INT          AS games_played,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'shootingPctg')::FLOAT       AS shooting_pctg,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'powerPlayGoals')::INT       AS powerplay_goals,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'powerPlayPoints')::INT      AS powerplay_points,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'gameWinningGoals')::INT     AS game_winning_goals,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'shorthandedGoals')::INT     AS shorthanded_goals,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'shorthandedPoints')::INT
+            AS shorthanded_points,
+        (payload -> 'careerTotals' -> 'playoffs' ->> 'faceoffWinningPctg')::FLOAT
+            AS faceoff_win_pctg,
+        (payload -> 'draftDetails' ->> 'year')::INT                               AS draft_year,
+        (payload -> 'draftDetails' ->> 'round')::INT                              AS draft_round,
+        (payload -> 'draftDetails' ->> 'teamAbbrev')                              AS draft_team_id,
+        (payload -> 'draftDetails' ->> 'overallPick')::INT                        AS draft_overall_pick,
+        (payload -> 'draftDetails' ->> 'pickInRound')::INT                        AS draft_pick_in_round,
+        (payload -> 'fullTeamName' ->> 'default')                                 AS team_full_name,
+        (payload ->> 'currentTeamId')::INT                                        AS current_team_id,
+        (payload ->> 'shootsCatches')                                             AS shoots_catches,
+        (payload ->> 'sweaterNumber')::INT                                        AS sweater_number,
+        (payload ->> 'heightInInches')::INT                                       AS height_inches,
+        (payload ->> 'weightInPounds')::INT                                       AS weight_pounds,
+        (payload ->> 'heightInCentimeters')::INT                                  AS height_centimeters,
+        (payload ->> 'weightInKilograms')::INT                                    AS weight_kilogram,
+        'playoffs'                                                                AS season_type
+    FROM source
+    WHERE
+        payload IS NOT NULL
+        AND payload <> 'null'
 ),
 
-union_tbs as (
-    select * from regular
-    union all
-    select * from playoffs
+union_tbs AS (
+    SELECT * FROM regular
+    UNION ALL
+    SELECT * FROM playoffs
 )
 
-select * from union_tbs
-where player_id is not null
-order by player_id desc, season_type desc
+SELECT * FROM union_tbs
+WHERE player_id IS NOT NULL
+ORDER BY player_id DESC, season_type DESC
