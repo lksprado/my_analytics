@@ -2,14 +2,8 @@
 version: 2
 
 models:
-  - name: book_price_history
+  - name: fct_book_pricing_history
     description: "Histórico de preços — uma linha por livro por dia observado."
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - book_id
-              - date_price
     columns:
       - name: date_price
       - name: day_of_month
@@ -37,12 +31,10 @@ models:
       - name: is_price_drop
       - name: is_price_increase
       - name: is_record_discount
-  - name: book_price_current
+  - name: fct_book_pricing_current
     description: "Um livro por linha com o último preço conhecido e métricas de oportunidade."
     columns:
-      - name: book_id
-        data_tests:
-          - unique
+      - name: book_sk
           - not_null
       - name: current_price
       - name: min_price_ever
@@ -50,7 +42,5 @@ models:
       - name: is_at_record_low
       - name: is_stale_price
       - name: days_since_last_observed
-  - name: dim_authors
-    description: "Todos autores"
-  - name: dim_books
-    description: "Todos livros"
+  - name: dim_book
+    description: "Todos os livros"

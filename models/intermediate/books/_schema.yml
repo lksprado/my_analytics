@@ -2,26 +2,6 @@
 version: 2
 
 models:
-  - name: int_authors_treated
-    description: "Dimensão de autores da Vide Editorial, deduplicada por author_id."
-    columns:
-      - name: author_id
-        data_tests:
-          - unique
-          - not_null
-      - name: author_name
-        description: "Nome do autor."
-  - name: int_books_treated
-    description: "Dimensão de livros da Vide Editorial com categoria mais frequente por livro."
-    columns:
-      - name: book_id
-        data_tests:
-          - unique
-          - not_null
-      - name: book_name
-        description: "Nome do livro."
-      - name: book_category
-        description: "Categoria mais frequente do livro entre as fontes."
   - name: int_books_price_history
     description: >
       Histórico fiel de preços: uma observação por livro por dia, unindo as três

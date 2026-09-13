@@ -12,43 +12,38 @@ source AS (
 
 renamed AS (
     SELECT
-        book_name,
-        book_author,
-        book_category,
-        TRIM(REPLACE(REPLACE(REPLACE(book_price_old, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_old,
-        TRIM(REPLACE(REPLACE(REPLACE(book_price_new, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_new,
-        REGEXP_REPLACE({{ clean_string('book_name', 'lower') }}, '[^a-z0-9]', '', 'g')                       AS book_name_clean,
-        REGEXP_REPLACE({{ clean_string('book_author', 'lower') }}, '[^a-z0-9]', '', 'g')                     AS book_author_clean,
-        TO_DATE(time, 'YYYY-MM-DD HH24:MI:SS')                                                        AS created_at,
+        NULLIF({{ clean_string('book_name', 'lower') }},'')                                           AS name,
+        NULLIF({{ clean_string('book_author','lower') }},'')                                          AS author,
+        TRIM(REPLACE(REPLACE(REPLACE(book_price_old, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS price_old,
+        TRIM(REPLACE(REPLACE(REPLACE(book_price_new, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS price_new,
+        TO_DATE(time, 'YYYY-MM-DD HH24:MI:SS')                                                        AS created_date,
         CASE
-            WHEN book_category = 'Filósofos Brasileiros' THEN 'Filosofia'
-            WHEN book_category = 'Literatura Estrangeira' THEN 'Filosofia'
-            WHEN book_category = 'História do Brasil' THEN 'História'
-            WHEN book_category = 'Filósofos' THEN 'Filosofia'
-            WHEN book_category = 'Filosofia da História' THEN 'Filosofia'
-            WHEN book_category = 'Filosofia Política' THEN 'Política'
-            WHEN book_category = 'Ciências Sociais' THEN 'Ciências Sociais'
-            WHEN book_category = 'Filosofia' THEN 'Filosofia'
-            WHEN book_category = 'Filosofia Moderna e Contemporânea' THEN 'Filosofia'
-            WHEN book_category = 'Literatura Brasileira' THEN 'Literatura'
-            WHEN book_category = 'Lógica e Dialética' THEN 'Filosofia'
-            WHEN book_category = 'Ensaios e Estudos Filosóficos' THEN 'Filosofia'
-            WHEN book_category = 'Oratória e Retórica' THEN 'Filosofia'
-            WHEN book_category = 'Ética e Filosofia Moral' THEN 'Filosofia'
-            WHEN book_category = 'Literatura' THEN 'Literatura'
-            WHEN book_category = 'Metafísica' THEN 'Filosofia'
-            WHEN book_category = 'Biografias' THEN 'Biografias'
-            WHEN book_category = 'História da Filosofia' THEN 'Filosofia'
-            WHEN book_category = 'Auto-Ajuda' THEN 'Autoconhecimento'
-            WHEN book_category = 'Introdução à Filosofia' THEN 'Filosofia'
-            WHEN book_category = 'Ensino e estudo de línguas' THEN 'Filosofia'
-            WHEN book_category = 'Literatura Portuguesa' THEN 'Literatura'
-            WHEN book_category = 'Autoconhecimento' THEN 'Autoconhecimento'
-            WHEN book_category = 'Antropologia' THEN 'Ciências Sociais'
-            WHEN book_category = 'Filosofia Antiga' THEN 'Filosofia'
-            WHEN book_category = 'História' THEN 'História'
-            WHEN book_category = 'História da América Latina' THEN 'História'
-            WHEN book_category = 'Sociologia' THEN 'Ciências Sociais'
+            WHEN 
+                LOWER(book_category) LIKE '%filósofo%' 
+                OR  LOWER(book_category) LIKE '%filosofia%' 
+                OR  LOWER(book_category) LIKE '%filosófico%' THEN 'filosofia'
+            WHEN LOWER(book_category) = 'lógica e dialética' THEN 'filosofia'
+            WHEN LOWER(book_category) = 'oratória e retórica' THEN 'filosofia'
+            WHEN LOWER(book_category) = 'metafísica' THEN 'filosofia'
+
+            WHEN LOWER(book_category) = 'história do Brasil' THEN 'historia'
+            WHEN LOWER(book_category) = 'história' THEN 'historia'
+            WHEN LOWER(book_category) = 'história da américa latina' THEN 'historia'
+
+            WHEN LOWER(book_category) = 'ciências sociais' THEN 'ciencias sociais'
+            WHEN LOWER(book_category) = 'antropologia' THEN 'ciencias sociais'
+            WHEN LOWER(book_category) = 'sociologia' THEN 'ciencias sociais'
+
+            WHEN LOWER(book_category) = 'autoconhecimento' THEN 'autoconhecimento'
+            WHEN LOWER(book_category) = 'auto-ajuda' THEN 'autoconhecimento'
+
+            WHEN LOWER(book_category) LIKE '%literatura%' THEN 'literatura'  
+            WHEN LOWER(book_category) LIKE '%teatro%' THEN 'literatura'   
+
+            WHEN LOWER(book_category) = 'biografias' THEN 'biografias'
+            WHEN LOWER(book_category) = 'ensino e estudo de línguas' THEN 'linguas'
+            WHEN LOWER(book_category) = 'políticos' THEN 'ciencia politica '
+            
         END                                                                                           AS category
     FROM source
     WHERE book_category IN (
@@ -79,22 +74,24 @@ renamed AS (
         'Filosofia Antiga',
         'História',
         'História da América Latina',
-        'Sociologia'
+        'Sociologia',
+        'Políticos',
+        'Teatro Grego',
+        'Teatro'
     )
 ),
 
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }}            AS book_id,
-        {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }}                               AS author_id,
-        REPLACE(REGEXP_REPLACE({{ clean_string('book_name', 'lower') }}, '[^a-z0-9 ]', '', 'g'), '  ', ' ') AS book_name,
-        LOWER(book_author)                                                                          AS book_author,
-        category                                                                                    AS book_category,
-        book_price_old,
-        book_price_new,
-        ((book_price_new - book_price_old) / book_price_old)::NUMERIC(6, 2)                         AS book_discount,
-        created_at
+        name,
+        TRIM(a.author) as author,
+        category,
+        price_old,
+        price_new,
+        ((price_new - price_old) / price_old)::NUMERIC(6, 2) AS discount,
+        created_date
     FROM renamed
+    CROSS JOIN LATERAL unnest(string_to_array(renamed.author, ',')) a(author)
 )
 
 SELECT * FROM final
