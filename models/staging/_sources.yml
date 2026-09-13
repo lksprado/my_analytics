@@ -88,7 +88,7 @@ sources:
         description: "Dividendos e Impostos pagos"
 
   - name: google_finance_sheet
-    schema: raw_google_finance_sheet
+    schema: raw_google_sheets
     tables:
       - name: jsc_consolidado
         description: "Renda e despesas de Jéssica"
