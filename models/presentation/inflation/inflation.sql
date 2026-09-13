@@ -16,23 +16,21 @@ fct AS (
 final AS (
     SELECT
         fct.created_date,
-        fct.sku,
         dim.product_name,
         dim.category,
         dim.brand_name,
         dim.product_unity,
+        dim.unity_value_normalized,
         dim.unit_normalized,
         dim.unity_type,
-        dim.unity_value_normalized,
         fct.high_price,
         fct.low_price
     FROM
         fct
     INNER JOIN dim
-        ON fct.sku = dim.sku
+        ON fct.product_sk = dim.product_sk
 )
 
 SELECT * FROM final
 ORDER BY
-    created_date ASC,
-    sku DESC
+    created_date DESC

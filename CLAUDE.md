@@ -29,11 +29,12 @@ Comment only if it says something the code can't. Never write: model/grain/colum
 
 | Layer | Materialization | Schema | Prefix | Purpose |
 |-------|----------------|--------|--------|---------|
-| Staging | `table` | `staging_<subpasta>` | `stg_` | Type-cast raw sources (JSON, Sheets, seeds); indexes via `post_hook` |
+| Staging | `table` | `staging_<subpasta>` | `stg_` | Type-cast raw sources (JSON, Sheets, seeds) |
 | Intermediate | `view` | `intermediate_<subpasta>` | `int_` | Business logic |
-| Marts | `table` | `marts_<subpasta>` | none | Analytics-ready |
+| Marts | `table` | `marts_<subpasta>` | `fct_*` `dim_*` `bridge_*_*` | Dimension Modeling |
 | Presentation | `table` | `presentation_<subpasta>` | none | Visualization-ready |
 
+Not all projects are meant to be Star Schema modelling, when they do, they belong in the Marts layer. It is encouraged though.
 
 ### Schema/YAML files
 

@@ -28,7 +28,7 @@
         WHEN {{ letters }} IN ('g', 'grama', 'gramas') THEN 'gram'
         WHEN {{ letters }} IN ('ml') THEN 'millilitre'
         WHEN {{ letters }} IN ('l', 'litro', 'litros') THEN 'litre'
-        WHEN {{ letters }} IN ('un', 'unid', 'unidade', 'unidades', 'rolos', 'dúzia', 'dúzias', 'folhas', 'maço') THEN 'unity'
+        WHEN {{ letters }} IN ('un', 'unid', 'unidade', 'unidades', 'rolos', 'dúzia', 'dúzias', 'folhas', 'maço') THEN 'unit'
     END
 {%- endmacro %}
 
@@ -42,7 +42,7 @@
     CASE
         WHEN {{ unit_name }} IN ('kilogram', 'gram') THEN 'weight'
         WHEN {{ unit_name }} IN ('litre', 'millilitre') THEN 'volume'
-        WHEN {{ unit_name }} = 'unity' THEN 'unit'
+        WHEN {{ unit_name }} = 'unit' THEN 'unknown'
     END AS unity_type,
     {{ unit_value }} AS unity_value,
     CASE

@@ -52,10 +52,18 @@ renamed AS (
 
 final AS (
     SELECT
-        *,
+        created_date,
+        sku,
+        category,
+        product_name,
+        brand_name,
+        high_price,
+        low_price,
+        product_unity,
         {{ normalize_product_unit('product_unity') }}
     FROM renamed
 )
 
 SELECT * FROM final
 WHERE unit_normalized IS NOT NULL
+AND product_name IS NOT NULL
