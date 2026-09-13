@@ -4,26 +4,26 @@
     )
 }}
 
-with 
+WITH
 
-game_details as (
-    select
-        home_team_id as id,
-        string_agg(distinct home_team_logo, ', ' order by home_team_logo) as logo,
-        string_agg(distinct home_team_darklogo, ', ' order by home_team_darklogo) as darklogo,
-        string_agg(distinct home_team_placename, ', ' order by home_team_placename)
-            as place_name,
-        string_agg(distinct home_team_commonname, ', ' order by home_team_commonname)
-            as common_name,
-        max(season_id) as latest_season_id,
-        min(season_id) as first_season_id
-    from {{ ref('stg_all_games_details') }}
-    group by home_team_id
+game_details AS (
+    SELECT
+        home_team_id                                                                  AS id,
+        STRING_AGG(DISTINCT home_team_logo, ', ' ORDER BY home_team_logo)             AS logo,
+        STRING_AGG(DISTINCT home_team_darklogo, ', ' ORDER BY home_team_darklogo)     AS darklogo,
+        STRING_AGG(DISTINCT home_team_placename, ', ' ORDER BY home_team_placename)
+            AS place_name,
+        STRING_AGG(DISTINCT home_team_commonname, ', ' ORDER BY home_team_commonname)
+            AS common_name,
+        MAX(season_id)                                                                AS latest_season_id,
+        MIN(season_id)                                                                AS first_season_id
+    FROM {{ ref('stg_all_games_details') }}
+    GROUP BY home_team_id
 ),
 
-teams as (
-    select
-        {{ dbt_utils.generate_surrogate_key(['t1.id', 't1.abbrev_name']) }} as team_sk,
+teams AS (
+    SELECT
+        {{ dbt_utils.generate_surrogate_key(['t1.id', 't1.abbrev_name']) }} AS team_sk,
         t1.id,
         t1.abbrev_name,
         t1.full_name,
@@ -31,18 +31,19 @@ teams as (
         t2.common_name,
         t2.first_season_id,
         t2.latest_season_id,
-        t3.is_current as is_active
-    from {{ ref('stg_all_teams') }} as t1
-    left join game_details as t2
-        on t1.id = t2.id
-    left join {{ ref('vw_stg_request_seasons_id') }} as t3
-        on t2.latest_season_id = t3.season_id
-    left join {{ ref('vw_stg_request_seasons_id') }} as t4
-        on t2.first_season_id = t4.season_id
-    where t1.id < 99
+        t3.is_current                                                       AS is_active
+    FROM {{ ref('stg_all_teams') }} AS t1
+    LEFT JOIN game_details AS t2
+        ON t1.id = t2.id
+    LEFT JOIN {{ ref('vw_stg_request_seasons_id') }} AS t3
+        ON t2.latest_season_id = t3.season_id
+    LEFT JOIN {{ ref('vw_stg_request_seasons_id') }} AS t4
+        ON t2.first_season_id = t4.season_id
+    WHERE t1.id < 99
 ),
+
 sentinel AS (
-    SELECT 
+    SELECT
         '-1'      AS team_sk,
         -1        AS id,
         'unknown' AS abbrev_name,
@@ -51,9 +52,9 @@ sentinel AS (
         'unknown' AS common_name,
         99999999  AS first_season_id,
         99999999  AS latest_season_id,
-        false     AS is_active
+        FALSE     AS is_active
 )
 
-select * from teams
-union all 
-select * from sentinel
+SELECT * FROM teams
+UNION ALL
+SELECT * FROM sentinel
