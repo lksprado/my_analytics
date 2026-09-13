@@ -69,6 +69,7 @@ final AS (
 sentinel AS (
     SELECT
         '-1'       AS player_sk,
+        -1         AS player_id,
         'unknown'  AS full_name,
         'unknown'  AS first_name,
         'unknown'  AS last_name,
@@ -90,8 +91,8 @@ sentinel AS (
         NULL       AS height_centimeters,
         NULL       AS height_inches,
         NULL       AS weight_kilogram,
-        NULL       AS weight_pounds,
-        -1         AS player_id
+        NULL       AS weight_pounds
+        
 )
 
 SELECT * FROM final
