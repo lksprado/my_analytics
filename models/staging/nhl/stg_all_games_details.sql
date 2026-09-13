@@ -13,14 +13,14 @@ WITH base AS (
     SELECT *
     FROM {{ ref('stg_base_all_games_details') }}
     {% if is_incremental() %}
-        where game_id > (
-            select coalesce(max(game_id), 0)
-            from {{ this }}
+        WHERE game_id > (
+            SELECT COALESCE(MAX(game_id), 0)
+            FROM {{ this }}
         )
     {% endif %}
 ),
 
-game_details AS (
+flattening AS (
     SELECT
         game_id,
         season_id,
@@ -31,8 +31,7 @@ game_details AS (
         game_outcome_last_period,
         game_outcome_total_periods,
         special_event_name,
-        (game_start_timestamp_utc::TIMESTAMPTZ AT TIME ZONE 'UTC')::TIMESTAMP
-            AS game_date_timestamp_utc,
+        (game_start_timestamp_utc::TIMESTAMPTZ AT TIME ZONE 'UTC')::TIMESTAMP AS game_date_timestamp_utc,
         game_schedule_state,
         (payload -> 'awayTeam' ->> 'id')::INT                                 AS away_team_id,
         (payload -> 'awayTeam' ->> 'sog')::INT                                AS away_team_sog,
@@ -51,6 +50,38 @@ game_details AS (
         (payload -> 'homeTeam' ->> 'logo')                                    AS home_team_logo,
         (payload -> 'homeTeam' ->> 'darkLogo')                                AS home_team_darklogo
     FROM base
+),
+
+renamed AS (
+    SELECT
+        game_id,
+        season_id,
+        game_type_id,
+        game_date,
+        LOWER(game_state)                                                                                       AS game_state,
+        regular_periods,
+        LOWER(game_outcome_last_period)                                                                         AS game_outcome_last_period,
+        game_outcome_total_periods,
+        LOWER(special_event_name)                                                                               AS special_event_name,
+        game_date_timestamp_utc,
+        game_schedule_state,
+        away_team_id,
+        away_team_sog,
+        away_team_score,
+        home_team_id,
+        home_team_sog,
+        home_team_score,
+        away_team_abbrev,
+        NULLIF(REGEXP_REPLACE({{ clean_string('away_team_placename','lower') }}, '[^[:alpha:]. ]', '', 'g'), '') AS away_team_placename,
+        REGEXP_REPLACE({{ clean_string('away_team_commonname','lower') }}, '[^[:alpha:]. ]', '', 'g')            AS away_team_commonname,
+        away_team_logo,
+        away_team_darklogo,
+        home_team_abbrev,
+        NULLIF(REGEXP_REPLACE({{ clean_string('home_team_placename','lower') }}, '[^[:alpha:]. ]', '', 'g'), '') AS home_team_placename,
+        REGEXP_REPLACE({{ clean_string('home_team_commonname','lower') }}, '[^[:alpha:]. ]', '', 'g')            AS home_team_commonname,
+        home_team_logo,
+        home_team_darklogo
+    FROM flattening
 )
 
-SELECT * FROM game_details
+SELECT * FROM renamed
