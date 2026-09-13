@@ -24,11 +24,13 @@ game_details AS (
 teams AS (
     SELECT
         {{ dbt_utils.generate_surrogate_key(['t1.id', 't1.abbrev_name']) }} AS team_sk,
-        t1.id,
+        t1.id                                                               AS team_id,
         t1.abbrev_name,
         t1.full_name,
         t2.place_name,
         t2.common_name,
+        LEFT(t2.first_season_id::TEXT, 4)::INT                              AS first_season_year,
+        RIGHT(t2.latest_season_id::TEXT, 4)::INT                            AS latest_season_year,
         t2.first_season_id,
         t2.latest_season_id,
         t3.is_current                                                       AS is_active
@@ -45,11 +47,13 @@ teams AS (
 sentinel AS (
     SELECT
         '-1'      AS team_sk,
-        -1        AS id,
+        -1        AS team_id,
         'unknown' AS abbrev_name,
         'unknown' AS full_name,
         'unknown' AS place_name,
         'unknown' AS common_name,
+        9999      AS first_season_year,
+        9999      AS latest_season_year,
         99999999  AS first_season_id,
         99999999  AS latest_season_id,
         FALSE     AS is_active
