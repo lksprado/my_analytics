@@ -22,36 +22,28 @@ unioned AS (
 
 renamed AS (
     SELECT
-        *,
-        REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') AS unit_raw,
+        created_date,
+        sku,
+        {{ clean_string('category', 'lower') }}     AS category,
+        {{ clean_string('product_name', 'lower') }} AS product_name,
+        {{ clean_string('brand_name', 'lower') }}   AS brand_name,
+        high_price,
+        low_price,
+        product_unity,
+        unity_type,
+        unity_value,
 
         CASE
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('kg', 'quilo', 'quilos') THEN 'kg'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('g', 'grama', 'gramas') THEN 'g'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('ml') THEN 'ml'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('l', 'litro', 'litros') THEN 'l'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('un', 'uni', 'unid', 'unidade', 'unidades', 'rolos', 'dúzias', 'folhas') THEN 'un'
-        END                                                        AS unit_normalized
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('kg', 'quilo', 'quilos') THEN 'kilogram'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('g', 'grama', 'gramas') THEN 'gram'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('ml') THEN 'millilitre'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('l', 'litro', 'litros') THEN 'litre'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('un', 'uni', 'unid', 'unidade', 'unidades', 'rolos', 'dúzias', 'folhas') THEN 'unity'
+        END                                        AS unit_normalized
     FROM unioned
 
 )
 
-SELECT
-    *,
-    CASE
-        WHEN quantity_type = 'volume' AND unit_normalized = 'ml'
-            THEN quantity_value_raw / 1000
-        WHEN quantity_type = 'volume' AND unit_normalized = 'l'
-            THEN quantity_value_raw
-        WHEN quantity_type = 'weight' AND unit_normalized = 'g'
-            THEN quantity_value_raw / 1000
-        WHEN quantity_type = 'weight' AND unit_normalized = 'kg'
-            THEN quantity_value_raw
-        WHEN quantity_type = 'unit'
-            THEN quantity_value_raw
-    END
-        AS quantity_value_normalized
-
-FROM renamed
+SELECT * FROM renamed
 WHERE unit_normalized IS NOT NULL
-ORDER BY created_at
+ORDER BY created_date DESC

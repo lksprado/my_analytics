@@ -12,7 +12,7 @@ source AS (
 
 renamed AS (
     SELECT
-        date_scrapped AS created_at,
+        date_scrapped AS created_date,
         sku,
         category,
         product_name,
@@ -37,7 +37,7 @@ units AS (
             WHEN product_unity ~* '(litro|l|l\\b|ml)' THEN 'volume'
             WHEN product_unity ~* '(un)' THEN 'unit'
             ELSE 'unknown'
-        END AS quantity_type,
+        END AS unity_type,
         CASE
             WHEN product_unity ~* '^(kg|quilo|litro|l|ml)$' THEN 1::NUMERIC
 
@@ -50,7 +50,7 @@ units AS (
                     )::NUMERIC
 
             ELSE 1
-        END AS quantity_value_raw
+        END AS unity_value
     FROM renamed
     WHERE LOWER(category) IN ('bebidas', 'carnes, aves e peixes', 'frios e congelados', 'hortifrúti', 'limpeza', 'mercearia', 'padaria e matinais')
 )
