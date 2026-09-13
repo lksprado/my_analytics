@@ -6,11 +6,11 @@
 
 WITH
 dim AS (
-    SELECT * FROM {{ ref('int_dim_products') }}
+    SELECT * FROM {{ ref('dim_products') }}
 ),
 
 fct AS (
-    SELECT * FROM {{ ref('int_fct_products') }}
+    SELECT * FROM {{ ref('fct_products') }}
 ),
 
 final AS (
