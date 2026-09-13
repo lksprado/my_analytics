@@ -15,15 +15,15 @@ fct AS (
 
 final AS (
     SELECT
-        fct.created_at,
+        fct.created_date,
         fct.sku,
         dim.product_name,
         dim.category,
         dim.brand_name,
         dim.product_unity,
         dim.unit_normalized,
-        dim.quantity_type,
-        dim.quantity_value_normalized,
+        dim.unity_type,
+        dim.unity_value_normalized,
         fct.high_price,
         fct.low_price
     FROM
@@ -34,5 +34,5 @@ final AS (
 
 SELECT * FROM final
 ORDER BY
-    created_at ASC,
+    created_date ASC,
     sku DESC

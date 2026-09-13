@@ -17,9 +17,9 @@ reduced AS (
         product_unity,
         unit_normalized,
         brand_name,
-        quantity_type,
-        quantity_value_raw,
-        quantity_value_normalized,
+        unity_type,
+        unity_value,
+        unity_value_normalized,
         LOWER(product_name)  AS product_name,
         LENGTH(product_name) AS num_name
     FROM source
@@ -32,9 +32,9 @@ rank AS (
         product_unity,
         unit_normalized,
         brand_name,
-        quantity_type,
-        quantity_value_raw,
-        quantity_value_normalized,
+        unity_type,
+        unity_value,
+        unity_value_normalized,
         ROW_NUMBER() OVER (PARTITION BY sku ORDER BY num_name DESC) AS rn,
         TRIM(
             REGEXP_REPLACE(
@@ -53,16 +53,16 @@ final AS (
         brand_name,
         product_unity,
         unit_normalized,
-        quantity_type,
-        quantity_value_raw,
+        unity_type,
+        unity_value,
         REPLACE(TRIM(
             REGEXP_REPLACE(
                 product_name,
                 '\s+com$',
                 ''
             )
-        ), ',', '')                         AS product_name,
-        ROUND(quantity_value_normalized, 3) AS quantity_value_normalized
+        ), ',', '')                      AS product_name,
+        ROUND(unity_value_normalized, 3) AS unity_value_normalized
     FROM rank
     WHERE rn = 1
 )

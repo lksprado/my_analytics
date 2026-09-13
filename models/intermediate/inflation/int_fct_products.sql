@@ -12,7 +12,7 @@ source AS (
 
 final AS (
     SELECT DISTINCT
-        created_at,
+        created_date,
         sku,
         high_price,
         low_price

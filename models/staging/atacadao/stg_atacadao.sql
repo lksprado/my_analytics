@@ -6,18 +6,34 @@
 }}
 
 WITH
-source_1 AS (
-    SELECT * FROM {{ ref('stg_atacadao_historico') }}
+historico AS (
+    SELECT
+        date_scrapped AS created_date,
+        sku,
+        category,
+        product_name,
+        brand_name,
+        high_price,
+        low_price
+    FROM {{ ref('seed_atacadao_historico') }}
 ),
 
-source_2 AS (
-    SELECT * FROM {{ ref('stg_atacadao_novo') }}
+novo AS (
+    SELECT
+        TO_DATE(extracted_at, 'yyyy-MM-dd') AS created_date,
+        sku,
+        category,
+        product_name,
+        brand_name,
+        high_price,
+        low_price
+    FROM {{ source('atacadao', 'atacadao_raw') }}
 ),
 
 unioned AS (
-    SELECT * FROM source_1
+    SELECT * FROM historico
     UNION ALL
-    SELECT * FROM source_2
+    SELECT * FROM novo
 ),
 
 renamed AS (
@@ -29,21 +45,17 @@ renamed AS (
         {{ clean_string('brand_name', 'lower') }}   AS brand_name,
         high_price,
         low_price,
-        product_unity,
-        unity_type,
-        unity_value,
-
-        CASE
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('kg', 'quilo', 'quilos') THEN 'kilogram'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('g', 'grama', 'gramas') THEN 'gram'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('ml') THEN 'millilitre'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('l', 'litro', 'litros') THEN 'litre'
-            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('un', 'uni', 'unid', 'unidade', 'unidades', 'rolos', 'dúzias', 'folhas') THEN 'unity'
-        END                                        AS unit_normalized
+        {{ extract_product_unit('product_name') }}  AS product_unity
     FROM unioned
+    WHERE LOWER(category) IN ('bebidas', 'carnes, aves e peixes', 'frios e congelados', 'hortifrúti', 'limpeza', 'mercearia', 'padaria e matinais')
+),
 
+final AS (
+    SELECT
+        *,
+        {{ normalize_product_unit('product_unity') }}
+    FROM renamed
 )
 
-SELECT * FROM renamed
+SELECT * FROM final
 WHERE unit_normalized IS NOT NULL
-ORDER BY created_date DESC

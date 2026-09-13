@@ -1,11 +1,29 @@
 version: 2
 
 models:
-  - name: stg_atacadao_historico
-    description: "Base histórica do Atacadão com extração de unidade, tipo de quantidade e valor numérico padronizável."
-
-  - name: stg_atacadao_novo
-    description: "Base atual do scraper do Atacadão com parsing de unidade no nome do produto e classificação de quantidade."
-
   - name: stg_atacadao
-    description: "Consolidação do histórico e da base nova do Atacadão com normalização final de unidades e quantidades."
+    description: "Preços do Atacadão (seed histórico + scraper atual) por SKU e data de extração, com unidade e quantidade extraídas do nome do produto. Só as categorias de supermercado; linhas sem unidade reconhecível ficam de fora."
+    columns:
+      - name: created_date
+        description: "Data da extração."
+        data_tests:
+          - not_null
+      - name: sku
+        data_tests:
+          - not_null
+      - name: product_unity
+        description: "Trecho do nome do produto que informa a quantidade, ex.: '500g', '2 litros', '12 un'."
+      - name: unit_normalized
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['kilogram', 'gram', 'litre', 'millilitre', 'unity']
+      - name: unity_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['weight', 'volume', 'unit']
+      - name: unity_value
+        description: "Número em product_unity, na unidade original."
+      - name: unity_value_normalized
+        description: "unity_value convertido para g, ml ou un."

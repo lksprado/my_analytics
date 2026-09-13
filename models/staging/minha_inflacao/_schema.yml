@@ -2,7 +2,36 @@ version: 2
 
 models:
   - name: stg_minha_inflacao
-    description: "Modelo ephemeral de padronização de unidades e quantidades dos produtos da base Minha Inflação."
-
-  - name: stg_inflacao
-    description: "Base tratada da Minha Inflação com chave de produto, categoria, preços e variações mensais."
+    description: "Compras mensais da planilha Minha Inflação por produto, com preço, variação mensal, peso no orçamento e unidade padronizada a partir do texto de 'Unidade'."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_product
+              - created_date
+    columns:
+      - name: created_date
+        description: "Último dia do mês de referência."
+        data_tests:
+          - not_null
+      - name: sk_product
+        description: "Hash do nome do produto sem acentos, espaços e pontuação."
+        data_tests:
+          - not_null
+      - name: product_unity
+        description: "Texto original da coluna 'Unidade', ex.: 'Fardo 5Kg', 'Caixa c/ 20'."
+      - name: unit_normalized
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['kilogram', 'gram', 'litre', 'millilitre', 'unity']
+      - name: unity_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['weight', 'volume', 'unit']
+      - name: unity_value
+        description: "Número em product_unity, na unidade original."
+      - name: unity_value_normalized
+        description: "unity_value convertido para g, ml ou un."
