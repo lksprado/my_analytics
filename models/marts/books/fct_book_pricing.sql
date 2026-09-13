@@ -6,7 +6,7 @@
 
 WITH
 prices AS (
-    SELECT * FROM {{ ref('int_books_price_history') }}
+    SELECT * FROM {{ ref('int_books_prices') }}
 ),
 
 books AS (
@@ -29,13 +29,23 @@ final AS (
         t1.min_price_before,
         t1.is_price_drop,
         t1.is_price_increase,
-        t1.is_record_low
+        t1.is_record_low,
+        t1.first_observed_at,
+        t1.last_observed_at,
+        t1.reference_date,
+        t1.days_since_last_observed,
+        t1.is_stale_price,
+        t1.total_observations,
+        t1.min_price_ever,
+        t1.max_price_ever,
+        t1.avg_price_ever,
+        t1.price_vs_min_ever,
+        t1.pct_above_min_ever,
+        t1.is_at_record_low
     FROM prices AS t1
     LEFT JOIN books AS t2
         ON t1.name = t2.name
         AND t1.author = t2.author
-
 )
 
 SELECT * FROM final
-ORDER BY created_date DESC

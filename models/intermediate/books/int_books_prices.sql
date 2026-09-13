@@ -90,9 +90,15 @@ com_janelas AS (
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         ) AS min_price_before,
 
-        MAX(created_date) OVER (
-            PARTITION BY name, author
-        ) AS last_observed_at
+        -- A coleta alterna ~30 destaques diários com varreduras do catálogo inteiro:
+        -- ancorar em max(created_date) global enxergaria menos de 1% dos livros.
+        MAX(created_date) OVER (PARTITION BY name, author)                AS last_observed_at,
+        MIN(created_date) OVER (PARTITION BY name, author)                AS first_observed_at,
+        COUNT(*) OVER (PARTITION BY name, author)                         AS total_observations,
+        MIN(price_new) OVER (PARTITION BY name, author)                   AS min_price_ever,
+        MAX(price_new) OVER (PARTITION BY name, author)                   AS max_price_ever,
+        AVG(price_new) OVER (PARTITION BY name, author)::NUMERIC(10, 2)   AS avg_price_ever,
+        MAX(created_date) OVER ()                                         AS reference_date
     FROM diario
 ),
 
@@ -108,7 +114,13 @@ final AS (
         prev_price,
         prev_observed_at,
         min_price_before,
+        first_observed_at,
         last_observed_at,
+        reference_date,
+        total_observations,
+        min_price_ever,
+        max_price_ever,
+        avg_price_ever,
 
         (created_date - prev_observed_at)             AS days_since_prev_observation,
         (price_new - prev_price)                      AS price_change,
@@ -117,7 +129,19 @@ final AS (
         COALESCE(price_new < prev_price, FALSE)       AS is_price_drop,
         COALESCE(price_new > prev_price, FALSE)       AS is_price_increase,
 
-        COALESCE(price_new < min_price_before, FALSE) AS is_record_low
+        COALESCE(price_new < min_price_before, FALSE) AS is_record_low,
+
+        (reference_date - last_observed_at)           AS days_since_last_observed,
+        ((reference_date - last_observed_at) > 7)     AS is_stale_price,
+
+        (price_new - min_price_ever)                  AS price_vs_min_ever,
+
+        CASE
+            WHEN min_price_ever > 0
+                THEN ROUND(100.0 * (price_new - min_price_ever) / min_price_ever, 2)
+        END                                           AS pct_above_min_ever,
+
+        (price_new <= min_price_ever)                 AS is_at_record_low
     FROM com_janelas
 )
 

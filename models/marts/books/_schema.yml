@@ -2,45 +2,39 @@
 version: 2
 
 models:
-  - name: fct_book_pricing_history
-    description: "Histórico de preços — uma linha por livro por dia observado."
-    columns:
-      - name: date_price
-      - name: day_of_month
-      - name: day_of_year
-      - name: week_of_year
-      - name: month_of_year
-      - name: month_name
-      - name: month_name_short
-      - name: quarter_of_year
-      - name: is_latest_extraction
-      - name: book_id
-      - name: author_id
-      - name: author_name
-      - name: book_name
-      - name: book_category
-      - name: book_price_old
-      - name: book_price_new
-      - name: book_discount
-      - name: extraction_order
-      - name: prev_price
-      - name: prev_observed_at
-      - name: days_since_prev_observation
-      - name: price_change
-      - name: min_price_before
-      - name: is_price_drop
-      - name: is_price_increase
-      - name: is_record_discount
-  - name: fct_book_pricing_current
-    description: "Um livro por linha com o último preço conhecido e métricas de oportunidade."
+  - name: fct_book_pricing
+    description: >
+      Preços dos livros — uma linha por livro por dia observado. O estado atual
+      de cada livro é `WHERE is_latest_observation`. Colunas `*_ever`,
+      `last_observed_at`, `reference_date`, `days_since_last_observed`,
+      `is_stale_price`, `price_vs_min_ever`, `pct_above_min_ever` e
+      `is_at_record_low` comparam com o histórico inteiro, visto de hoje; as
+      demais valem para a data da linha. Ver `int_books_prices` para a
+      descrição de cada coluna.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - book_sk
+              - created_date
     columns:
       - name: book_sk
+        data_tests:
           - not_null
-      - name: current_price
-      - name: min_price_ever
-      - name: pct_above_min_ever
-      - name: is_at_record_low
-      - name: is_stale_price
-      - name: days_since_last_observed
+          - relationships:
+              arguments:
+                to: ref('dim_book')
+                field: book_sk
+      - name: created_date
+        data_tests:
+          - not_null
+      - name: price_new
+        data_tests:
+          - not_null
   - name: dim_book
     description: "Todos os livros"
+    columns:
+      - name: book_sk
+        data_tests:
+          - unique
+          - not_null

@@ -2,26 +2,26 @@
 version: 2
 
 models:
-  - name: int_books_price_history
+  - name: int_books_prices
     description: >
-      Histórico fiel de preços: uma observação por livro por dia, unindo as três
-      fontes de scraping. Quando as fontes divergem no mesmo dia mantém o menor
-      preço anunciado.
+      Preços dos livros: uma observação por livro por dia, unindo as três fontes
+      de scraping. Quando as fontes divergem no mesmo dia mantém o menor preço
+      anunciado. Colunas `*_ever`, `last_observed_at`, `reference_date` e
+      derivadas são calculadas sobre o histórico inteiro (iguais em todas as
+      linhas do livro); as demais valem para a data da linha.
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns:
-              - book_id
-              - created_at
+              - name
+              - author
+              - created_date
     columns:
-      - name: book_id
-        data_tests:
-          - not_null
-      - name: created_at
+      - name: created_date
         description: "Data da observação."
         data_tests:
           - not_null
-      - name: book_price_new
+      - name: price_new
         description: "Preço praticado na data da observação."
         data_tests:
           - not_null
@@ -38,38 +38,34 @@ models:
       - name: min_price_before
         description: "Menor preço observado para o livro antes desta linha."
       - name: is_latest_observation
-        description: "True se esta é a observação mais recente do livro."
+        description: "True se esta é a observação mais recente do livro — filtro que dá o estado atual."
       - name: is_price_drop
         description: "True se o preço caiu em relação à observação anterior."
       - name: is_price_increase
         description: "True se o preço subiu em relação à observação anterior."
       - name: is_record_low
         description: "True se, no momento desta observação, o preço era o menor já registrado para o livro."
-
-  - name: int_books_price_current
-    description: >
-      Estado atual de cada livro — o último preço conhecido, venha da coleta do
-      dia ou da última varredura completa — com métricas de oportunidade.
-    columns:
-      - name: book_id
-        data_tests:
-          - unique
-          - not_null
-      - name: current_price
-        description: "Último preço conhecido do livro."
-        data_tests:
-          - not_null
+      - name: first_observed_at
+        description: "Primeira data em que o livro foi observado."
       - name: last_observed_at
-        description: "Data em que esse preço foi observado."
+        description: "Última data em que o livro foi observado."
+      - name: reference_date
+        description: "Data mais recente do dataset inteiro."
       - name: days_since_last_observed
         description: "Dias entre a última observação do livro e a data mais recente do dataset."
       - name: is_stale_price
         description: "True se o livro não é observado há mais de 7 dias."
+      - name: total_observations
+        description: "Quantidade de dias em que o livro foi observado."
       - name: min_price_ever
         description: "Menor preço já registrado para o livro em todo o histórico."
+      - name: max_price_ever
+        description: "Maior preço já registrado para o livro em todo o histórico."
+      - name: avg_price_ever
+        description: "Preço médio do livro em todo o histórico."
+      - name: price_vs_min_ever
+        description: "Diferença absoluta entre o preço da linha e o mínimo histórico."
       - name: pct_above_min_ever
-        description: "Quanto o preço atual está acima do mínimo histórico, em %."
+        description: "Quanto o preço da linha está acima do mínimo histórico, em %."
       - name: is_at_record_low
-        description: "True se o preço atual empata ou bate o mínimo histórico — a flag de oportunidade."
-      - name: is_new_record_low
-        description: "True se o recorde foi estabelecido justamente na última observação."
+        description: "True se o preço da linha empata com o mínimo histórico — na última observação, a flag de oportunidade."
