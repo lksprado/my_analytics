@@ -25,12 +25,12 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['kilogram', 'gram', 'litre', 'millilitre', 'unity']
+                values: ['kilogram', 'gram', 'litre', 'millilitre', 'unit']
       - name: unity_type
         data_tests:
           - accepted_values:
               arguments:
-                values: ['weight', 'volume', 'unit']
+                values: ['weight', 'volume', 'unit', 'unknown']
       - name: unity_value
         description: "Número em product_unity, na unidade original."
       - name: unity_value_normalized
