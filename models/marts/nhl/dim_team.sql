@@ -40,6 +40,20 @@ teams as (
     left join {{ ref('vw_stg_request_seasons_id') }} as t4
         on t2.first_season_id = t4.season_id
     where t1.id < 99
+),
+sentinel AS (
+    SELECT 
+        '-1'      AS team_sk,
+        -1        AS id,
+        'unknown' AS abbrev_name,
+        'unknown' AS full_name,
+        'unknown' AS place_name,
+        'unknown' AS common_name,
+        99999999    AS first_season_id,
+        99999999    AS latest_season_id,
+        false     AS is_active
 )
 
 select * from teams
+union all 
+select * from sentinel
