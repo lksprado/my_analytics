@@ -49,8 +49,8 @@ sentinel AS (
         'unknown' AS full_name,
         'unknown' AS place_name,
         'unknown' AS common_name,
-        99999999    AS first_season_id,
-        99999999    AS latest_season_id,
+        99999999  AS first_season_id,
+        99999999  AS latest_season_id,
         false     AS is_active
 )
 
