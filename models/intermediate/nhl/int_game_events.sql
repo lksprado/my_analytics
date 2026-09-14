@@ -15,7 +15,7 @@ final AS (
         game_id,
         game_date,
         event_id,
-        ROW_NUMBER() OVER (PARTITION BY game_id ORDER BY sort_order)::INT                  AS event_order,
+        sort_order,
         period_number,
         LOWER(period_type)                                                                 AS period_type,
         SPLIT_PART(time_in_period, ':', 1)::INT * 60 + SPLIT_PART(time_in_period, ':', 2)::INT

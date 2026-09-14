@@ -15,8 +15,10 @@ WITH
 game_events AS (
     SELECT * FROM {{ ref('int_game_events') }}
     {% if is_incremental() %}
-        -- reprocessa o último dia carregado para pegar jogos que ainda estavam em andamento
-        WHERE game_date >= (SELECT TO_DATE(MAX(game_date_sk)::TEXT, 'YYYYMMDD') FROM {{ this }})
+        {%- set last_date_sk = run_query('SELECT MAX(game_date_sk) FROM ' ~ this).columns[0].values()[0] if execute else none %}
+        -- reprocessa o último dia (jogos em andamento). Data como literal para o planner estimar certo e usar o índice;
+        -- por isso o event_order é calculado aqui e não na view, senão a janela roda antes do filtro
+        WHERE game_date >= TO_DATE('{{ last_date_sk }}', 'YYYYMMDD')
     {% endif %}
 ),
 
@@ -29,7 +31,7 @@ final AS (
         t2.game_sk,
         TO_CHAR(t1.game_date, 'YYYYMMDD')::INT AS game_date_sk,
         t1.event_id,
-        t1.event_order,
+        ROW_NUMBER() OVER (PARTITION BY t1.game_id ORDER BY t1.sort_order)::INT AS event_order,
         t1.period_number,
         t1.period_type,
         t1.time_in_period_seconds,

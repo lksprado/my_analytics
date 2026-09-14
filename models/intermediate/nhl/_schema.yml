@@ -43,4 +43,4 @@ models:
               - player_type
 
   - name: int_game_events
-    description: "Eventos play-by-play de temporada regular e playoffs (a partir de 2014-15), com ordem do evento, zona decodificada e tempo no período em segundos."
+    description: "Eventos play-by-play de temporada regular e playoffs (a partir de 2014-15), com zona decodificada e tempo no período em segundos."
