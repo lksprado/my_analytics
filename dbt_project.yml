@@ -2,11 +2,11 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'my_datawarehouse'
+name: 'my_analytics'
 version: '1.0.0'
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'my_datawarehouse'
+profile: 'my_analytics'
 
 vars:
   "dbt_date:time_zone": "America/Sao_Paulo"
@@ -35,7 +35,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 # directory as views. These settings can be overridden in the individual model
 # files using the `{{ config(...) }}` macro.
 models:
-  my_datawarehouse:
+  my_analytics:
     # Config indicated by + and applies to all files under models/example/
     staging:
       +materialized: table
@@ -48,7 +48,7 @@ models:
 
 # Uma coluna inteiramente vazia no CSV é inferida como integer — data_emissao da Jéssica quebrava o UNION de int_renda_fixa_loop.
 seeds:
-  my_datawarehouse:
+  my_analytics:
     seed_investimentos_faltantes_lucas: &investimentos_faltantes
       +column_types:
         mes_base: date

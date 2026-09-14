@@ -1,4 +1,4 @@
-# Copilot Instructions for my_datawarehouse
+# Copilot Instructions for my_analytics
 
 The guidance for this repository lives in **[`CLAUDE.md`](../CLAUDE.md)** — read it first.
 

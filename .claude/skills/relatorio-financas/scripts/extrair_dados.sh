@@ -7,7 +7,7 @@
 #   ARQUIVO_SAIDA  Default: stdout.
 #
 # A conexão sai do profiles.yml do dbt (target `dev` do perfil
-# `my_datawarehouse`), para não duplicar credenciais.
+# `my_analytics`), para não duplicar credenciais.
 set -euo pipefail
 
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,7 +30,7 @@ MES_REF="$(date -d "$MES_REF" +%Y-%m-01)"
 eval "$(python3 - "$PROFILES" <<'PY'
 import sys, yaml, shlex
 perfis = yaml.safe_load(open(sys.argv[1]))
-alvo = perfis["my_datawarehouse"]["outputs"]["dev"]
+alvo = perfis["my_analytics"]["outputs"]["dev"]
 for var, chave in (("PGHOST","host"), ("PGPORT","port"), ("PGUSER","user"),
                    ("PGPASSWORD","pass"), ("PGDATABASE","dbname")):
     print(f"export {var}={shlex.quote(str(alvo[chave]))}")
