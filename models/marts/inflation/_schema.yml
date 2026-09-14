@@ -13,6 +13,6 @@ models:
   - name: fct_products
     description: "Preços históricos de produtos do Atacadão por data de extração."
     columns:
-      - name: sku
+      - name: product_sk
         data_tests:
           - not_null

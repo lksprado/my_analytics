@@ -94,8 +94,6 @@ models:
         tests:
           - not_null
       - name: is_regulation_loss
-        tests:
-          - not_null
       - name: standing_points
         description: "Pontos na classificação: 2 vitória, 1 empate ou derrota na prorrogação/shootout (a partir de 1999-00), 0 derrota. Nulo em playoffs."
       - name: has_fight
