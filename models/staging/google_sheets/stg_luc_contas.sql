@@ -15,8 +15,8 @@ renamed AS (
         TO_DATE(mes, 'MM-YYYY')           AS mes_debito,
         TO_DATE(data, 'dd/MM/yyyy')       AS data_debito,
         {{ clean_string("dia","upper") }} AS nome_dia,
-        dia_ajustado,
-        dia_real,
+        dia_ajustado::BIGINT AS dia_ajustado,
+        dia_real::BIGINT AS dia_real,
         REPLACE(
             REPLACE(REGEXP_REPLACE(t_mercado, '[^0-9,.]', '', 'g'), '.', ''),
             ',',

@@ -9,10 +9,10 @@ WITH source AS (
 SELECT
     codigovotacaosve::INT                 AS codigo_votacao,
     siglatipomateria                      AS sigla_tipo_materia,
-    numeromateria                         AS numero_materia,
-    qtdvotossim                           AS total_votos_favor,
-    qtdvotosnao                           AS total_votos_contra,
-    qtdvotosabstencao                     AS total_votos_abstencao,
+    numeromateria::BIGINT                 AS numero_materia,
+    qtdvotossim::BIGINT                   AS total_votos_favor,
+    qtdvotosnao::BIGINT                   AS total_votos_contra,
+    qtdvotosabstencao::BIGINT             AS total_votos_abstencao,
     datahora::DATE                        AS data,
     {{ clean_string("partido","upper") }} AS partido,
     CASE

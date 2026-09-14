@@ -16,8 +16,8 @@ renamed AS (
             ',',
             '.'
         )::NUMERIC(18, 2) AS vlr_fatura,
-        kwh,
-        dias,
+        kwh::BIGINT AS kwh,
+        dias::BIGINT AS dias,
         REPLACE(
             REPLACE(REGEXP_REPLACE(kwh_dia, '[^0-9,.]', '', 'g'), '.', ''),
             ',',

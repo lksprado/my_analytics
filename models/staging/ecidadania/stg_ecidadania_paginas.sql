@@ -14,12 +14,12 @@ renamed AS (
         titulo                                             AS proposicao_id_nk,
         tipo_proposicao,
         descritivo                                         AS ementa,
-        votos_sim,
-        votos_nao,
-        (votos_sim + votos_nao)                            AS total_votos,
+        votos_sim::BIGINT                                  AS votos_sim,
+        votos_nao::BIGINT                                  AS votos_nao,
+        (votos_sim::BIGINT + votos_nao::BIGINT)            AS total_votos,
         link
     FROM source
-    WHERE total_votos IS NOT NULL AND total_votos > 0
+    WHERE total_votos IS NOT NULL AND total_votos::BIGINT > 0
 ),
 
 votos_agrupados AS (

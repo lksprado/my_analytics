@@ -14,7 +14,7 @@ renamed AS (
         idparlamentar::int AS id_parlamentar_congresso,
         nomeeleitoral as nome_eleitoral,
         uf,
-        emexercicio as is_ativo,
+        emexercicio::BOOLEAN as is_ativo,
         case 
             when casa like 'camara' then 'deputado'
             when casa like 'senado' then 'senador'

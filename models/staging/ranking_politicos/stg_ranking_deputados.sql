@@ -8,7 +8,7 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        id                                                               AS ranking_id_nk,
+        id::BIGINT                                                       AS ranking_id_nk,
         REGEXP_REPLACE(SPLIT_PART(url_foto, '/', 7), '\D', '', 'g')::INT AS congresso_id_fk,
         {{ clean_string("nome", "upper") }}                              AS nome,
         {{ clean_string("nome_eleitoral", "upper") }}                    AS nome_eleitoral,
@@ -19,18 +19,18 @@ renamed AS (
         {{ clean_string("situacao", "upper") }}                          AS situacao,
         {{ clean_string("uf", "upper") }}                                AS uf,
         slug,
-        composicao_pontuacao_pontuacao,
+        composicao_pontuacao_pontuacao::NUMERIC AS composicao_pontuacao_pontuacao,
         composicao_pontuacao_anos,
-        composicao_pontuacao_ranking_geral,
-        composicao_pontuacao_ranking_geral_variacao,
-        composicao_pontuacao_ranking_casa,
-        composicao_pontuacao_ranking_casa_variacao,
-        composicao_pontuacao_ranking_partido,
-        composicao_pontuacao_ranking_partido_variacao,
-        composicao_pontuacao_ranking_estado,
-        composicao_pontuacao_ranking_estado_variacao,
-        composicao_pontuacao_ranking_casa_estado,
-        composicao_pontuacao_ranking_casa_estado_variacao
+        composicao_pontuacao_ranking_geral::BIGINT AS composicao_pontuacao_ranking_geral,
+        composicao_pontuacao_ranking_geral_variacao::NUMERIC AS composicao_pontuacao_ranking_geral_variacao,
+        composicao_pontuacao_ranking_casa::BIGINT AS composicao_pontuacao_ranking_casa,
+        composicao_pontuacao_ranking_casa_variacao::NUMERIC AS composicao_pontuacao_ranking_casa_variacao,
+        composicao_pontuacao_ranking_partido::BIGINT AS composicao_pontuacao_ranking_partido,
+        composicao_pontuacao_ranking_partido_variacao::NUMERIC AS composicao_pontuacao_ranking_partido_variacao,
+        composicao_pontuacao_ranking_estado::BIGINT AS composicao_pontuacao_ranking_estado,
+        composicao_pontuacao_ranking_estado_variacao::NUMERIC AS composicao_pontuacao_ranking_estado_variacao,
+        composicao_pontuacao_ranking_casa_estado::BIGINT AS composicao_pontuacao_ranking_casa_estado,
+        composicao_pontuacao_ranking_casa_estado_variacao::NUMERIC AS composicao_pontuacao_ranking_casa_estado_variacao
     FROM source
 )
 

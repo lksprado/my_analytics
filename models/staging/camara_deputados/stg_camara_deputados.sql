@@ -8,7 +8,7 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        id                                                                    AS deputado_id_nk,
+        id::BIGINT                                                            AS deputado_id_nk,
         nomecivil                                                             AS nome_civil,
         ultimostatus_nomeeleitoral                                            AS nome_eleitoral,
         sexo,

@@ -25,11 +25,11 @@ renamed AS (
         {{ clean_string("descritivo", "upper") }} AS ementa,
         votos_sim::INT,
         votos_nao::INT,
-        (votos_sim + votos_nao)::INT AS total_votos,
+        (votos_sim::INT + votos_nao::INT) AS total_votos,
         CASE
-            WHEN votos_sim > votos_nao THEN 'A FAVOR'
-            WHEN votos_nao > votos_sim THEN 'CONTRA'
-            WHEN votos_nao = votos_sim THEN 'EMPATE'
+            WHEN votos_sim::INT > votos_nao::INT THEN 'A FAVOR'
+            WHEN votos_nao::INT > votos_sim::INT THEN 'CONTRA'
+            WHEN votos_nao::INT = votos_sim::INT THEN 'EMPATE'
         END AS vontade_popular,
         link
     FROM source

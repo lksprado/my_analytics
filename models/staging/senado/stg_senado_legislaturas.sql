@@ -8,7 +8,7 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        identificacaoparlamentar_codigoparlamentar                                     AS senador_id_nk,
+        identificacaoparlamentar_codigoparlamentar::BIGINT                             AS senador_id_nk,
         {{ clean_string("identificacaoparlamentar_nomeparlamentar","upper") }}         AS nome,
         {{ clean_string("identificacaoparlamentar_nomecompletoparlamentar","upper") }} AS nome_completo,
         UPPER(identificacaoparlamentar_sexoparlamentar)                                AS sexo,

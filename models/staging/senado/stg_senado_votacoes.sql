@@ -9,8 +9,8 @@ WITH source AS (
 SELECT
     codigomateria::INT                AS codigo_materia,
     codigosessao::INT                 AS codigo_sessao,
-    codigosessaolegislativa           AS codigo_sessao_legislativa,
-    codigosessaovotacao               AS codigo_sessao_votacao,
+    codigosessaolegislativa::BIGINT   AS codigo_sessao_legislativa,
+    codigosessaovotacao::BIGINT       AS codigo_sessao_votacao,
     codigovotacaosve::INT             AS codigo_votacao,
     idprocesso::INT                   AS processo_id_nk,
     identificacao,
