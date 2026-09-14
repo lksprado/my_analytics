@@ -39,7 +39,7 @@ player_info AS (
 
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['id', 'full_name']) }} AS player_sk,
+        {{ dbt_utils.generate_surrogate_key(['id']) }} AS player_sk,
         id                                                          AS player_id,
         full_name,
         first_name,
@@ -83,7 +83,7 @@ boxscore_players AS (
 
 inferred AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['t1.player_id', 't1.full_name']) }} AS player_sk,
+        {{ dbt_utils.generate_surrogate_key(['t1.player_id']) }} AS player_sk,
         t1.player_id,
         t1.full_name,
         'unknown'                                                             AS first_name,

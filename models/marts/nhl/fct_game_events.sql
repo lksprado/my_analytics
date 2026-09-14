@@ -1,12 +1,23 @@
 {{
   config(
+    materialized = 'incremental',
+    unique_key = ['game_sk', 'event_id'],
+    incremental_strategy = 'delete+insert',
     tags = ['nhl'],
+    post_hook = [
+        "create index if not exists idx_fct_game_events on {{ this }} (game_sk, event_id)",
+        "create index if not exists idx_fct_game_events_date on {{ this }} (game_date_sk)"
+    ]
     )
 }}
 
 WITH
 game_events AS (
     SELECT * FROM {{ ref('int_game_events') }}
+    {% if is_incremental() %}
+        -- reprocessa o último dia carregado para pegar jogos que ainda estavam em andamento
+        WHERE game_date >= (SELECT TO_DATE(MAX(game_date_sk)::TEXT, 'YYYYMMDD') FROM {{ this }})
+    {% endif %}
 ),
 
 players AS (
