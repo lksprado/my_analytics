@@ -124,6 +124,31 @@ final AS (
     LEFT JOIN fighters_matched AS t4
         ON t1.fight_id = t4.fight_id
         AND t4.fighter_number = 2
+),
+
+sentinel AS (
+    SELECT
+        '-1'          AS fight_id,
+        -1            AS game_id,
+        9999          AS season_id,
+        9999          AS game_type_id,
+        NULL::DATE    AS game_date,
+        'unknown'     AS period,
+        'unknown'     AS time_in_period,
+        'unknown'     AS description,
+        -1            AS player_1_id,
+        'unknown'     AS player_1_abbrev_name,
+        'unknown'     AS team_1_abbrev_name,
+        'unknown'     AS player_1_team_full_name,
+        -1            AS player_2_id,
+        'unknown'     AS player_2_abbrev_name,
+        'unknown'     AS team_2_abbrev_name,
+        'unknown'     AS player_2_team_full_name,
+        'unknown'     AS fight_winner_full_name,
+        NULL::FLOAT   AS rating,
+        NULL::INT     AS vote_count
 )
 
 SELECT * FROM final
+UNION ALL
+SELECT * FROM sentinel

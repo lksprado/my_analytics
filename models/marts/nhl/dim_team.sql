@@ -25,6 +25,7 @@ teams AS (
     SELECT
         {{ dbt_utils.generate_surrogate_key(['t1.id', 't1.abbrev_name']) }} AS team_sk,
         t1.id                                                               AS team_id,
+        t1.franchise_id,
         t1.abbrev_name,
         t1.full_name,
         t2.place_name,
@@ -48,6 +49,7 @@ sentinel AS (
     SELECT
         '-1'      AS team_sk,
         -1        AS team_id,
+        -1        AS franchise_id,
         'unknown' AS abbrev_name,
         'unknown' AS full_name,
         'unknown' AS place_name,

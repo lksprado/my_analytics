@@ -1,12 +1,13 @@
 {{
   config(
-    tags = ['nhl','intermediate'],
+    tags = ['nhl'],
     )
 }}
 
 with
 game_summary as (
     select * from {{ ref('stg_all_games_summary') }}
+    where game_type_id in (2, 3)
 ),
 
 game_details as (
@@ -24,6 +25,8 @@ renamed as (
         gs.game_start_timestamp_et,
         gs.home_team_id,
         gs.visiting_team_id as away_team_id,
+        gs.home_score,
+        gs.visiting_score as away_score,
         gs.has_happened_by_status,
         gs.has_happened_by_time,
         gd.game_state,
