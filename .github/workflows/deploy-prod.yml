@@ -10,6 +10,8 @@ name: Deploy prod
 on:
   push:
     branches: [main]
+    # Documentação não dispara deploy.
+    paths-ignore: ['**/*.md', '.github/**']
   workflow_dispatch:
 
 permissions: {}
