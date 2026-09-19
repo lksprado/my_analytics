@@ -7,3 +7,4 @@ logs/
 # e engolia o pacote compartilhado `scripts/relatorios/`.
 /relatorios/
 __pycache__/
+.vscode/
