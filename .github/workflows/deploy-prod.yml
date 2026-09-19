@@ -1,6 +1,6 @@
 name: Deploy prod
 
-# A branch master é produção: cada merge aqui pede ao my_orchestrator que publique
+# A branch main é produção: cada merge aqui pede ao my_orchestrator que publique
 # a ponta dos três repos no Airflow do atb (workflow "Deploy prod" de lá, no
 # runner self-hosted). Este job só dispara; o resultado aparece no Actions do
 # my_orchestrator.
@@ -9,7 +9,7 @@ name: Deploy prod
 # no lksprado/my_orchestrator (o mínimo que o repository_dispatch exige).
 on:
   push:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 
 permissions: {}
