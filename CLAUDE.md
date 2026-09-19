@@ -21,14 +21,16 @@ dbt deps
 
 ## Comments in SQL
 
-Comment only if it says something the code can't. Never write: model/grain/column docs (→ `_schema.yml`), history (`antes era…` — that's git's job), labels that repeat the next line, section banners, file paths, or commented-out code. Keep it concise.
+Comment only if it says something the code can't. Never write: model/grain/column docs (→ `_schema.yml`),
+history (`antes era…` — that's git's job), labels that repeat the next line, section banners, file paths,
+or commented-out code. Keep it concise.
 
 ## Architecture
 
 ### Layers
 
 | Layer | Materialization | Schema | Prefix | Purpose |
-|-------|----------------|--------|--------|---------|
+| ------- | ---------------- | -------- | -------- | --------- |
 | Staging | `table` | `staging_<subpasta>` | `stg_` | Type-cast raw sources (JSON, Sheets, seeds) |
 | Intermediate | `view` | `intermediate_<subpasta>` | `int_` | Business logic |
 | Marts | `table` | `marts_<subpasta>` | `fct_*` `dim_*` `bridge_*_*` | Dimension Modeling |
@@ -51,9 +53,14 @@ Naming convention is `_schema.yml` (leading underscore);
 
 - `feat:` Commits do tipo feat indicam que seu trecho de código está incluindo um novo recurso.
 - `fix:` - Commits do tipo fix indicam que seu trecho de código commitado está solucionando um problema (bug fix).
-- `doc:` - Commits do tipo docs indicam que houveram mudanças na documentação, como por exemplo no Readme do seu repositório. (Não inclui alterações em código).
-- `test:` - Commits do tipo test são utilizados quando são realizadas alterações em testes, seja criando, alterando ou excluindo testes unitários. (Não inclui alterações em código)
+- `doc:` - Commits do tipo docs indicam que houveram mudanças na documentação, como por
+ exemplo no Readme do seu repositório. (Não inclui alterações em código).
+- `test:` - Commits do tipo test são utilizados quando são realizadas alterações em testes,
+  seja criando, alterando ou excluindo testes unitários. (Não inclui alterações em código)
 - `build:` - Commits do tipo build são utilizados quando são realizadas modificações em arquivos de build e dependências.
 - `refactor:` - Commits do tipo refactor referem-se a mudanças devido a refatorações que não alterem sua funcionalidade.
-- `chore:` - Commits do tipo chore indicam atualizações de formatações de código, semicolons, trailing spaces, lint, como por exemplo adicionar um pacote no gitignore. (Não inclui alterações em código)
-- `remove:` - Commits do tipo remove indicam a exclusão de arquivos, diretórios ou funcionalidades obsoletas ou não utilizadas, qualquer outra forma de limpeza do código-fonte, reduzindo o tamanho e a complexidade do projeto e mantendo-o mais organizado.
+- `chore:` - Commits do tipo chore indicam atualizações de formatações de código, semicolons, trailing spaces,
+  lint, como por exemplo adicionar um pacote no gitignore. (Não inclui alterações em código)
+- `remove:` - Commits do tipo remove indicam a exclusão de arquivos, diretórios ou funcionalidades obsoletas ou não
+    utilizadas, qualquer outra forma de limpeza do código-fonte, reduzindo o tamanho e a complexidade do projeto e
+    mantendo-o mais organizado.

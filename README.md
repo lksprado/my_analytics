@@ -1,86 +1,74 @@
 # my_analytics
 
-Projeto dbt único (Postgres) que transforma as tabelas `raw_*` carregadas pelo
-[`my_ingestion`](https://github.com/lksprado/my_ingestion) em modelos prontos para análise. Em
-produção, quem roda é o Airflow do [`my_orchestrator`](https://github.com/lksprado/my_orchestrator),
-pela DAG `dag_dbt_my_analytics` (Cosmos).
+Single dbt project that transforms the `raw_*` tables loaded by
+[`my_ingestion`](https://github.com/lksprado/my_ingestion) into analysis-ready models. In
+production, it is run by the Airflow in [`my_orchestrator`](https://github.com/lksprado/my_orchestrator),
+through the `dag_dbt_my_analytics` DAG (Cosmos).
 
-> Visão geral do deploy dos quatro repos (runners, tokens, troubleshooting):
+> Deploy overview for the four repos (runners, tokens, troubleshooting):
 > [`homelab/docs/como_funciona_o_deploy.md`](https://github.com/lksprado/homelab/blob/main/docs/como_funciona_o_deploy.md).
 
-## Uso em dev
+## Dev usage
 
 ```bash
-uv sync                    # dbt-postgres e sqlfluff
+uv sync                    # dbt-postgres and sqlfluff
 source .venv/bin/activate
-pre-commit install         # bloqueia commit direto na main
-dbt deps                   # pacotes de packages.yml (versões travadas no package-lock.yml)
-dbt debug                  # confere a conexão
+pre-commit install         # blocks direct commits to main
+dbt deps                   # packages from packages.yml (versions pinned in package-lock.yml)
+dbt debug                  # checks the connection
 ```
 
-A conexão vem do `~/.dbt/profiles.yml`, perfil `my_analytics`, target `dev` (banco
-`analytics_dev`). O arquivo fica fora do repo. Em prod o Airflow monta o perfil a partir da
-connection `postgres_dw`.
+The connection comes from `~/.dbt/profiles.yml`, profile `my_analytics`, target `dev` (database
+`analytics_dev`). The file lives outside the repo. In prod, Airflow builds the profile from the
+`postgres_dw` connection.
 
 ```bash
-dbt build -s stg_proventos+          # model e tudo que depende dele, com testes
-dbt build -s models/marts/financas   # uma pasta
+dbt build -s stg_proventos+          # model and everything downstream of it, with tests
+dbt build -s models/marts/financas   # a folder
 dbt seed -s seed_x --full-refresh
-sqlfluff lint models/                # lint com o templater do dbt
+sqlfluff lint models/                # lint with the dbt templater
 ```
 
-### Onde cada coisa vai
+### Where things go
 
-| Camada | Materialização | Prefixo |
-|---|---|---|
+| Layer | Materialization | Prefix |
+| --- | --- | --- |
 | `staging` | table | `stg_` |
 | `intermediate` | view | `int_` |
 | `marts` | table | `fct_`, `dim_`, `bridge_` |
-| `presentation` | table | sem prefixo |
-
-O schema sai do caminho do arquivo, e `+schema` é ignorado:
-- `models/<camada>/<subpasta>/x.sql` → `<camada>_<subpasta>`;
-- seeds sempre vão para `seeds`.
-
-A regra está em `macros/generate_schema_name.sql`. As convenções de SQL e YAML estão no `CLAUDE.md`.
-
-### Relatórios financeiros
-
-- **Caminho normal:** as skills `/relatorio-financas` e `/relatorio-meio-mes` no Claude Code.
-- **Em lote** (meses passados), use os scripts:
-  - `scripts/gerar_relatorios_financas.sh [AAAA-MM] [--forcar]`;
-  - `scripts/gerar_relatorio_meio_mes.sh [AAAA-MM-DD] [--forcar]`.
-- Os PDFs vão para `relatorios/AAAA-MM/`.
+| `presentation` | table | no prefix |
 
 ## Deploy
 
-**A `main` é produção.** O projeto entra no Airflow de prod quando o PR é mergeado.
+**`main` is production.** The project reaches prod Airflow when the PR is merged.
 
-### Ao abrir o PR
+### When opening the PR
 
-Não há check no GitHub. Valide em dev:
-- rode `dbt build -s <o que mudou>+` contra o `analytics_dev`;
-- ou dispare a `dag_dbt_my_analytics` no Airflow local, que lê este diretório ao vivo.
+There are no GitHub checks. Validate in dev:
 
-### Ao fazer o merge
+- run `dbt build -s <what changed>+` against `analytics_dev`;
+- or trigger `dag_dbt_my_analytics` in local Airflow, which reads this directory live.
 
-1. Qualquer mudança fora de `.md` e `.github/` faz o workflow `Deploy prod`
-   (`.github/workflows/deploy-prod.yml`) avisar o `my_orchestrator`.
-2. O deploy do `my_orchestrator` publica a ponta dos três repos no atb:
+### When merging
 
-| O que mudou | O que acontece em prod |
-|---|---|
-| model, macro, seed, teste, `dbt_project.yml` | só rsync, sem restart; a DAG passa a ver a mudança em até 1 min |
-| `packages.yml` + `package-lock.yml` | rsync + `dbt deps` automático no scheduler, sem restart |
+1. Any change outside `.md` and `.github/` makes the `Deploy prod` workflow
+   (`.github/workflows/deploy-prod.yml`) notify `my_orchestrator`.
+2. The `my_orchestrator` deploy publishes the tip of the three repos to atb:
 
-3. O run fica em [my_orchestrator → Actions](https://github.com/lksprado/my_orchestrator/actions).
+| What changed | What happens in prod |
+| --- | --- |
+| model, macro, seed, test, `dbt_project.yml` | rsync only, no restart; the DAG picks up the change within 1 min |
+| `packages.yml` + `package-lock.yml` | rsync + automatic `dbt deps` on the scheduler, no restart |
 
-**Pacote dbt novo:**
-1. Edite o `packages.yml`.
-2. Rode `dbt deps` local, para atualizar o `package-lock.yml`.
-3. Commite os dois.
+1. The run shows up in [my_orchestrator → Actions](https://github.com/lksprado/my_orchestrator/actions).
 
-O deploy só roda `dbt deps` quando o **lock** muda.
+**New dbt package:**
 
-O merge não roda o dbt. As tabelas de prod só mudam na próxima execução da
-`dag_dbt_my_analytics`, pelo agendamento ou por disparo manual na UI de prod.
+1. Edit `packages.yml`.
+2. Run `dbt deps` locally to update `package-lock.yml`.
+3. Commit both.
+
+The deploy only runs `dbt deps` when the **lock** changes.
+
+Merging does not run dbt. Prod tables only change on the next run of
+`dag_dbt_my_analytics`, either on schedule or via a manual trigger in the prod UI.
