@@ -70,7 +70,8 @@ final AS (
         ROUND(PERCENT_RANK() OVER (ORDER BY desconto_mediano_pct)::NUMERIC, 2)           AS percentil_desconto,
         qtd_livros_novo_minimo,
         ROUND(100.0 * qtd_livros_novo_minimo / qtd_livros, 1)                            AS pct_livros_novo_minimo,
-        data_varredura = MAX(data_varredura) OVER ()                                     AS fl_ultima_varredura
+        data_varredura = MAX(data_varredura) OVER ()                                     AS fl_ultima_varredura,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM agregado
 )
 

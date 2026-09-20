@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['inflacao', 'staging'],
   )
 }}
@@ -49,7 +48,8 @@ final AS (
         past_month,
         price_variation,
         weight,
-        weight_variation
+        weight_variation,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM extracted
 )
 

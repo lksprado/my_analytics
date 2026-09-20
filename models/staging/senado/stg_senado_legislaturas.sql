@@ -17,7 +17,8 @@ renamed AS (
         identificacaoparlamentar_emailparlamentar                                      AS email,
         identificacaoparlamentar_siglapartidoparlamentar                               AS sigla_partido,
         identificacaoparlamentar_codigopubliconalegatual::INT                          AS codigo_publico_na_leg_atual,
-        identificacaoparlamentar_ufparlamentar                                         AS uf
+        identificacaoparlamentar_ufparlamentar                                         AS uf,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

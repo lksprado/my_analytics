@@ -53,7 +53,8 @@ WITH deputado_score AS (
 final AS (
     SELECT
         {{ dbt_utils.generate_surrogate_key(['casa', 'congresso_id_fk']) }} AS sk_parlamentar,
-        *
+        *,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM deputado_score
 )
 

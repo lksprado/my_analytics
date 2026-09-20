@@ -3,9 +3,18 @@ version: 2
 models:
   - name: stg_vide_all_books_legacy
     description: "Catálogo legado de livros da Vide com autor, categoria, preços e desconto calculado."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_vide_category_pages
     description: "Livros coletados das páginas de categoria da Vide com categoria inferida pelo arquivo de origem."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_vide_home_featured
     description: "Livros em destaque na home da Vide com autor, preços e desconto calculado por coleta diária."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

@@ -176,5 +176,6 @@ SELECT
             THEN COUNT(*) FILTER (WHERE fl_dia_util) OVER (
                 PARTITION BY month_start_date ORDER BY date_day
             )::INT
-    END AS dia_util_mes
+    END AS dia_util_mes,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM calendario

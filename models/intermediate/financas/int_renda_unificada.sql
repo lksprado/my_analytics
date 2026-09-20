@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'intermediate'],
   )
 }}
@@ -54,5 +53,8 @@ unioned AS (
     SELECT * FROM fixa
 )
 
-SELECT * FROM unioned
+SELECT
+    *,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+FROM unioned
 ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo

@@ -10,5 +10,6 @@ SELECT
     sigla        AS sigla_proposicao,
     descricao    AS descricao_proposicao,
     "dataInicio" AS data_inicio,
-    "dataFim"    AS data_fim
+    "dataFim"    AS data_fim,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM source

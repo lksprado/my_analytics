@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['nhl','staging', 'id'],
     post_hook = [
         "create index if not exists idx_players_id on {{ this }} (id)"
@@ -96,7 +95,8 @@ renamed AS (
         height_inches,
         weight_pounds,
         height_centimeters,
-        weight_kilogram
+        weight_kilogram,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 SELECT * FROM renamed

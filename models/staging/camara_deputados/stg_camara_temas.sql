@@ -12,7 +12,8 @@ renamed AS (
         SPLIT_PART(url_temas, '/', 7)      AS proposicao_id_nk,
         {{ clean_string("tema","upper") }} AS tema,
         codtema::BIGINT                    AS codigo_tema,
-        relevancia::INT                    AS relevancia
+        relevancia::INT                    AS relevancia,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

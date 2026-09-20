@@ -32,7 +32,8 @@ final AS (
         t1.game_outcome_total_periods                                               AS total_periods,
         COALESCE(t1.game_outcome_last_period, 'unknown')                            AS outcome_last_period,
         COALESCE(t1.special_event_name, 'none')                                     AS special_event_name,
-        t1.has_happened_by_status                                                   AS is_completed
+        t1.has_happened_by_status                                                   AS is_completed,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM games AS t1
     LEFT JOIN seasons AS t2
         ON t1.season_id = t2.season_id
@@ -57,7 +58,8 @@ sentinel AS (
         NULL::INT        AS total_periods,
         'unknown'        AS outcome_last_period,
         'unknown'        AS special_event_name,
-        FALSE            AS is_completed
+        FALSE            AS is_completed,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 )
 
 SELECT * FROM final

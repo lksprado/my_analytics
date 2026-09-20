@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['nhl','staging', 'game_id'],
     post_hook = [
         "create index if not exists idx_games_summary on {{ this }} (game_id)"
@@ -34,7 +33,8 @@ renamed AS (
             WHEN payload ->> 'gameType' LIKE '3' THEN 'playoffs'
         END                                           AS game_type_name,
         (payload ->> 'gameDate')::DATE < CURRENT_DATE AS has_happened_by_time,
-        (payload ->> 'gameStateId')::INT = 7          AS has_happened_by_status
+        (payload ->> 'gameStateId')::INT = 7          AS has_happened_by_status,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
     WHERE (payload ->> 'gameScheduleStateId')::INT = 1
 )

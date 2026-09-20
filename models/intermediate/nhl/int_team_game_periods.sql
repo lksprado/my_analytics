@@ -30,7 +30,8 @@ final AS (
         side.goals_for,
         side.goals_against,
         side.shots_for,
-        side.shots_against
+        side.shots_against,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM periods AS t1
     INNER JOIN games AS t2
         ON t1.game_id = t2.game_id

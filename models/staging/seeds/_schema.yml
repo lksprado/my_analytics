@@ -28,6 +28,8 @@ models:
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_investimentos_faltantes_jessica
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
@@ -56,6 +58,8 @@ models:
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_investimentos_faltantes_deusa
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
@@ -84,6 +88,8 @@ models:
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_usd
     description: "Cotação do dólar (USD) no último dia útil de cada mês, com data de referência posicionada no final do mês."
@@ -92,6 +98,8 @@ models:
         description: "Último dia do mês de referência (posição usada para conversão cambial mensal)."
       - name: vlr_usd
         description: "Cotação de venda do dólar no último dia útil do mês, em reais."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_de_para_instituicoes_fgc
     description: "De-para entre instituição emissora e o conglomerado financeiro do FGC ao qual pertence, usado para agregar o risco por conglomerado (limite de garantia)."
@@ -100,6 +108,8 @@ models:
         description: "Nome da instituição emissora, normalizado (sem sufixos societários e pontuação)."
       - name: conglomerado
         description: "Conglomerado financeiro FGC ao qual a instituição pertence."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_datas_especiais
     description: >
@@ -116,3 +126,5 @@ models:
         description: "Primeiro ano em que o evento passa a valer (ex.: o ano do casamento). Nulo quando o evento vale para toda a série."
       - name: motivo
         description: "Descrição do evento, em maiúsculas."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

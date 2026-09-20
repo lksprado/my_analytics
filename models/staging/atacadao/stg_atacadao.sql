@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['inflacao', 'staging'],
   )
 }}
@@ -60,7 +59,8 @@ final AS (
         high_price,
         low_price,
         product_unity,
-        {{ normalize_product_unit('product_unity') }}
+        {{ normalize_product_unit('product_unity') }},
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 )
 

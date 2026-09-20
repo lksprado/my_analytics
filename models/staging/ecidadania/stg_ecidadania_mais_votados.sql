@@ -1,5 +1,6 @@
 {{ config(
     materialized='incremental',
+    on_schema_change = 'append_new_columns',
     unique_key='sk_proposicao',
     tags=["ecidadania", "participacao"]
 ) }}
@@ -31,7 +32,8 @@ renamed AS (
             WHEN votos_nao::INT > votos_sim::INT THEN 'CONTRA'
             WHEN votos_nao::INT = votos_sim::INT THEN 'EMPATE'
         END AS vontade_popular,
-        link
+        link,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

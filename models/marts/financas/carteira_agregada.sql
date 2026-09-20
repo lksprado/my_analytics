@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
@@ -90,7 +89,7 @@ agregado AS (
 SELECT
     a.*,
     COALESCE(u.vlr_liquido_usd, 0) AS vlr_liquido_usd,
-    CURRENT_TIMESTAMP              AS model_updated_at
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM agregado AS a
 LEFT JOIN usd AS u
     ON u.period_start = a.mes_base

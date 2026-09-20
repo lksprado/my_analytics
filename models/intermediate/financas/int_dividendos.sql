@@ -41,7 +41,8 @@ final AS (
         pessoa,
         {{ normaliza_instituicao('instituicao') }} AS instituicao,
         vlr_liquido_brl,
-        moeda_ativo
+        moeda_ativo,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned
 )
 

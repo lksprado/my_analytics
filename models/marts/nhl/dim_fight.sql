@@ -114,7 +114,8 @@ final AS (
         t1.player_2_team_full_name,
         t1.fight_winner_full_name,
         t1.rating,
-        t1.vote_count
+        t1.vote_count,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM fights AS t1
     LEFT JOIN fights_games AS t2
         ON t1.fight_id = t2.fight_id
@@ -146,7 +147,8 @@ sentinel AS (
         'unknown'     AS player_2_team_full_name,
         'unknown'     AS fight_winner_full_name,
         NULL::FLOAT   AS rating,
-        NULL::INT     AS vote_count
+        NULL::INT     AS vote_count,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 )
 
 SELECT * FROM final

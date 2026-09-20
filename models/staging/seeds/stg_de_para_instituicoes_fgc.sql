@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -69,14 +68,16 @@ renamed_2 AS (
             WHEN conglomerado LIKE 'NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
             WHEN conglomerado LIKE 'NU FINANCEIRA S A SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
             ELSE conglomerado
-        END AS conglomerado
+        END AS conglomerado,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 ),
 
 filler AS (
     SELECT
         'BANCO MASTER' AS conglomerado,
-        'BANCO MASTER' AS instituicao
+        'BANCO MASTER' AS instituicao,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 )
 
 SELECT * FROM renamed_2

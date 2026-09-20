@@ -20,6 +20,8 @@ models:
         description: "Símbolo/CUSIP identificador do ativo (com normalização para títulos do tesouro americano)."
       - name: moeda_ativo
         description: "Moeda do ativo (USD)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_dividends_interest
     description: "Dividendos e impostos pagos atuais e legadas da Avenue, ordenada por início do período."
@@ -34,3 +36,5 @@ models:
         description: "Titular que recebeu os dividendos/juros."
       - name: moeda_ativo
         description: "Moeda do valor (USD)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

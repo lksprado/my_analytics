@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['nhl','staging']
     )
 }}
@@ -21,7 +20,8 @@ renamed AS (
         id,
         franchise_id,
         abbrev_name,
-        REGEXP_REPLACE({{ clean_string('full_name','lower') }}, '[^[:alpha:]. ]', '', 'g') AS full_name
+        REGEXP_REPLACE({{ clean_string('full_name','lower') }}, '[^[:alpha:]. ]', '', 'g') AS full_name,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

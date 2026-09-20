@@ -32,7 +32,8 @@ final AS (
         t2.hits,
         t2.blocked_shots,
         t2.plus_minus,
-        t1.toi_seconds
+        t1.toi_seconds,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM player_games AS t1
     INNER JOIN skater_stats AS t2
         ON t1.game_id = t2.game_id

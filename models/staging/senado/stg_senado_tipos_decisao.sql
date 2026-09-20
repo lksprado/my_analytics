@@ -49,7 +49,8 @@ renamed AS (
             WHEN sigla = 'PARA_PUBLICACAO' THEN 'Neutro'
             WHEN sigla = 'REAUTUADO' THEN 'Neutro'
             ELSE 'Desconhecido'
-        END       AS tipo_deliberacao
+        END       AS tipo_deliberacao,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
@@ -36,5 +35,5 @@ calc AS (
 
 SELECT
     calc.*,
-    CURRENT_TIMESTAMP AS model_updated_at
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM calc

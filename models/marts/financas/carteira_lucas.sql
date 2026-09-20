@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
@@ -27,7 +26,7 @@ SELECT
     moeda_ativo,
     fonte_dado,
     fl_mes_atual,
-    CURRENT_TIMESTAMP AS model_updated_at
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM {{ ref('carteira') }}
 WHERE pessoa = 'lucas'
 ORDER BY mes_base, instituicao, classe_ativo, tipo_ativo, ativo

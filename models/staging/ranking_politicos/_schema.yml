@@ -50,6 +50,8 @@ models:
         description: "Posição no ranking da casa dentro do estado."
       - name: composicao_pontuacao_ranking_casa_estado_variacao
         description: "Variação da posição no ranking da casa por estado."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_ranking_senadores
     description: "Dados brutos do Ranking dos Políticos para senadores, com ID do Congresso extraído da URL e nomes padronizados. Sem nome_eleitoral (campo não existe na fonte do Senado)."
@@ -103,3 +105,5 @@ models:
         description: "Posição no ranking da casa dentro do estado."
       - name: composicao_pontuacao_ranking_casa_estado_variacao
         description: "Variação da posição no ranking da casa por estado."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

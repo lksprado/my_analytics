@@ -35,3 +35,5 @@ models:
         description: "Número em product_unity, na unidade original."
       - name: unity_value_normalized
         description: "unity_value convertido para g, ml ou un."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

@@ -141,7 +141,8 @@ final AS (
                 THEN ROUND(100.0 * (price_new - min_price_ever) / min_price_ever, 2)
         END                                           AS pct_above_min_ever,
 
-        (price_new <= min_price_ever)                 AS is_at_record_low
+        (price_new <= min_price_ever)                 AS is_at_record_low,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM com_janelas
 )
 

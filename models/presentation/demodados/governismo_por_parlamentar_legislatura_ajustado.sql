@@ -26,5 +26,6 @@ SELECT
     ROUND(
         (qt_votos * perc_governismo + _prior_votos * _prior_governismo)
         / NULLIF(qt_votos + _prior_votos, 0)
-    , 2) AS score_governismo_ponderado
+    , 2) AS score_governismo_ponderado,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM scored

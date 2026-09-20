@@ -4,5 +4,11 @@ version: 2
 models:
   - name: solar_energy_daily_weather_conditions
     description: "Histórico diário de geração de energia solar cruzado com condições climáticas (temperatura, chuva, vento, nebulosidade)."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
   - name: solar_energy_hourly_generation
     description: "Série horária de geração de energia solar em kWh."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

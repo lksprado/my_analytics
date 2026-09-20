@@ -40,6 +40,8 @@ models:
         description: "Moeda de origem do ativo."
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_renda_unificada
     description: >
@@ -78,6 +80,8 @@ models:
         description: "Moeda de origem do ativo."
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_disponibilidades_isoladas
     description: >
@@ -107,6 +111,8 @@ models:
         description: "Moeda de origem do ativo."
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_renda_fixa
     description: >
@@ -148,6 +154,8 @@ models:
         description: "Moeda de origem do ativo."
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_renda_fixa_incompleta
     description: >
@@ -187,6 +195,8 @@ models:
         description: "Moeda de origem do ativo."
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_renda_fixa_loop
     description: >
@@ -225,6 +235,8 @@ models:
         description: "Moeda de origem do ativo."
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_renda_variavel
     description: >
@@ -251,6 +263,8 @@ models:
         description: "Moeda de origem do ativo."
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_dividendos
     description: >
@@ -267,6 +281,8 @@ models:
         description: "Valor líquido recebido no mês, em reais."
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_indexadores
     description: >
@@ -295,6 +311,8 @@ models:
         description: "Índice acumulado (base 1) da Selic."
       - name: cdi_acum
         description: "Índice acumulado (base 1) do CDI."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_consumo_consolidado
     description: >
@@ -332,6 +350,8 @@ models:
         description: '{{ doc("categoria_saude") }}'
       - name: educacao
         description: '{{ doc("categoria_educacao") }}'
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_dre_consolidado
     description: >
@@ -375,3 +395,5 @@ models:
         description: "Despesa total do mês."
       - name: resultado
         description: "Resultado do mês (receita total menos despesa total)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

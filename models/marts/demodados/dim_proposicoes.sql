@@ -10,7 +10,8 @@ proposicoes_unificadas as (
         proposicao_id_nk,
         tipo_proposicao,
         data_proposicao,
-        sk_data
+        sk_data,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     from {{ ref('int_proposicoes_unificadas') }}
 )
 
@@ -23,4 +24,5 @@ union all
     ['tipo_proposicao', 'text'],
     ['data_proposicao', 'null::date'],
     ['sk_data', '1'],
+    ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

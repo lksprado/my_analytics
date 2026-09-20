@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -19,7 +18,8 @@ renamed AS (
         ativo,
         NULLIF(TRIM(data_vencimento), '')::DATE AS data_vencimento,
         moeda_ativo,
-        camada
+        camada,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

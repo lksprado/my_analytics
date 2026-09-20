@@ -69,3 +69,5 @@ models:
         description: "Quanto o preço da linha está acima do mínimo histórico, em %."
       - name: is_at_record_low
         description: "True se o preço da linha empata com o mínimo histórico — na última observação, a flag de oportunidade."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

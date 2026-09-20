@@ -144,7 +144,8 @@ final AS (
         desconto_extra_vs_catalogo_pp,
 
         qtd_observacoes_anteriores,
-        primeira_observacao
+        primeira_observacao,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM por_livro
 )
 

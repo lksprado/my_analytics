@@ -1,6 +1,7 @@
 {{
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = ['game_id', 'event_id'],
     incremental_strategy = 'delete+insert',
     tags = ['nhl','staging', 'game_id'],
@@ -67,7 +68,8 @@ renamed AS (
         (p -> 'details' ->> 'zoneCode')                    AS zone_code,
         (p -> 'details' ->> 'reason')                      AS reason,
         (p -> 'details' ->> 'secondaryReason')             AS secondary_reason,
-        (p -> 'details' ->> 'shotType')                    AS shot_type
+        (p -> 'details' ->> 'shotType')                    AS shot_type,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source,
         JSONB_ARRAY_ELEMENTS(payload -> 'plays') AS p
 )

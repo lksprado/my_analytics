@@ -117,7 +117,8 @@ nulls_treated AS (
         COALESCE(saldo_itau_investimentos_jessica, 0)   AS saldo_itau_investimentos_jessica,
         COALESCE(saldo_nubank_investimentos_jessica, 0) AS saldo_nubank_investimentos_jessica,
         COALESCE(saldo_avenue_jessica, 0)               AS saldo_avenue_jessica,
-        COALESCE(vlr_carro, 0)                          AS vlr_carro
+        COALESCE(vlr_carro, 0)                          AS vlr_carro,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 )
 

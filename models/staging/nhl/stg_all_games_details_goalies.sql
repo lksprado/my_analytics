@@ -1,6 +1,7 @@
 {{ 
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = ['game_id', 'player_id'],
     tags = ['nhl', 'staging', 'player_id'],
     post_hook = [
@@ -40,7 +41,8 @@ away_goalies AS (
         (p ->> 'shorthandedGoalsAgainst')::INT                      AS shorthanded_goals_against,
         (p ->> 'evenStrengthGoalsAgainst')::INT                     AS evenstrenght_goals_against,
         SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 1)::INT AS evenstrenght_saves,
-        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 2)::INT AS evenstrenght_shots_against
+        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 2)::INT AS evenstrenght_shots_against,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM base,
         JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'awayTeam' -> 'goalies') AS p
 ),
@@ -65,7 +67,8 @@ home_goalies AS (
         (p ->> 'shorthandedGoalsAgainst')::INT                      AS shorthanded_goals_against,
         (p ->> 'evenStrengthGoalsAgainst')::INT                     AS evenstrenght_goals_against,
         SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 1)::INT AS evenstrenght_saves,
-        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 2)::INT AS evenstrenght_shots_against
+        SPLIT_PART((p ->> 'evenStrengthShotsAgainst'), '/', 2)::INT AS evenstrenght_shots_against,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM base,
         JSONB_ARRAY_ELEMENTS(payload -> 'playerByGameStats' -> 'homeTeam' -> 'goalies') AS p
 )

@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -83,7 +82,8 @@ final AS (
             WHEN produto LIKE '%DEB - CONC. ECOVIAS DOS IMIGRANTES S.A.%'
                 THEN 'DEB - ECOVIAS'
             ELSE produto
-        END AS produto
+        END AS produto,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 )
 

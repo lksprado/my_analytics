@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['livros', 'staging'],
   )
 }}
@@ -89,7 +88,8 @@ final AS (
         price_new,
         ((price_new - price_old) / price_old)::NUMERIC(6, 2) AS discount,
         created_date,
-        TRIM(a.author)                                       AS author
+        TRIM(a.author)                                       AS author,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
     CROSS JOIN LATERAL UNNEST(STRING_TO_ARRAY(renamed.author, ',')) AS a (author)
 )

@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -44,7 +43,8 @@ renamed AS (
         NULLIF(motivo, '-')                                                         AS motivo_indisponibilidade,
         preco_de_fechamento::NUMERIC(18, 2)                                         AS vlr_fechamento,
         valor_atualizado::NUMERIC(18, 2)                                            AS vlr_atualizado_brl,
-        'BRL'                                                                       AS moeda_ativo
+        'BRL'                                                                       AS moeda_ativo,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

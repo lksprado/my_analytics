@@ -27,11 +27,15 @@ unioned AS (
     SELECT * FROM orientacao_senado
 )
 
-SELECT * FROM unioned
+SELECT
+    *,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+FROM unioned
 UNION ALL
 {{ dummy_row([
     ['sk_votacao', 'sk'],
     ['tipo_lideranca', 'text'],
     ['sigla_partido_bloco', 'text'],
     ['orientacao_voto', 'text'],
+    ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

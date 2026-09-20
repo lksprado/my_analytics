@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -24,7 +23,8 @@ renamed AS (
         data_emissao,
         data_vencimento,
         vlr_atualizado_brl,
-        moeda_ativo
+        moeda_ativo,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM seed
     ORDER BY mes_base, instituicao, ativo
 )

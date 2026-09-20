@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
@@ -108,7 +107,8 @@ final AS (
         uc.pessoa,
         uc.total_carteira,
         uca.total_carteira_agregada,
-        uc.total_carteira - uca.total_carteira_agregada AS dif
+        uc.total_carteira - uca.total_carteira_agregada AS dif,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned_carteiras AS uc
     INNER JOIN unioned_carteiras_agregada AS uca
         ON uc.mes_base = uca.mes_base

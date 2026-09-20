@@ -28,7 +28,8 @@ final AS (
         nome,
         nome_completo,
         sexo,
-        uf
+        uf,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM parlamentares
 )
 
@@ -43,4 +44,5 @@ UNION ALL
     ['nome_completo', 'text'],
     ['sexo', 'text'],
     ['uf', 'text'],
+    ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

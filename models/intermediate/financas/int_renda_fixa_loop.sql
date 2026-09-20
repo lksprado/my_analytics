@@ -85,7 +85,8 @@ final AS (
         )                        AS fl_vencido,
         vlr_atualizado_brl,
         moeda_ativo,
-        fonte_dado
+        fonte_dado,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned
 )
 

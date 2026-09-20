@@ -24,7 +24,8 @@ final AS (
         dim.unit_normalized,
         dim.unity_type,
         fct.high_price,
-        fct.low_price
+        fct.low_price,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM
         fct
     INNER JOIN dim

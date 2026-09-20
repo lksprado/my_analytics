@@ -44,7 +44,8 @@ final AS (
         casa,
         partido,
         partido_nome,
-        voto
+        voto,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM votos_parlamentares
 )
 

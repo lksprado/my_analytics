@@ -9,6 +9,8 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_solar_hourly_energy
     description: "Série horária de geração de energia solar em kWh."
@@ -18,3 +20,5 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

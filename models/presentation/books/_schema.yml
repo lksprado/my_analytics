@@ -78,6 +78,8 @@ models:
         description: "Desconto do livro menos o desconto mediano do catálogo, em pontos percentuais."
       - name: qtd_observacoes_anteriores
       - name: primeira_observacao
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: livros_campanhas
     description: >
@@ -104,6 +106,8 @@ models:
         description: "Livros cujo preço ficou abaixo de todo preço anterior nesta varredura."
       - name: pct_livros_novo_minimo
       - name: fl_ultima_varredura
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: livros_precos_obt
     description: >
@@ -160,3 +164,5 @@ models:
         description: "TRUE se o preço desta linha ficou abaixo de todo preço anterior."
       - name: fl_preco_desatualizado
         description: "TRUE se o livro não é observado há mais de 7 dias."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

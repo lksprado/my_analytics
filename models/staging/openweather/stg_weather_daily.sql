@@ -14,7 +14,8 @@ renamed AS (
         temperature_morning::FLOAT   AS temperature_morning,
         pressure_afternoon::FLOAT    AS pressure_afternoon,
         wind_max_speed::FLOAT        AS wind_max_speed,
-        wind_max_direction::FLOAT    AS wind_max_direction
+        wind_max_direction::FLOAT    AS wind_max_direction,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

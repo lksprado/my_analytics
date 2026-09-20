@@ -1,6 +1,7 @@
 {{ 
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = ['game_id', 'player_id'],
     tags = ['nhl', 'staging', 'player_id'],
     post_hook = [
@@ -114,4 +115,7 @@ all_skaters AS (
     SELECT * FROM home_forwards
 )
 
-SELECT * FROM all_skaters
+SELECT
+    *,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+FROM all_skaters

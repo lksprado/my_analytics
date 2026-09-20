@@ -138,7 +138,8 @@ final AS (
             uma vez só. -#}
         vlr_atualizado_brl::INT AS vlr_atualizado_brl,
         moeda_ativo,
-        fonte_dado
+        fonte_dado,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned
     WHERE vlr_atualizado_brl IS NOT NULL
 )

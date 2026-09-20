@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['nhl'],
     )
 }}
@@ -71,7 +70,8 @@ final AS (
             WHEN team_2_abbrev_name LIKE 'ARI' AND game_date < '2014-07-01' THEN 'PHX'
             WHEN team_2_abbrev_name LIKE 'WPG' AND game_date < '2011-07-01' THEN 'WIN'
             ELSE team_2_abbrev_name
-        END AS team_2_abbrev_name
+        END AS team_2_abbrev_name,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM dedup
     WHERE rn = 1
 )

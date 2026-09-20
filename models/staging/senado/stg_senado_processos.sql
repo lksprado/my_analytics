@@ -29,5 +29,6 @@ SELECT
     siglatipodeliberacao                        AS sigla_tipo_deliberacao,
     {{ clean_string("situacaoatual","upper") }} AS situacao_atual,
     {{ clean_string("tipoconteudo","upper") }}  AS tipo_conteudo,
-    {{ clean_string("tipodocumento","upper") }} AS tipo_documento
+    {{ clean_string("tipodocumento","upper") }} AS tipo_documento,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM source

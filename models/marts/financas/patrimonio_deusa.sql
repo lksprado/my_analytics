@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
@@ -40,6 +39,6 @@ ativos AS (
 
 SELECT
     ativos.*,
-    CURRENT_TIMESTAMP AS model_updated_at
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM ativos
 ORDER BY mes_base

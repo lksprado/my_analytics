@@ -96,7 +96,8 @@ final AS (
         codigo_ativo                               AS ativo,
         SUM(vlr_atualizado_brl)::INT               AS vlr_atualizado_brl,
         moeda_ativo,
-        fonte_dado
+        fonte_dado,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned
     GROUP BY 1, 2, 3, 4, 5, 6, 7, 9, 10
 )

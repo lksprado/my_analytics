@@ -32,5 +32,6 @@ SELECT
     CASE
         WHEN votacaosecreta = 'N' THEN 'NAO'
         WHEN votacaosecreta = 'S' THEN 'SIM'
-    END                               AS votacao_secreta
+    END                               AS votacao_secreta,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM source

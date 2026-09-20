@@ -7,7 +7,8 @@ renamed AS (
         duration::INT AS duration,
         total::FLOAT  AS kwh,
         co2::FLOAT,
-        max::FLOAT    AS max_kwh
+        max::FLOAT    AS max_kwh,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

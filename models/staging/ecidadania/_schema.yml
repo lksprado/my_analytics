@@ -14,6 +14,8 @@ models:
         description: "Quantidade total de votos registrados na plataforma"
       - name: votos_por_pessoa
         description: "Média de votos por pessoa (total_votos / total_pessoas)"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_ecidadania_mais_votados
     description: "Modelo staging com as proposições legislativas em destaque (mais votadas) na plataforma e-Cidadania"
@@ -42,6 +44,8 @@ models:
         description: "Indicador da vontade popular (SIM/NÃO) com base na maioria dos votos"
       - name: link
         description: "URL da proposição na plataforma e-Cidadania"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_ecidadania_paginas
     description: "Modelo staging com todas as proposições legislativas (em andamento e encerradas) na plataforma e-Cidadania"
@@ -71,3 +75,5 @@ models:
         description: "Indicador da vontade popular (SIM/NÃO) com base na maioria dos votos"
       - name: link
         description: "URL da proposição na plataforma e-Cidadania"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

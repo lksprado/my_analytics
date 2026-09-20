@@ -18,7 +18,8 @@ renamed AS (
         ufnascimento                                                          AS uf_nascimento,
         municipionascimento                                                   AS uf_municipio_nascimento,
         escolaridade,
-        COALESCE(ultimostatus_email::TEXT, ultimostatus_gabinete_email::TEXT) AS email
+        COALESCE(ultimostatus_email::TEXT, ultimostatus_gabinete_email::TEXT) AS email,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

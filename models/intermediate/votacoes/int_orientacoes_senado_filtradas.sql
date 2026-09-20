@@ -19,7 +19,8 @@ final AS (
         numero_materia,
         sigla_tipo_materia,
         partido,
-        orientacao_voto
+        orientacao_voto,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM senado_votos
     WHERE
         orientacao_voto IS NOT NULL

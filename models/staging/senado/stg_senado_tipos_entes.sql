@@ -36,6 +36,7 @@ SELECT
     codigo_ente,
     nome_ente,
     tipo_ente,
-    codigo_casa
+    codigo_casa,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM dedup
 WHERE rn = 1

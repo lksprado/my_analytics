@@ -51,7 +51,8 @@ nulls_treated AS (
         COALESCE(saldo_bradesco_investimentos_deusa, 0)     AS saldo_bradesco_investimentos_deusa,
         COALESCE(saldo_nubank_deusa, 0)                     AS saldo_nubank_deusa,
         COALESCE(saldo_nubank_investimentos_deusa, 0)       AS saldo_nubank_investimentos_deusa,
-        COALESCE(saldo_nubank_cashback_deusa, 0)            AS saldo_nubank_cashback_deusa
+        COALESCE(saldo_nubank_cashback_deusa, 0)            AS saldo_nubank_cashback_deusa,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 )
 

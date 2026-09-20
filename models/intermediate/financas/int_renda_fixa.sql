@@ -34,7 +34,8 @@ final AS (
         t1.fl_vencido,
         t1.vlr_atualizado_brl,
         t1.moeda_ativo,
-        t1.fonte_dado
+        t1.fonte_dado,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned AS t1
     LEFT JOIN {{ ref('stg_de_para_instituicoes_fgc') }} AS t2
     ON t1.emissor = t2.instituicao
