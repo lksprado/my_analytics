@@ -4,27 +4,6 @@ models:
   - name: vw_stg_request_seasons_id
     description: "Parâmetros de temporadas NHL, identificando a temporada corrente com base no maior season_id."
 
-  - name: vw_stg_request_players_id
-    description: "Parâmetros de jogadores NHL da temporada corrente, derivados de estatísticas de clube para goalies e skaters."
-
-  - name: vw_stg_request_players_seasons_gametypes_id
-    description: "Parâmetros combinando player_id com temporada e tipo de jogo para orquestração de coletas de jogadores."
-
-  - name: vw_stg_request_teams_seasons_gametypes_id
-    description: "Parâmetros de times NHL por temporada e tipo de jogo, filtrando temporada mais recente e jogos regulares/playoffs."
-
-  - name: vw_stg_request_games_id
-    description: "Parâmetros de jogos NHL ainda não totalmente sincronizados entre detalhes, summary_details e play_by_play."
-
-  - name: stg_base_all_club_stats
-    description: "Base ephemeral com payload bruto de estatísticas por clube, expondo season_id e game_type_id."
-
-  - name: stg_all_club_stats_goalies
-    description: "Estatísticas agregadas de goleiros por temporada e tipo de jogo, derivadas do payload de club stats."
-
-  - name: stg_all_club_stats_skaters
-    description: "Estatísticas agregadas de skaters por temporada e tipo de jogo, derivadas do payload de club stats."
-
   - name: stg_base_all_games_details
     description: "Base ephemeral de detalhes de jogos NHL com campos comuns já parseados do payload bruto."
 
