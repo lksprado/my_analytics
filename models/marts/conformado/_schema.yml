@@ -26,3 +26,5 @@ models:
         description: "1 quando o MÊS contém alguma data especial vigente; 0 caso contrário. É mais abrangente que fl_data_especial — todo dia de um mês especial recebe 1."
       - name: motivo
         description: "Descrição da data especial em maiúsculas (ex.: ANIVERSARIO), ou 'NORMAL' quando o dia não é especial."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -46,7 +45,8 @@ renamed AS (
         valor_bruto::NUMERIC(18, 2)                AS vlr_bruto,
         valor_liquido::NUMERIC(18, 2)              AS vlr_liquido,
         valor_atualizado::NUMERIC(18, 2)           AS vlr_atualizado_brl,
-        'BRL'                                      AS moeda_ativo
+        'BRL'                                      AS moeda_ativo,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

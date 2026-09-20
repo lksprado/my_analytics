@@ -27,7 +27,8 @@ renamed AS (
         REGEXP_REPLACE(resultado, '[^0-9]', '', 'g')::INT      AS resultado,
         'lucas'                                                AS pessoa,
         TO_DATE("mes.crd.", 'MM-YYYY')                         AS mes_fatura,
-        TO_DATE("mes.deb", 'MM-YYYY')                          AS mes_debito
+        TO_DATE("mes.deb", 'MM-YYYY')                          AS mes_debito,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

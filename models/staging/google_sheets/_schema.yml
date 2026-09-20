@@ -62,6 +62,8 @@ models:
         description: "Índice acumulado (base 1) da Selic, lido pronto da planilha — só troca vírgula por ponto."
       - name: cdi_acum
         description: "Índice acumulado (base 1) do CDI, lido pronto da planilha — só troca vírgula por ponto."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_patrimonio_deusa
     description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados e mês de referência da Deusa."
@@ -84,6 +86,8 @@ models:
         description: "Saldo em investimentos"
       - name: saldo_nubank_cashback_deusa
         description: "Saldo de cashback"
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_jsc_consolidado
     description: "Consolidação mensal de receitas e despesas por categoria da Jéssica, com valores limpos e meses de fatura e débito normalizados."
@@ -122,6 +126,8 @@ models:
         description: "Primeiro dia do mês da fatura de referência."
       - name: mes_debito
         description: "Primeiro dia do mês de débito/competência."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_jsc_contas
     description: "Lançamentos de contas da Jéssica detalhados por categoria, com valores normalizados e datas de fatura, débito e vencimento."
@@ -156,6 +162,8 @@ models:
         description: "Total gasto na categoria educação."
       - name: pessoa
         description: "Titular do lançamento (jessica)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_luc_consolidado
     description: "Consolidação mensal de receitas e despesas por categoria do Lucas, com valores limpos e meses de fatura e débito normalizados."
@@ -194,6 +202,8 @@ models:
         description: "Primeiro dia do mês da fatura de referência."
       - name: mes_debito
         description: "Primeiro dia do mês de débito/competência."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_luc_contas
     description: "Lançamentos de contas do Lucas detalhados por categoria, com valores normalizados e datas de fatura, débito e vencimento."
@@ -228,6 +238,8 @@ models:
         description: "Total gasto na categoria educação."
       - name: pessoa
         description: "Titular do lançamento (lucas)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_luz
     description: "Histórico mensal da conta de luz, com valor da fatura, consumo em kWh, dias faturados, consumo e preço por kWh e mês de referência."
@@ -244,6 +256,8 @@ models:
         description: "Preço médio por kWh no período."
       - name: mes
         description: "Primeiro dia do mês de referência da conta."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_carteira_classificacao
     description: >
@@ -293,6 +307,8 @@ models:
           - accepted_values:
               arguments:
                 values: ['RESERVA', 'CRESCIMENTO', 'RENDA', 'RESERVA ESTRATEGICA']
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
 
   - name: stg_ajuste
@@ -310,3 +326,5 @@ models:
         description: "Recebedor do ajuste realizado."
         data_tests:
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

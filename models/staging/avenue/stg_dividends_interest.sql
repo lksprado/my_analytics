@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -29,7 +28,8 @@ final AS (
         period_end,
         pessoa,
         'USD'          AS moeda_ativo,
-        credit - debit AS vlr_liquido_usd
+        credit - debit AS vlr_liquido_usd,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 )
 

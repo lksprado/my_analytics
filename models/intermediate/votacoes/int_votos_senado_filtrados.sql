@@ -101,7 +101,8 @@ votos_com_partidos AS (
         t1.data_sessao,
         t1.identificacao,
         t1.voto,
-        t1.sk_data
+        t1.sk_data,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM votos_filtrados t1
     LEFT JOIN partidos_senado t2
         ON t2.sigla_senado = t1.sigla_partido

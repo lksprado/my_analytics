@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
@@ -45,6 +44,6 @@ final AS (
 
 SELECT
     final.*,
-    CURRENT_TIMESTAMP AS model_updated_at
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM final
 ORDER BY final.mes_base

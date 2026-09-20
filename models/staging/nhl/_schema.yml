@@ -3,6 +3,9 @@ version: 2
 models:
   - name: vw_stg_request_seasons_id
     description: "Parâmetros de temporadas NHL, identificando a temporada corrente com base no maior season_id."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_base_all_games_details
     description: "Base ephemeral de detalhes de jogos NHL com campos comuns já parseados do payload bruto."
@@ -15,12 +18,20 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_games_details_goalies
     description: "Estatísticas por jogo de goleiros (mandante e visitante), com métricas de saves e gols sofridos."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_games_details_skaters
     description: "Estatísticas por jogo de skaters (defense/forward, home/away), com gols, assists, hits e TOI."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_games_summary
     description: "Resumo dos jogos da NHL, incluindo placar, times, status do jogo e informações de calendário."
@@ -30,6 +41,8 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_base_all_games_summary_details
     description: "Base ephemeral dos summary details por jogo, com game_id extraído do source_filename."
@@ -42,21 +55,38 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_games_summary_periods
     description: "Quebra por período das estatísticas de jogo, unindo gols e chutes por período de cada partida."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_play_by_play
     description: "Eventos play-by-play da NHL por jogo e evento, com contexto temporal, espacial e tipo da jogada."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_player_game_log
     description: "Log de jogos por jogador na NHL, com estatísticas por partida e ordenação sequencial na temporada."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_players
     description: "Dimensão de jogadores NHL com dados cadastrais e estatísticas de carreira para temporada regular e playoffs."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_teams
     description: "Dimensão de times NHL com team_id, franchise_id, sigla e nome completo."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_all_hockeyfights
     description: "Base tratada de brigas da NHL/HockeyFights, com jogadores, times, data, período e avaliação do confronto."
@@ -66,3 +96,5 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

@@ -58,7 +58,8 @@ SELECT
         WHEN t2.vt_sim > t2.vt_nao THEN 'A FAVOR'
         WHEN t2.vt_nao > t2.vt_sim THEN 'CONTRA'
         WHEN t2.vt_nao = t2.vt_sim THEN 'EMPATE'
-    END                                                         AS vontade_popular
+    END                                                         AS vontade_popular,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM linha_representativa AS t1
 INNER JOIN votos_agrupados AS t2
     ON t1.proposicao_id_nk = t2.proposicao_id_nk

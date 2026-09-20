@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -31,7 +30,8 @@ final AS (
             + INTERVAL '1 month'
             - INTERVAL '1 day'
         )::DATE AS data_referencia,
-        vlr_usd
+        vlr_usd,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM ultimo_dia_disponivel
     ORDER BY data_referencia
 )

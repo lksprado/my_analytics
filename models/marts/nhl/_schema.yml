@@ -15,6 +15,8 @@ models:
           - not_null
       - name: outcome_last_period
         description: "Tipo do último período jogado: reg, ot ou so."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_player
     description: "Dimensão de jogadores da NHL com dados cadastrais consolidados. Linha sentinela player_sk = '-1'."
@@ -29,6 +31,8 @@ models:
           - not_null
       - name: is_inferred
         description: "Jogador presente no boxscore mas ainda ausente da coleta de jogadores; só nome abreviado e posição são conhecidos."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_team
     description: "Dimensão de times da NHL com identificadores, franquia, códigos e nomes. Linha sentinela team_sk = '-1'."
@@ -39,6 +43,8 @@ models:
           - not_null
       - name: franchise_id
         description: "Agrupa times da mesma franquia após realocações."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_fight
     description: "Dimensão de brigas do HockeyFights, casadas ao jogo (data + times) e aos jogadores (nome abreviado no elenco do boxscore). Linha sentinela fight_id = '-1'."
@@ -53,6 +59,8 @@ models:
         description: "Nulo quando o nome não bate com o elenco ou há homônimos no mesmo time e jogo."
       - name: player_2_id
         description: "Nulo quando o nome não bate com o elenco ou há homônimos no mesmo time e jogo."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_games
     description: "Fato de jogos concluídos, uma linha por jogo e time (mandante e visitante espelhados)."
@@ -100,6 +108,8 @@ models:
         description: "Verdadeiro quando há ao menos uma briga do HockeyFights casada ao jogo."
         tests:
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_game_periods
     description: "Fato de gols e chutes por jogo, período e time."
@@ -119,6 +129,8 @@ models:
         tests: *team_fk
       - name: opponent_team_sk
         tests: *team_fk
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_skater_games
     description: "Fato de estatísticas de skaters (atacantes e defensores) por jogo, a partir do boxscore."
@@ -146,6 +158,8 @@ models:
         tests: *team_fk
       - name: toi_seconds
         description: "Nulo em jogos antigos sem tempo de gelo registrado."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_goalie_games
     description: "Fato de estatísticas de goleiros por jogo, a partir do boxscore. Inclui goleiros reservas que não entraram (toi_seconds = 0)."
@@ -166,6 +180,8 @@ models:
         tests: *team_fk
       - name: opponent_team_sk
         tests: *team_fk
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_game_events
     description: "Fato de eventos play-by-play (a partir de 2014-15), um por evento. Jogadores por papel apontam para a dim_player; '-1' quando o papel não se aplica ao evento."
@@ -202,3 +218,5 @@ models:
         description: "Placar do mandante após o evento; preenchido só em gols."
       - name: away_score
         description: "Placar do visitante após o evento; preenchido só em gols."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

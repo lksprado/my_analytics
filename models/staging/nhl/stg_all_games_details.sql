@@ -1,6 +1,7 @@
 {{
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = 'game_id',
     tags = ['nhl', 'staging', 'game_id'],
     post_hook = [
@@ -80,7 +81,8 @@ renamed AS (
         NULLIF(REGEXP_REPLACE({{ clean_string('home_team_placename','lower') }}, '[^[:alpha:]. ]', '', 'g'), '') AS home_team_placename,
         REGEXP_REPLACE({{ clean_string('home_team_commonname','lower') }}, '[^[:alpha:]. ]', '', 'g')            AS home_team_commonname,
         home_team_logo,
-        home_team_darklogo
+        home_team_darklogo,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM flattening
 )
 

@@ -1,6 +1,7 @@
 {{ 
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = ['player_id', 'game_id', 'game_type_id'],
     tags = ['nhl','staging', 'player_id'],
     post_hook = [
@@ -53,7 +54,8 @@ stats_games AS (
 SELECT
     *,
     ROW_NUMBER() OVER (PARTITION BY player_id, season_id ORDER BY game_id)::INT
-        AS game_played_number
+        AS game_played_number,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM stats_games
 {% if is_incremental() %}
     where game_date >= (select max(game_date) from {{ this }})

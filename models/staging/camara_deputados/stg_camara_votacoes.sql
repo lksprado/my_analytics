@@ -16,7 +16,8 @@ renamed AS (
         proposicaoobjeto                             AS proposicao_objeto,
         {{ clean_string("descricao","upper") }}      AS descricao,
         SPLIT_PART(uriproposicaoobjeto, '/', 7)::INT AS proposicao_id_fk,
-        aprovacao::INT                               AS aprovado
+        aprovacao::INT                               AS aprovado,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -11,7 +10,8 @@ seed AS (
         dia,
         mes_num,
         ano_inicio,
-        {{ clean_string("motivo", "upper") }} AS motivo
+        {{ clean_string("motivo", "upper") }} AS motivo,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM {{ ref('seed_datas_especiais') }}
 )
 

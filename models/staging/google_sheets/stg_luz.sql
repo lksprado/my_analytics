@@ -43,7 +43,8 @@ renamed AS (
                 WHEN mes LIKE 'nov.%' THEN '11/' || RIGHT(mes, 2)
                 WHEN mes LIKE 'dez.%' THEN '12/' || RIGHT(mes, 2)
             END, 'MM/YY'
-        )                 AS mes
+        )                 AS mes,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

@@ -23,7 +23,8 @@ final AS (
             WHEN resultado_votacao = 'APROVADO' THEN 1
             ELSE 0
         END                                                                AS aprovado,
-        CAST(TO_CHAR(data_sessao, 'YYYYMMDD') AS INTEGER)                  AS sk_data
+        CAST(TO_CHAR(data_sessao, 'YYYYMMDD') AS INTEGER)                  AS sk_data,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM senado_votacoes
     WHERE codigo_votacao IS NOT NULL
     ORDER BY data_sessao DESC

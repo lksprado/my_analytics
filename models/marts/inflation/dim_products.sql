@@ -1,7 +1,6 @@
 {{
   config(
-    materialized = 'view',
-    tags = ['inflacao', 'intermediate'],
+    tags = ['inflacao'],
   )
 }}
 
@@ -47,7 +46,8 @@ final AS (
         unit_normalized,
         unity_type,
         unity_value,
-        product_name        
+        product_name,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at        
     FROM rank
     WHERE rn = 1
 )

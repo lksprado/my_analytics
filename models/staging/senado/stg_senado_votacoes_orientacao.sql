@@ -18,5 +18,6 @@ SELECT
     CASE
         WHEN {{ clean_string("voto","upper") }} = 'LIVRE' THEN 'LIBERADO'
         ELSE {{ clean_string("voto","upper") }}
-    END                                   AS orientacao_voto
+    END                                   AS orientacao_voto,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM source

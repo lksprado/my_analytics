@@ -34,7 +34,8 @@ teams AS (
         RIGHT(t2.latest_season_id::TEXT, 4)::INT                            AS latest_season_year,
         t2.first_season_id,
         t2.latest_season_id,
-        t3.is_current                                                       AS is_active
+        t3.is_current                                                       AS is_active,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM {{ ref('stg_all_teams') }} AS t1
     LEFT JOIN game_details AS t2
         ON t1.id = t2.id
@@ -58,7 +59,8 @@ sentinel AS (
         9999      AS latest_season_year,
         99999999  AS first_season_id,
         99999999  AS latest_season_id,
-        FALSE     AS is_active
+        FALSE     AS is_active,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 )
 
 SELECT * FROM teams

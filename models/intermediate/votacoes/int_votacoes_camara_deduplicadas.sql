@@ -27,7 +27,8 @@ final AS (
         sigla_orgao,
         {{ dbt_utils.generate_surrogate_key(['casa', 'proposicao_id_fk']) }} AS sk_proposicao,
         aprovado,
-        CAST(TO_CHAR(data_votacao, 'YYYYMMDD') AS INTEGER)                AS sk_data
+        CAST(TO_CHAR(data_votacao, 'YYYYMMDD') AS INTEGER)                AS sk_data,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM dedup
     WHERE rn = 1
     ORDER BY data_votacao DESC

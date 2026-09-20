@@ -35,7 +35,8 @@ final AS (
         transporte,
         apartamento,
         saude,
-        educacao
+        educacao,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned
 )
 

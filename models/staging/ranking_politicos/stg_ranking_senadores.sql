@@ -29,7 +29,8 @@ renamed AS (
         composicao_pontuacao_ranking_estado::BIGINT AS composicao_pontuacao_ranking_estado,
         composicao_pontuacao_ranking_estado_variacao::NUMERIC AS composicao_pontuacao_ranking_estado_variacao,
         composicao_pontuacao_ranking_casa_estado::BIGINT AS composicao_pontuacao_ranking_casa_estado,
-        composicao_pontuacao_ranking_casa_estado_variacao::NUMERIC AS composicao_pontuacao_ranking_casa_estado_variacao
+        composicao_pontuacao_ranking_casa_estado_variacao::NUMERIC AS composicao_pontuacao_ranking_casa_estado_variacao,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

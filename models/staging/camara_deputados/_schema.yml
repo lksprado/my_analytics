@@ -26,6 +26,8 @@ models:
         description: "Grau de escolaridade informado."
       - name: email
         description: "E-mail institucional — COALESCE de ultimostatus_email e ultimostatus_gabinete_email."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_camara_legislaturas
     description: "Modelo staging com o mapeamento de deputados por legislatura. Roster histórico usado para complementar deputados ausentes do endpoint de detalhes em int_deputados_padronizados."
@@ -38,6 +40,8 @@ models:
         description: "UF de representação do deputado na legislatura (siglauf)."
       - name: partido_id_fk
         description: "Chave estrangeira do partido na API da Câmara."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
   - name: stg_camara_votacoes
     description: "Modelo staging com as sessões de votação da Câmara."
     columns:
@@ -57,6 +61,8 @@ models:
         description: "Chave estrangeira da proposição objeto da votação na API da Câmara."
       - name: aprovado
         description: "Booleano indicando se a proposição foi aprovada."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_camara_votacoes_orientacao
     description: "Modelo staging com a orientação de cada partido/liderança por votação."
@@ -71,6 +77,8 @@ models:
         description: "Código do partido ou bloco que recebeu a orientação."
       - name: sigla_partido_bloco
         description: "Sigla do partido ou bloco que recebeu a orientação."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_camara_votos_deputados
     description: "Modelo staging com o voto individual de cada deputado por votação."
@@ -89,6 +97,8 @@ models:
         description: "Chave estrangeira da votação à qual o voto se refere."
       - name: partido_id_fk
         description: "Chave estrangeira do partido na API da Câmara."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_camara_temas
     description: "Modelo staging com os temas de uma proposição."
@@ -101,6 +111,8 @@ models:
         description: "Código do tema."
       - name: relevancia
         description: "Não identificado. Tudo zero."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: stg_camara_proposicoes
     description: "Modelo staging com as proposições da Câmara."
@@ -115,3 +127,5 @@ models:
         description: "Data de apresentação da proposição."
       - name: palavras_chave
         description: "Palavras-chave do que se trata a proposição."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

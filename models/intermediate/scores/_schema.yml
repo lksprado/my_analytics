@@ -40,6 +40,8 @@ models:
         description: "Posição no ranking da Câmara por estado."
       - name: uf
         description: "UF de representação (normalizada para sigla)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_senadores_pontuacao
     description: "Scores agregados do Ranking dos Políticos para senadores, com ranking renomeado e sk_parlamentar gerado. Alimenta dim_parlamentares_score."
@@ -79,6 +81,8 @@ models:
         description: "Posição no ranking do Senado por estado."
       - name: uf
         description: "UF de representação (normalizada para sigla)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_deputados_pontuacao_explodida
     description: "Scores de deputados explodidos por ano via JSON (composicao_pontuacao_anos). Uma linha por deputado por ano. Alimenta dim_parlamentares_score_historico."
@@ -135,6 +139,8 @@ models:
         description: "Bônus por articulação legislativa."
       - name: pontuacao
         description: "Pontuação final do deputado naquele ano."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_senadores_pontuacao_explodida
     description: "Scores de senadores explodidos por ano via JSON. Uma linha por senador por ano. Alimenta dim_parlamentares_score_historico."
@@ -191,3 +197,5 @@ models:
         description: "Bônus por articulação legislativa."
       - name: pontuacao
         description: "Pontuação final do senador naquele ano."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

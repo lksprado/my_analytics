@@ -37,7 +37,8 @@ final AS (
         t2.temperature_morning,
         t2.pressure_afternoon,
         t2.wind_max_speed,
-        t2.wind_max_direction
+        t2.wind_max_direction,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM tab_energia AS t1
     INNER JOIN tab_clima AS t2
         ON t1.generation_date = t2.weather_date

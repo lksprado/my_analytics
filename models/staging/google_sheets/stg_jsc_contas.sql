@@ -64,7 +64,8 @@ renamed AS (
             ',',
             '.'
         )::NUMERIC(18, 2)                 AS educacao,
-        'jessica'                         AS pessoa
+        'jessica'                         AS pessoa,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

@@ -30,6 +30,8 @@ models:
         description: "Nome do partido resolvido por partido_id_fk = seed_partidos.id_camara."
       - name: voto
         description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO). BRANCO e FAVORAVEL COM RESTRICOES normalizados."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_votacoes_camara_deduplicadas
     description: "Sessões de votação da Câmara com chave substituta gerada. Alimenta dim_votacoes."
@@ -55,6 +57,8 @@ models:
         description: Booleano indicando se a proposição foi aprovada.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da votação.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_orientacoes_camara_corrigidas
     description: "Orientações de voto por partido/liderança por sessão de votação da Câmara. Alimenta dim_orientacao_votacoes."
@@ -73,6 +77,8 @@ models:
         description: Tipo de liderança que deu a orientação (BANCADA ou PARTIDO).
       - name: sigla_partido_bloco
         description: Sigla do partido ou bloco que recebeu a orientação (normalizada).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_votos_senado_filtrados
     description: "Votos individuais de senadores normalizados com chaves substitutas geradas. Alimenta fct_votos."
@@ -108,6 +114,8 @@ models:
         description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO)."
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da sessão de votação.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_votacoes_senado_filtradas
     description: "Sessões de votação do Senado com chave substituta gerada. Alimenta dim_votacoes."
@@ -133,6 +141,8 @@ models:
         description: 1 se aprovado, 0 caso contrário.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da votação.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_orientacoes_senado_filtradas
     description: "Orientações de voto por partido/bancada por sessão de votação do Senado. Alimenta dim_orientacao_votacoes."
@@ -153,6 +163,8 @@ models:
         description: Sigla do partido que recebeu a orientação.
       - name: orientacao_voto
         description: Orientação de voto (SIM, NAO, OBSTRUCAO — LIBERADO já filtrado).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_proposicoes_unificadas
     description: "Proposições unificadas (UNION de Câmara e Senado) com tipo padronizado e chave substituta gerada. Alimenta dim_proposicoes."
@@ -172,3 +184,5 @@ models:
         description: Data de apresentação da proposição.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da apresentação da proposição.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

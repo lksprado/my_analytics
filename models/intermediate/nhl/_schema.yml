@@ -9,6 +9,8 @@ models:
         tests:
           - unique
           - not_null
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_team_games
     description: "Jogos concluídos espelhados por time (mandante e visitante), com estatísticas de time e resultado do ponto de vista de cada lado."
@@ -21,6 +23,8 @@ models:
     columns:
       - name: standing_points
         description: "Pontos na classificação: 2 vitória, 1 empate ou derrota na prorrogação/shootout (a partir de 1999-00), 0 derrota. Nulo em playoffs."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_team_game_periods
     description: "Gols e chutes por período espelhados por time."
@@ -31,6 +35,9 @@ models:
               - game_id
               - period_number
               - is_home
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_player_games_played
     description: "Participação de jogadores por jogo a partir do boxscore (skaters e goleiros), com time, adversário e tempo de gelo em segundos. Até os anos 1920 um skater podia ir ao gol no mesmo jogo, então o grão inclui player_type."
@@ -41,6 +48,12 @@ models:
               - game_id
               - player_id
               - player_type
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_game_events
     description: "Eventos play-by-play de temporada regular e playoffs (a partir de 2014-15), com zona decodificada e tempo no período em segundos."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

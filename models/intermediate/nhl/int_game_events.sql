@@ -44,7 +44,8 @@ final AS (
         penalty_type_code,
         duration                                                                           AS penalty_minutes,
         home_score,
-        away_score
+        away_score,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM pbp
 )
 

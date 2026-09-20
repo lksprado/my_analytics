@@ -62,6 +62,7 @@ SELECT
     proposicao_id_nk,
     tipo_proposicao,
     data_proposicao,
-    sk_data
+    sk_data,
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM deduplicada
 WHERE rn = 1

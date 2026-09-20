@@ -16,7 +16,8 @@ renamed AS (
         {{ clean_integer("codtipo") }}              AS codigo_tipo,
         {{ clean_string("descricaotipo","upper") }} AS descricao_tipo,
         dataapresentacao::TIMESTAMP::DATE           AS data_proposicao,
-        {{ clean_string("keywords","upper") }}      AS palavras_chave
+        {{ clean_string("keywords","upper") }}      AS palavras_chave,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

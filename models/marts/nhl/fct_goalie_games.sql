@@ -34,7 +34,8 @@ final AS (
         t2.shorthanded_goals_against,
         t2.evenstrenght_shots_against          AS evenstrength_shots_against,
         t2.evenstrenght_saves                  AS evenstrength_saves,
-        t2.evenstrenght_goals_against          AS evenstrength_goals_against
+        t2.evenstrenght_goals_against          AS evenstrength_goals_against,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM player_games AS t1
     INNER JOIN goalie_stats AS t2
         ON t1.game_id = t2.game_id

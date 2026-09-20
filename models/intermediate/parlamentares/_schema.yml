@@ -25,6 +25,8 @@ models:
         description: "Sexo expandido (MASCULINO/FEMININO)."
       - name: uf
         description: "UF de nascimento."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_senadores_padronizados
     description: "Senadores normalizados combinando endpoint de senadores atuais (prioridade) com histórico de legislaturas. Alimenta dim_parlamentares."
@@ -49,3 +51,5 @@ models:
         description: "Sexo conforme cadastro do Senado."
       - name: uf
         description: "UF de representação do senador."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

@@ -96,7 +96,8 @@ final AS (
             WHEN is_tie THEN 1
             WHEN is_ot_loss AND season_id >= 19992000 THEN 1
             ELSE 0
-        END AS standing_points
+        END AS standing_points,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM results
 )
 

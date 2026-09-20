@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'staging'],
   )
 }}
@@ -46,7 +45,8 @@ final AS (
             WHEN symbol_cusip = '91282CLH2'
                 THEN '7009170'
             ELSE symbol_cusip
-        END       AS symbol_cusip
+        END       AS symbol_cusip,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 )
 

@@ -46,7 +46,8 @@ final AS (
         t1.casa,
         t1.orientacao_voto,
         t2.tipo_lideranca,
-        t1.sigla_partido_bloco
+        t1.sigla_partido_bloco,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM ajustes AS t1
     LEFT JOIN correcao_lideranca AS t2
         ON t1.sigla_partido_bloco = t2.sigla_partido_bloco

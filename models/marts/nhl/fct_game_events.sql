@@ -1,6 +1,7 @@
 {{
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = ['game_sk', 'event_id'],
     incremental_strategy = 'delete+insert',
     tags = ['nhl'],
@@ -55,7 +56,8 @@ final AS (
         t1.penalty_type_code,
         t1.penalty_minutes,
         t1.home_score,
-        t1.away_score
+        t1.away_score,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM game_events AS t1
     INNER JOIN {{ ref('dim_game') }} AS t2
         ON t1.game_id = t2.game_id

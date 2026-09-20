@@ -97,7 +97,8 @@ renamed AS (
         (ranking_item -> 'bonus_penalidades' ->> 'producao_legislativa')::NUMERIC(18, 4)    AS bonus_producao_legislativa,
         (ranking_item -> 'bonus_penalidades' ->> 'articulacao_legislativa')::NUMERIC(18, 4) AS bonus_articulacao_legislativa,
 
-        (ranking_item ->> 'pontuacao')::NUMERIC(18, 4)                                      AS pontuacao
+        (ranking_item ->> 'pontuacao')::NUMERIC(18, 4)                                      AS pontuacao,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 
     FROM exploded
 )

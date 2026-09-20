@@ -38,6 +38,23 @@ or commented-out code. Keep it concise.
 
 Not all projects are meant to be Star Schema modelling, when they do, they belong in the Marts layer. It is encouraged though.
 
+### Coluna de auditoria
+
+Todo modelo termina com `model_run_at` como última coluna:
+
+```sql
+'{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+```
+
+Literal resolvido na compilação, não `CURRENT_TIMESTAMP` — numa view `CURRENT_TIMESTAMP` seria a
+hora da consulta, não a do build. Todos os modelos de um mesmo run ficam com valor idêntico.
+
+Ficam de fora os modelos `ephemeral` (não são materializados) e os `enabled=false`. Onde o select
+final repassa `*` de um `ref()` que já traz a coluna, ela é herdada — não adicione uma segunda, o
+`CREATE TABLE AS` falha com coluna duplicada. Ao adicionar a coluna a um modelo que faz `UNION`
+com `dummy_row()`, inclua `['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"]` na lista do
+macro, senão os ramos ficam com contagens diferentes.
+
 ### Schema/YAML files
 
 Naming convention is `_schema.yml` (leading underscore);

@@ -123,3 +123,5 @@ models:
         description: "TRUE de segunda a sexta quando não é feriado — dia útil bancário nacional."
       - name: dia_util_mes
         description: "Ordinal do dia útil dentro do mês (1 = primeiro dia útil); NULL em dia não útil. Ex.: o 5º dia útil é dia_util_mes = 5."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

@@ -24,6 +24,8 @@ models:
         description: Sexo informado no cadastro (MASCULINO/FEMININO).
       - name: uf
         description: UF de nascimento (deputados) ou representação (senadores).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_votacoes
     description: Dimensão de sessões de votação unificada (Câmara e Senado). Alimenta joins em governismo e análises de resultado.
@@ -45,6 +47,8 @@ models:
         description: 1 se aprovada, 0 caso contrário.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da votação.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_orientacao_votacoes
     description: Dimensão de orientações de voto por partido/bancada (Câmara e Senado). Alimenta análises de alinhamento governista.
@@ -59,6 +63,8 @@ models:
         description: Sigla do partido ou bloco que recebeu a orientação.
       - name: orientacao_voto
         description: Orientação de voto (SIM, NAO, OBSTRUCAO).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_parlamentares_score
     description: "Dimensão de scores do Ranking dos Políticos por parlamentar (Câmara e Senado). Grain: um registro por parlamentar."
@@ -80,6 +86,8 @@ models:
         description: Posição no ranking dentro do estado.
       - name: ranking_casa_estado
         description: Posição no ranking da casa dentro do estado.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_parlamentares_score_historico
     description: "Dimensão de scores históricos por ano do Ranking dos Políticos (Câmara e Senado). Grain: um registro por parlamentar por ano."
@@ -106,6 +114,8 @@ models:
         description: Bônus por produção legislativa.
       - name: bonus_articulacao_legislativa
         description: Bônus por articulação legislativa.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_proposicoes
     description: "Dimensão de proposições unificada (Câmara e Senado) com linha dummy para chaves órfãs. Alimenta joins em governismo e dim_votacoes."
@@ -127,6 +137,8 @@ models:
         description: Data de apresentação da proposição.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da apresentação da proposição.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: dim_dates
     description: >
@@ -145,6 +157,8 @@ models:
         tests:
           - not_null
           - unique
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_votos
     description: "Fato de votos individuais unificado (Câmara e Senado). Grain: um voto por parlamentar por votação."
@@ -180,6 +194,8 @@ models:
         description: "Dimensão degenerada: nome do partido no momento do voto ('desconhecido' quando não há partido)."
       - name: voto
         description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_ecidadania_bignumbers
     description: Fato com os totais agregados de votações e votantes na plataforma e-Cidadania.
@@ -194,6 +210,8 @@ models:
         description: Quantidade total de votos registrados na plataforma.
       - name: votos_por_pessoa
         description: Média de votos por pessoa (total_votos / total_pessoas).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_ecidadania_proposicoes
     description: Fato com métricas de votação por proposição na plataforma e-Cidadania, com flag indicando se foi a mais votada no dia da extração.
@@ -224,3 +242,5 @@ models:
         description: URL da proposição na plataforma e-Cidadania.
       - name: flag_mais_votado_no_dia
         description: Booleano indicando se a proposição estava entre as mais votadas na data de extração.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

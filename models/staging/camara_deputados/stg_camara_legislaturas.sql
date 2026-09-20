@@ -13,7 +13,8 @@ renamed AS (
         id::BIGINT                          AS deputado_id_fk,
         nome,
         siglauf                             AS uf,
-        SPLIT_PART(uripartido, '/', 7)::INT AS partido_id_fk
+        SPLIT_PART(uripartido, '/', 7)::INT AS partido_id_fk,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
     WHERE nome IS NOT NULL
 )

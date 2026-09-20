@@ -1,6 +1,5 @@
 {{
   config(
-    materialized = 'table',
     tags = ['financas', 'marts'],
   )
 }}
@@ -35,6 +34,6 @@ faltam_classificar AS (
 
 SELECT
     faltam_classificar.*,
-    CURRENT_TIMESTAMP AS model_updated_at
+    '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM faltam_classificar
 ORDER BY pessoa, vlr_atualizado_brl DESC

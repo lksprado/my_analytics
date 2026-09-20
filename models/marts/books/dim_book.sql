@@ -98,7 +98,8 @@ final AS (
         COALESCE(
             filtered.category,
             'desconhecido'
-        )                                                                      AS category
+        )                                                                      AS category,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 
     FROM books
 

@@ -42,7 +42,8 @@ joined AS (
         u.saude,
         u.educacao,
         u.despesas_total,
-        u.resultado
+        u.resultado,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM unioned AS u
     LEFT JOIN ajuste AS a
         ON u.mes_debito = a.mes

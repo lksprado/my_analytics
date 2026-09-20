@@ -114,7 +114,8 @@ final AS (
         t1.total_observations                                    AS qtd_observacoes,
         t1.min_price_ever                                        AS preco_minimo_historico,
         t1.max_price_ever                                        AS preco_maximo_historico,
-        t1.avg_price_ever                                        AS preco_medio_historico
+        t1.avg_price_ever                                        AS preco_medio_historico,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM enriquecido AS t1
     INNER JOIN datas AS t3
         ON t1.created_date = t3.date_day

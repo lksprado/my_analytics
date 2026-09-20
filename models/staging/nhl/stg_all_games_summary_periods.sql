@@ -1,6 +1,7 @@
 {{
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = ['game_id', 'period_number'],
     tags = ['nhl', 'staging'],
     post_hook = [
@@ -47,7 +48,8 @@ joined AS (
         s.away_shots,
         s.home_shots,
         g.away_goals,
-        g.home_goals
+        g.home_goals,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM shots AS s
     INNER JOIN goals AS g
         ON

@@ -37,7 +37,8 @@ renamed AS (
         TO_DATE(mandato_segundalegislaturadomandato_datafim::TEXT, 'YYYYMMDD')     AS mandato_segundalegislaturadomandato_datafim,
         NULLIF(mandato_titular_descricaoparticipacao, 'NAN')                       AS mandato_titular_descricaoparticipacao,
         NULLIF(mandato_titular_codigoparlamentar, 'NAN')                           AS mandato_titular_codigoparlamentar,
-        NULLIF(mandato_titular_nomeparlamentar, 'NAN')                             AS mandato_titular_nomeparlamentar
+        NULLIF(mandato_titular_nomeparlamentar, 'NAN')                             AS mandato_titular_nomeparlamentar,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )
 

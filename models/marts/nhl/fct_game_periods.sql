@@ -21,7 +21,8 @@ final AS (
         t1.goals_for,
         t1.goals_against,
         t1.shots_for,
-        t1.shots_against
+        t1.shots_against,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM team_game_periods AS t1
     INNER JOIN {{ ref('dim_game') }} AS t2
         ON t1.game_id = t2.game_id

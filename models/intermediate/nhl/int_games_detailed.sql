@@ -35,7 +35,8 @@ renamed as (
         gd.game_outcome_total_periods,
         gd.special_event_name,
         gd.game_date_timestamp_utc,
-        gd.game_schedule_state
+        gd.game_schedule_state,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     from game_summary as gs
     left join game_details as gd
         on gs.game_id = gd.game_id

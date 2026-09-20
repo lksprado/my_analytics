@@ -3,3 +3,6 @@ version: 2
 models:
   - name: inflation
     description: "Histórico de preços de produtos do Atacadão por data de extração, cruzando a dimensão de produtos com o fato de preços (unidade e quantidade normalizadas, preços máximo e mínimo)."
+    columns:
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

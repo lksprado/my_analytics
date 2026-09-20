@@ -106,7 +106,8 @@ final AS (
         voto_alinhado,
         
         data_proposicao,
-        data_votacao
+        data_votacao,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM votos_parlamentares_joined
 )
 

@@ -41,7 +41,8 @@ votos_com_partidos AS (
         t1.votacao_id_fk,
         {{ clean_string("REPLACE(t2.sigla_conformada,'*','')", "upper") }} AS partido,
         {{ clean_string("t2.nome", "upper") }}          AS partido_nome,
-        t1.voto
+        t1.voto,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM votos_filtrados t1
     LEFT JOIN {{ ref('seed_partidos') }} t2
     ON t1.partido_id_fk = t2.id_camara

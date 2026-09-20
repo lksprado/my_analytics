@@ -63,7 +63,8 @@ final AS (
         height_inches,
         weight_kilogram,
         weight_pounds,
-        FALSE                                                       AS is_inferred
+        FALSE                                                       AS is_inferred,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM player_info
 ),
 
@@ -107,7 +108,8 @@ inferred AS (
         NULL::INT                                                             AS height_inches,
         NULL::INT                                                             AS weight_kilogram,
         NULL::INT                                                             AS weight_pounds,
-        TRUE                                                                  AS is_inferred
+        TRUE                                                                  AS is_inferred,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM boxscore_players AS t1
     WHERE NOT EXISTS (SELECT 1 FROM final AS t2 WHERE t2.player_id = t1.player_id)
 ),
@@ -138,7 +140,8 @@ sentinel AS (
         NULL::INT  AS height_inches,
         NULL::INT  AS weight_kilogram,
         NULL::INT  AS weight_pounds,
-        FALSE      AS is_inferred
+        FALSE      AS is_inferred,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 )
 
 SELECT * FROM final

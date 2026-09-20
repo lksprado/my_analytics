@@ -39,7 +39,8 @@ final AS (
         t1.is_ot_loss,
         t1.is_tie,
         t1.standing_points,
-        t5.game_id IS NOT NULL                 AS has_fight
+        t5.game_id IS NOT NULL                 AS has_fight,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM team_games AS t1
     INNER JOIN {{ ref('dim_game') }} AS t2
         ON t1.game_id = t2.game_id

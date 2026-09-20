@@ -41,7 +41,8 @@ final AS (
         t1.avg_price_ever,
         t1.price_vs_min_ever,
         t1.pct_above_min_ever,
-        t1.is_at_record_low
+        t1.is_at_record_low,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM prices AS t1
     LEFT JOIN books AS t2
         ON t1.name = t2.name

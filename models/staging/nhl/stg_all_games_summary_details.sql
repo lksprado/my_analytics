@@ -1,6 +1,7 @@
 {{
   config(
     materialized = 'incremental',
+    on_schema_change = 'append_new_columns',
     unique_key = ['game_id'],
     tags = ['nhl', 'staging', 'game_id'],
     post_hook = [
@@ -47,7 +48,8 @@ wide AS (
         MAX(away_value) FILTER (WHERE metric = 'giveaways')::INT            AS away_giveaways,
         MAX(home_value) FILTER (WHERE metric = 'giveaways')::INT            AS home_giveaways,
         MAX(away_value) FILTER (WHERE metric = 'takeaways')::INT            AS away_takeaways,
-        MAX(home_value) FILTER (WHERE metric = 'takeaways')::INT            AS home_takeaways
+        MAX(home_value) FILTER (WHERE metric = 'takeaways')::INT            AS home_takeaways,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM exploded
     GROUP BY game_id
 )

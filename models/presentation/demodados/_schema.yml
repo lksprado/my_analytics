@@ -50,6 +50,8 @@ models:
         description: Data de apresentação da proposição votada.
       - name: data_votacao
         description: Data em que a votação ocorreu.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
   - name: governismo_por_parlamentar_legislatura
     description: >
       Grão: um parlamentar por legislatura por casa.
@@ -86,6 +88,8 @@ models:
         description: Votos em que o parlamentar contrariou a orientação do Governo.
       - name: perc_governismo
         description: Percentual bruto de alinhamento ao Governo (qt_votos_alinhados / qt_votos × 100).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: governismo_por_parlamentar_legislatura_ajustado
     description: >
@@ -128,6 +132,8 @@ models:
           onde C = média de votos e μ = média de perc_governismo da casa/legislatura.
           Valores próximos a perc_governismo indicam alta participação (score confiável);
           valores próximos à média indicam baixa participação (score amortecido).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: ecidadania_proposicoes
     description: "Apresentação de proposições da plataforma e-Cidadania enriquecida com atributos de tramitação e deliberação do Senado. DESABILITADO: arquivo SQL renomeado para .disabled enquanto a fonte e-Cidadania não estiver ativa."

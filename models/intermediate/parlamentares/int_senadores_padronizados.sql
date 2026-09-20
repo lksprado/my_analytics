@@ -48,7 +48,8 @@ final AS (
         nome,
         nome_completo,
         sexo,
-        uf
+        uf,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM senadores_completo
     WHERE rn = 1
 )

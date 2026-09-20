@@ -17,7 +17,8 @@ indexadores AS (
         ipca_acum,
         igpm_acum,
         selic_acum,
-        cdi_acum
+        cdi_acum,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM {{ ref('stg_patrimonio') }}
 )
 SELECT * FROM indexadores
