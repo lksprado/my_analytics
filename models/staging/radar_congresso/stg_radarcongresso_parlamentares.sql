@@ -22,7 +22,7 @@ renamed AS (
         parlamentarpartido as partido_dict,
         nomeprocessado as nome_completo,
         arquivo_origem,
-        data_carga
+        loaded_at_utc
     FROM source
 )
 SELECT * FROM renamed

@@ -18,8 +18,8 @@ models:
         description: "Data representativa do trimestre de referência"
       - name: perc_governismo_trimestre
         description: "Percentual de alinhamento ao governo no trimestre"
-      - name: data_carga
-        description: "Data/hora de ingestão do registro na camada raw"
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw"
 
   - name: stg_radarcongresso_governismo_senadores
     description: "Modelo staging com métricas de alinhamento ao governo para senadores (Radar Congresso)"
@@ -38,8 +38,8 @@ models:
         description: "Data representativa do trimestre de referência"
       - name: perc_governismo_trimestre
         description: "Percentual de alinhamento ao governo no trimestre"
-      - name: data_carga
-        description: "Data/hora de ingestão do registro na camada raw"
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw"
 
   - name: stg_radarcongresso_parlamentares
     description: "Modelo staging com tabela de-para entre IDs da API oficial (Câmara/Senado) e IDs do Radar Congresso"
@@ -68,5 +68,5 @@ models:
         description: "Nome completo do parlamentar"
       - name: arquivo_origem
         description: "Identificador do arquivo de origem da extração"
-      - name: data_carga
-        description: "Data/hora de ingestão do registro na camada raw"
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw"

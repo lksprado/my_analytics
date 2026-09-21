@@ -112,7 +112,7 @@ sources:
   - name: senado
     description: "Dados oriundos das extrações de endpoints da API https://legis.senado.leg.br/dadosabertos/api-docs/swagger-ui/index.html"
     schema: raw_senado
-    loaded_at_field: data_carga
+    loaded_at_field: loaded_at_utc
     freshness:
       warn_after: {count: 160, period: hour}
     tables:
@@ -137,7 +137,7 @@ sources:
 
   - name: camara
     schema: raw_camara
-    loaded_at_field: data_carga
+    loaded_at_field: loaded_at_utc
     freshness:
       warn_after: {count: 160, period: hour}
     tables:
@@ -158,7 +158,7 @@ sources:
 
   - name: ecidadania
     schema: raw_ecidadania
-    loaded_at_field: data_carga
+    loaded_at_field: loaded_at_utc
     freshness:
       warn_after: {count: 160, period: hour}
     tables:
@@ -171,7 +171,7 @@ sources:
 
   - name: radar
     schema: raw_radar_congresso
-    loaded_at_field: data_carga
+    loaded_at_field: loaded_at_utc
     freshness:
       warn_after: {count: 160, period: hour}
     tables:
@@ -184,7 +184,7 @@ sources:
 
   - name: ranking
     schema: raw_ranking_politicos
-    loaded_at_field: data_carga
+    loaded_at_field: loaded_at_utc
     freshness:
       warn_after: {count: 160, period: hour}
     tables:

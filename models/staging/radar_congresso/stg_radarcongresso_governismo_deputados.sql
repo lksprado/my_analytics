@@ -17,7 +17,7 @@ renamed AS (
         total::int AS perc_governismo,
         to_date(trimestre, 'YYYY-MM-DD') AS data_trimestre,
         perc_governismo::int AS perc_governismo_trimestre,
-        data_carga
+        loaded_at_utc
     FROM source
 )
 

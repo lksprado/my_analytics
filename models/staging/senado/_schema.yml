@@ -207,8 +207,8 @@ models:
         description: "Sigla do partido do senador no momento do voto (upper)."
       - name: sigla_voto
         description: "Sigla do voto registrado (SIM, NAO, ABSTENCAO, etc.) (upper)."
-      - name: data_carga
-        description: "Data/hora de ingestão do registro na camada raw."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 

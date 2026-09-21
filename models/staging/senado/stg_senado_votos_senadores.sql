@@ -23,6 +23,6 @@ SELECT
     {{ clean_string("descricaovotoparlamentar","upper") }} AS descricao_voto,
     {{ clean_string("siglapartidoparlamentar","upper") }}  AS sigla_partido,
     {{ clean_string("siglavotoparlamentar","upper") }}     AS sigla_voto,
-    data_carga,
+    loaded_at_utc,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM source
