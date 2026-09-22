@@ -13,9 +13,8 @@ camara_votos AS (
 
 ajustes AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'votacao_id_nk']) }} AS sk_votacao,
         casa,
-        votacao_id_nk,
+        votacao_id_fk,
         orientacao_voto,
         CASE
             WHEN codigo_tipo_lideranca = 'B' THEN 'BANCADA'
@@ -41,8 +40,7 @@ correcao_lideranca AS (
 
 final AS (
     SELECT
-        t1.sk_votacao,
-        t1.votacao_id_nk,
+        t1.votacao_id_fk,
         t1.casa,
         t1.orientacao_voto,
         t2.tipo_lideranca,

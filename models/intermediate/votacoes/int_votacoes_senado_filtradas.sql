@@ -13,21 +13,16 @@ senado_votacoes AS (
 
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'codigo_votacao']) }} AS sk_votacao,
         casa,
-        codigo_votacao::TEXT                                               AS votacao_id_nk,
-        {{ dbt_utils.generate_surrogate_key(['casa', 'processo_id_nk']) }} AS sk_proposicao,
-        data_sessao                                                        AS data_votacao,
+        votacao_id_nk::TEXT                 AS votacao_id_nk,
+        processo_id_nk,
+        data_votacao,
         identificacao,
-        CASE
-            WHEN resultado_votacao = 'APROVADO' THEN 1
-            ELSE 0
-        END                                                                AS aprovado,
-        CAST(TO_CHAR(data_sessao, 'YYYYMMDD') AS INTEGER)                  AS sk_data,
+        aprovado,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM senado_votacoes
-    WHERE codigo_votacao IS NOT NULL
-    ORDER BY data_sessao DESC
+    WHERE votacao_id_nk IS NOT NULL
+    ORDER BY data_votacao DESC
 
 )
 

@@ -18,7 +18,8 @@ renamed AS (
         identificacaoparlamentar_siglapartidoparlamentar                               AS sigla_partido,
         identificacaoparlamentar_codigopubliconalegatual::INT                          AS codigo_publico_na_leg_atual,
         identificacaoparlamentar_ufparlamentar                                         AS uf,
-        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+        loaded_at_utc,
+        '{{ run_started_at }}'::TIMESTAMPTZ                                            AS model_run_at
     FROM source
 )
 

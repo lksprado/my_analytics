@@ -1,7 +1,7 @@
 {{ config(
     materialized='incremental',
     on_schema_change = 'append_new_columns',
-    unique_key='sk_proposicao',
+    unique_key='proposicao_id_nk',
     tags=["ecidadania", "participacao"]
 ) }}
 
@@ -20,7 +20,6 @@ renamed AS (
     SELECT
         TO_DATE(dt_extracao, 'YYYY-MM-DD') AS data_extracao,
         SPLIT_PART(UPPER(titulo), '/', 2)::INT AS ano_proposicao,
-        {{ dbt_utils.generate_surrogate_key(['titulo']) }} AS sk_proposicao,
         titulo AS proposicao_id_nk,
         {{ clean_string("tipo_proposicao", "upper") }} AS tipo_proposicao,
         {{ clean_string("descritivo", "upper") }} AS ementa,

@@ -1,0 +1,29 @@
+{{ config(
+    tags=["camara", "senado", "score"]
+) }}
+
+WITH scores AS (
+    SELECT * FROM {{ ref('int_parlamentares_pontuacao') }}
+)
+
+SELECT
+    {{ dbt_utils.generate_surrogate_key(['casa', 'congresso_id_fk']) }} AS sk_parlamentar,
+    pontuacao_geral,
+    ranking_geral,
+    ranking_casa,
+    ranking_partido,
+    ranking_estado,
+    ranking_casa_estado,
+    '{{ run_started_at }}'::TIMESTAMPTZ                                 AS model_run_at
+FROM scores
+UNION ALL
+{{ dummy_row([
+    ['sk_parlamentar', 'sk'],
+    ['pontuacao_geral', 'null::numeric'],
+    ['ranking_geral', 'null::int'],
+    ['ranking_casa', 'null::int'],
+    ['ranking_partido', 'null::int'],
+    ['ranking_estado', 'null::int'],
+    ['ranking_casa_estado', 'null::int'],
+    ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
+]) }}

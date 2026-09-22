@@ -1,0 +1,677 @@
+version: 2
+
+models:
+  - name: governismo
+    description: >
+      Grão: um voto por parlamentar por votação onde o Governo emitiu orientação.
+      Restrito à Câmara: no Senado só 24 votações têm orientação de GOVERNO que casa com
+      dim_votacoes, por defeito de extração do codigovotacaosve, e as 1.658 linhas resultantes
+      desapareciam em qualquer agregação. Enriquecido com nome, uf, partido, legislatura,
+      presidente, mandato, ano e trimestre — o recorte temporal e institucional vem de
+      votacoes_placar, que é onde o calendário e a seed de presidentes são resolvidos uma vez só.
+    columns:
+      - name: casa
+        description: Casa legislativa do voto (CAMARA ou SENADO).
+      - name: sk_voto
+        description: Chave substituta do evento de voto (parlamentar × votação × casa).
+        tests:
+          - not_null
+          - unique
+      - name: sk_parlamentar
+        description: Chave substituta estável do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+      - name: sk_votacao
+        description: Chave substituta da votação, join com dim_votacoes.
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: Identificador natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_nk
+        description: Identificador natural do senador na fonte do Senado. Nulo para deputados.
+      - name: nome
+        description: Nome eleitoral / parlamentar.
+      - name: uf
+        description: UF de representação do parlamentar.
+      - name: votacao_id_nk
+        description: Identificador natural da votação na casa de origem (id da Câmara ou codigo_votacao do Senado).
+      - name: tipo_proposicao
+        description: Tipo da proposição ou matéria votada.
+      - name: legislatura
+        description: Número da legislatura em que a votação ocorreu.
+      - name: presidente
+        description: Presidente da República em exercício na data da votação.
+      - name: mandato
+        description: Número do mandato do presidente (1, 2 ou 3).
+      - name: aprovado
+        description: 1 se a votação resultou em aprovação, 0 caso contrário.
+      - name: voto
+        description: "Voto registrado pelo parlamentar (SIM, NAO, ABSTENCAO, OBSTRUCAO)."
+      - name: voto_governo
+        description: Orientação emitida pelo Governo para esta votação (SIM, NAO).
+      - name: voto_alinhado
+        description: "1 se o voto coincidiu com a orientação do Governo, 0 se divergiu."
+      - name: data_proposicao
+        description: Data de apresentação da proposição votada.
+      - name: data_votacao
+        description: Data em que a votação ocorreu.
+      - name: ano
+        description: Ano da votação.
+      - name: trimestre
+        description: Trimestre do ano da votação (1 a 4).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: governismo_por_parlamentar_legislatura
+    description: >
+      Grão: um parlamentar por legislatura por casa.
+      Agrega os votos de governismo para produzir o percentual bruto de governismo
+      de cada parlamentar em cada legislatura. Útil para séries históricas simples,
+      mas com alta variância para parlamentares com poucos votos registrados.
+      Para rankings comparativos, prefira governismo_por_parlamentar_legislatura_ajustado.
+    columns:
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: Identificador natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_nk
+        description: Identificador natural do senador na fonte do Senado. Nulo para deputados.
+      - name: nome
+        description: Nome eleitoral / parlamentar.
+      - name: uf
+        description: UF de representação do parlamentar.
+      - name: legislatura
+        description: Número da legislatura.
+        tests:
+          - not_null
+      - name: qt_votos
+        description: Total de votos registrados pelo parlamentar na legislatura onde o Governo emitiu orientação.
+      - name: qt_votacoes
+        description: Total de votações distintas em que o parlamentar participou na legislatura.
+      - name: qt_votos_alinhados
+        description: Votos em que o parlamentar seguiu a orientação do Governo.
+      - name: qt_votos_nao_alinhados
+        description: Votos em que o parlamentar contrariou a orientação do Governo.
+      - name: perc_governismo
+        description: Percentual bruto de alinhamento ao Governo (qt_votos_alinhados / qt_votos × 100).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: governismo_por_parlamentar_legislatura_ajustado
+    description: >
+      Grão: um parlamentar por legislatura por casa.
+      Estende governismo_por_parlamentar_legislatura com score_governismo_ponderado,
+      calculado via média bayesiana que amortece extremos de baixa participação.
+      O prior (μ) e o peso de confiança (C) são derivados da média da própria casa
+      e legislatura, tornando o score comparável dentro de cada contexto.
+      Recomendado para rankings e visualizações onde participação e governismo
+      devem ser considerados conjuntamente.
+    columns:
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: Identificador natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_nk
+        description: Identificador natural do senador na fonte do Senado. Nulo para deputados.
+      - name: legislatura
+        description: Número da legislatura.
+        tests:
+          - not_null
+      - name: qt_votos
+        description: Total de votos registrados pelo parlamentar na legislatura onde o Governo emitiu orientação.
+      - name: qt_votacoes
+        description: Total de votações distintas em que o parlamentar participou na legislatura.
+      - name: qt_votos_alinhados
+        description: Votos em que o parlamentar seguiu a orientação do Governo.
+      - name: qt_votos_nao_alinhados
+        description: Votos em que o parlamentar contrariou a orientação do Governo.
+      - name: perc_governismo
+        description: Percentual bruto de alinhamento ao Governo (qt_votos_alinhados / qt_votos × 100).
+      - name: score_governismo_ponderado
+        description: >
+          Governismo ajustado por participação via média bayesiana.
+          Fórmula: (qt_votos × perc_governismo + C × μ) / (qt_votos + C),
+          onde C = média de votos e μ = média de perc_governismo da casa/legislatura.
+          Valores próximos a perc_governismo indicam alta participação (score confiável);
+          valores próximos à média indicam baixa participação (score amortecido).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: votacoes_placar
+    description: >
+      Grão: uma votação com voto nominal registrado — 6.359 das 191.317 de dim_votacoes.
+      As demais são sessões sem registro individual de voto e não têm placar.
+      Cobre as duas casas, porque não depende de orientação de voto.
+      É também onde o calendário (ano, trimestre, legislatura) e o presidente em exercício
+      são resolvidos uma única vez por votação; governismo, disciplina_partidaria e
+      comportamento_partidario consomem esse enriquecimento em vez de repetir os joins.
+    columns:
+      - name: sk_votacao
+        description: Chave substituta da votação, join com dim_votacoes.
+        tests:
+          - not_null
+          - unique
+      - name: votacao_id_nk
+        description: Identificador natural da votação na casa de origem.
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: data_votacao
+        description: Data em que a votação ocorreu.
+      - name: ano
+        description: Ano da votação.
+      - name: trimestre
+        description: Trimestre do ano da votação (1 a 4).
+      - name: legislatura
+        description: Número da legislatura, resolvido pela seed seed_legislaturas.
+      - name: presidente
+        description: >
+          Presidente da República em exercício na data da votação, da seed
+          seed_executivo_presidente. A seed encosta o fim de um mandato no início do seguinte
+          (Dilma 2 e Temer em 2016-08-31, Temer e Bolsonaro em 2019-01-01), então a
+          atribuição usa o mandato de início mais recente, não um BETWEEN, que duplicaria
+          as votações desses dois dias.
+      - name: mandato
+        description: Número do mandato do presidente (1, 2 ou 3).
+      - name: tipo_proposicao
+        description: >
+          Tipo da proposição objeto da votação. 'desconhecido' quando a votação não declara
+          proposição — é a maioria dos casos na Câmara, e a linha cai no membro dummy de
+          dim_proposicoes.
+      - name: proposicao_id_nk
+        description: Chave natural da proposição objeto da votação; nula quando não declarada.
+      - name: data_proposicao
+        description: Data de apresentação da proposição objeto da votação.
+      - name: aprovado
+        description: 1 se a votação resultou em aprovação, 0 caso contrário.
+      - name: qt_votantes
+        description: Total de votos nominais registrados na votação.
+      - name: qt_votos_sim
+        description: Votos SIM.
+      - name: qt_votos_nao
+        description: Votos NAO.
+      - name: qt_obstrucao
+        description: Votos de OBSTRUCAO.
+      - name: qt_partidos
+        description: Partidos distintos com pelo menos um voto registrado na votação.
+      - name: margem
+        description: Diferença qt_votos_sim menos qt_votos_nao. Negativa quando o NAO prevalece.
+      - name: perc_sim
+        description: Percentual de SIM sobre qt_votantes, que inclui a obstrução no denominador.
+      - name: orientacao_governo
+        description: Orientação emitida pelo Governo para esta votação; nula quando o Governo não orientou.
+      - name: flag_unanimidade
+        description: Verdadeiro quando um dos dois polos ficou zerado (só SIM ou só NAO).
+      - name: flag_votacao_apertada
+        description: Verdadeiro quando perc_sim fica entre 45 e 55.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: disciplina_partidaria
+    description: >
+      Grão: um voto em que o PRÓPRIO partido do parlamentar emitiu orientação.
+      Restrito à Câmara, onde a junção cobre 1.118.127 dos 1.883.614 votos (59%); no Senado
+      cobriria 1.674 de 27.400 (6%), pelo mesmo defeito de extração que limita o governismo.
+      É o complemento do governismo — mede lealdade à bancada, não ao Executivo — e permite
+      separar quem segue o partido de quem segue o governo.
+    columns:
+      - name: sk_voto
+        description: Chave substituta do evento de voto (parlamentar × votação × casa).
+        tests:
+          - not_null
+          - unique
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+      - name: sk_votacao
+        description: Chave substituta da votação, join com dim_votacoes.
+        tests:
+          - not_null
+      - name: votacao_id_nk
+        description: Identificador natural da votação na casa de origem.
+      - name: casa
+        description: Casa legislativa (sempre CAMARA neste modelo).
+      - name: nome
+        description: Nome eleitoral / parlamentar.
+      - name: uf
+        description: UF de representação do parlamentar.
+      - name: partido
+        description: Sigla do partido vigente no momento do voto.
+      - name: partido_nome
+        description: Nome do partido vigente no momento do voto.
+      - name: tipo_proposicao
+        description: Tipo da proposição objeto da votação.
+      - name: legislatura
+        description: Número da legislatura em que a votação ocorreu.
+      - name: presidente
+        description: Presidente da República em exercício na data da votação.
+      - name: mandato
+        description: Número do mandato do presidente.
+      - name: aprovado
+        description: 1 se a votação resultou em aprovação, 0 caso contrário.
+      - name: voto
+        description: "Voto registrado pelo parlamentar (SIM, NAO, OBSTRUCAO)."
+      - name: orientacao_partido
+        description: Orientação emitida pelo próprio partido do parlamentar para esta votação.
+      - name: voto_segue_partido
+        description: 1 se o voto coincidiu com a orientação do próprio partido, 0 se divergiu.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: data_votacao
+        description: Data em que a votação ocorreu.
+      - name: ano
+        description: Ano da votação.
+      - name: trimestre
+        description: Trimestre do ano da votação (1 a 4).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: comportamento_partidario
+    description: >
+      Grão: casa × partido × legislatura × presidente × mandato × ano × trimestre.
+      A tabela heatmap-ready das bancadas. Presidente e mandato são chave de grupo, não
+      atributo: a posse de Temer em 2016-08-31 corta um trimestre ao meio, e tratá-los como
+      atributo produziria linha ambígua.
+      Traz três famílias de métrica com coberturas diferentes, o que é intencional —
+      governismo e disciplina dependem de orientação de voto e por isso só existem para a
+      Câmara; a coesão (índice de Rice) não depende, e é a única métrica de comportamento de
+      bancada disponível para o Senado.
+    columns:
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: partido
+        description: Sigla do partido vigente no momento dos votos agregados.
+      - name: legislatura
+        description: Número da legislatura.
+      - name: presidente
+        description: Presidente da República em exercício no período.
+      - name: mandato
+        description: Número do mandato do presidente.
+      - name: ano
+        description: Ano das votações agregadas.
+      - name: trimestre
+        description: Trimestre do ano das votações agregadas (1 a 4).
+      - name: qt_parlamentares
+        description: Parlamentares distintos da sigla com pelo menos um voto no período.
+      - name: qt_votacoes
+        description: Votações distintas em que a bancada registrou pelo menos um voto.
+      - name: qt_votos
+        description: Total de votos registrados pela bancada no período.
+      - name: qt_votacoes_coesao
+        description: >
+          Votações do período com pelo menos dois votos polarizados (SIM ou NAO) da bancada —
+          o denominador do índice de Rice. Votação com um só votante daria Rice 1 sem
+          informação nenhuma e por isso fica de fora.
+      - name: indice_rice_medio
+        description: >
+          Média do índice de Rice das votações do período. Rice = |SIM − NAO| / (SIM + NAO)
+          dentro da bancada, ignorando obstrução: 1 é bancada unânime, 0 é bancada rachada ao
+          meio. Nulo quando nenhuma votação do período teve dois votos polarizados.
+      - name: qt_votos_governismo
+        description: Votos da bancada em votações com orientação do Governo. Nulo no Senado.
+      - name: qt_votos_alinhados_governo
+        description: Votos da bancada que seguiram a orientação do Governo. Nulo no Senado.
+      - name: perc_governismo
+        description: Percentual de alinhamento da bancada ao Governo no período. Nulo no Senado.
+      - name: qt_votos_disciplina
+        description: Votos da bancada em votações com orientação do próprio partido. Nulo no Senado.
+      - name: qt_votos_disciplinados
+        description: Votos da bancada que seguiram a orientação do próprio partido. Nulo no Senado.
+      - name: perc_disciplina
+        description: Percentual de disciplina da bancada no período. Nulo no Senado.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - partido
+              - legislatura
+              - presidente
+              - mandato
+              - ano
+              - trimestre
+
+  - name: painel_parlamentar
+    description: >
+      Grão: um parlamentar por legislatura. Tabela larga (OBT) para ranking, dispersão e
+      ficha individual — uma linha por entidade, sem necessidade de join no dataviz.
+      O esqueleto é governismo_por_parlamentar_legislatura_ajustado, então cobre apenas
+      parlamentares com voto em votação orientada pelo Governo, o que na prática restringe
+      à Câmara.
+    columns:
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: Identificador natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_nk
+        description: Identificador natural do senador na fonte do Senado. Nulo para deputados.
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: nome
+        description: Nome eleitoral / parlamentar.
+      - name: nome_completo
+        description: Nome civil do parlamentar.
+      - name: sexo
+        description: "Sexo do parlamentar (MASCULINO, FEMININO)."
+      - name: uf
+        description: UF de representação do parlamentar.
+      - name: partido_predominante
+        description: >
+          Sigla sob a qual o parlamentar registrou mais votos na legislatura. Não é filiação
+          formal — resolve o caso de quem trocou de partido no meio do mandato escolhendo a
+          sigla majoritária, com desempate alfabético.
+      - name: legislatura
+        description: Número da legislatura.
+        tests:
+          - not_null
+      - name: qt_votos_legislatura
+        description: Votos registrados pelo parlamentar em toda a legislatura, orientados ou não.
+      - name: qt_votacoes_legislatura
+        description: Votações distintas em que o parlamentar registrou voto na legislatura.
+      - name: qt_votacoes_casa
+        description: Votações nominais da casa na legislatura — o denominador da participação.
+      - name: perc_participacao
+        description: >
+          Percentual de votações da casa na legislatura em que o parlamentar votou.
+          É uma proxy de presença por baixo: quem assumiu no meio da legislatura, como
+          suplente, tem denominador cheio e aparece com participação baixa.
+      - name: qt_votos_governismo
+        description: Votos do parlamentar em votações com orientação do Governo.
+      - name: qt_votos_alinhados_governo
+        description: Votos em que o parlamentar seguiu a orientação do Governo.
+      - name: perc_governismo
+        description: Percentual bruto de alinhamento ao Governo na legislatura.
+      - name: score_governismo_ponderado
+        description: >
+          Governismo ajustado por participação via média bayesiana, calculado em
+          governismo_por_parlamentar_legislatura_ajustado. É o campo recomendado para ranking.
+      - name: qt_votos_disciplina
+        description: Votos do parlamentar em votações com orientação do próprio partido.
+      - name: qt_votos_disciplinados
+        description: Votos em que o parlamentar seguiu a orientação do próprio partido.
+      - name: perc_disciplina
+        description: >
+          Percentual de disciplina partidária na legislatura. Cruzado com perc_governismo,
+          separa quem é leal à bancada de quem é leal ao Executivo.
+      - name: pontuacao_geral
+        description: >
+          Pontuação do Ranking dos Políticos. A fonte não tem recorte por legislatura — é a
+          foto do mandato corrente —, então só a linha da legislatura mais recente é
+          preenchida; nas anteriores fica nula, para não sugerir série histórica inexistente.
+          O mesmo vale para os cinco rankings abaixo. Nula também para quem a fonte lista sem
+          score calculado: das 1.111 linhas de dim_parlamentares_score só 534 têm pontuação, e
+          30 dessas ausências caem na legislatura 57 com 50+ votos. Verificado: pontuacao_geral é a média
+          simples das pontuações anuais de score_vs_governismo (533 das 534 linhas batem com
+          arredondamento a duas casas).
+      - name: ranking_geral
+        description: Posição no ranking geral do Ranking dos Políticos.
+      - name: ranking_casa
+        description: Posição no ranking dentro da casa.
+      - name: ranking_partido
+        description: Posição no ranking dentro do partido.
+      - name: ranking_estado
+        description: Posição no ranking dentro do estado.
+      - name: ranking_casa_estado
+        description: Posição no ranking dentro da casa e do estado.
+      - name: percentil_governismo
+        description: >
+          Posição do parlamentar no eixo governismo dentro da casa e da legislatura, de 0 a 1.
+          Calculado só sobre quem tem pontuacao_geral e pelo menos 50 votos orientados, para
+          que este percentil e percentil_pontuacao venham da mesma população e o gap entre
+          eles signifique alguma coisa. Nulo fora desse recorte, o que inclui as legislaturas
+          51 a 56, onde não há score.
+      - name: percentil_pontuacao
+        description: Posição no eixo do Ranking dos Políticos, de 0 a 1, na mesma população.
+      - name: gap_percentil
+        description: >
+          percentil_pontuacao menos percentil_governismo. Positivo é quem é mais bem avaliado
+          do que governista; negativo, o contrário. Serve para ordenar a tensão entre os dois eixos.
+      - name: quadrante
+        description: >
+          Cruzamento dos dois eixos pelas medianas da casa e da legislatura. Na legislatura 57
+          a distribuição é assimétrica — 194 governistas mal avaliados e 194 oposicionistas bem
+          avaliados contra 38 de cada lado nos outros dois quadrantes —, o que é em boa parte consequência de
+          nota_base_votacoes ser construída sobre a posição de voto. Ver a nota de endogenia em
+          score_vs_governismo.
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - governista bem avaliado
+                  - governista mal avaliado
+                  - oposicao bem avaliada
+                  - oposicao mal avaliada
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - legislatura
+
+  - name: score_vs_governismo
+    description: >
+      Grão: um parlamentar por ano, 2023 a 2026 — o recorte que o histórico do Ranking dos
+      Políticos cobre. Confronta as métricas de qualidade do parlamentar com o quanto ele vota
+      com o governo no mesmo ano.
+      Duas leituras precisam vir antes de qualquer gráfico. Primeira, a correlação entre
+      pontuacao e perc_governismo é forte e negativa (-0,53 a -0,75 conforme o ano), mas boa
+      parte dela é ENDÓGENA: decompondo por componente, quase tudo vem de nota_base_votacoes
+      (-0,51 a -0,78), enquanto nota_base_gastos fica em -0,12 e nota_base_presenca em ~0,00.
+      O índice já pontua a posição de voto, então pontuacao não é um eixo independente do
+      governismo; gastos e presença são as métricas de qualidade que de fato não correlacionam.
+      A disciplina partidária, por contraste, é praticamente ortogonal ao índice (-0,117).
+      Segunda, os componentes de 2026 vieram em outra escala — ver
+      flag_componentes_normalizados.
+      Os 70 senadores do histórico aparecem com governismo nulo, pelo mesmo defeito de
+      extração que restringe governismo e disciplina_partidaria à Câmara.
+    columns:
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: Identificador natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_nk
+        description: Identificador natural do senador na fonte do Senado. Nulo para deputados.
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: nome
+        description: Nome eleitoral / parlamentar.
+      - name: uf
+        description: UF de representação do parlamentar.
+      - name: partido_predominante
+        description: Sigla sob a qual o parlamentar registrou mais votos no ano; desempate alfabético.
+      - name: ano
+        description: Ano da avaliação do Ranking dos Políticos e do governismo agregado.
+      - name: legislatura
+        description: >
+          Legislatura em que o parlamentar registrou mais votos no ano. No ano de virada há
+          votos dos dois lados, e vale a de maior volume.
+      - name: pontuacao
+        description: >
+          Pontuação do Ranking dos Políticos no ano, de 0 a 10. É comparável entre os quatro
+          anos, ao contrário dos componentes. A média simples das quatro é exatamente o
+          pontuacao_geral de dim_parlamentares_score.
+      - name: nota_base_votacoes
+        description: >
+          Nota de votações. É o componente ENDÓGENO ao governismo — é construído sobre a
+          posição de voto do parlamentar, e responde por quase toda a correlação negativa
+          entre pontuacao e perc_governismo. Não usar como eixo independente.
+      - name: nota_base_gastos
+        description: Nota de gastos. Praticamente não correlaciona com governismo (-0,12).
+      - name: nota_base_presenca
+        description: Nota de presença. Não correlaciona com governismo (~0,00).
+      - name: nota_base_privilegios
+        description: Nota de privilégios. Só vem preenchida em 2026; zero nos anos anteriores.
+      - name: bonus_processos
+        description: Bônus/penalidade por processos. Só vem preenchido em 2026.
+      - name: bonus_producao_legislativa
+        description: Bônus por produção legislativa. Só vem preenchido em 2026.
+      - name: bonus_articulacao_legislativa
+        description: Bônus por articulação legislativa. Só vem preenchido em 2026.
+      - name: flag_componentes_normalizados
+        description: >
+          Verdadeiro quando os componentes do ano vieram normalizados em 0-1 em vez da escala
+          0-10. Em 2023-2025 gastos e presença vão de 0 a 10 e privilégios e bônus são sempre
+          zero; em 2026 gastos e presença vão de 0 a 1, privilégios até 0,5 e os bônus
+          finalmente aparecem. A flag é derivada do teto do próprio ano, não do número do ano.
+          Somar ou comparar componentes entre anos com flags diferentes produz série falsa;
+          pontuacao não tem esse problema.
+      - name: qt_votos_governismo
+        description: Votos do parlamentar no ano em votações com orientação do Governo.
+      - name: qt_votos_alinhados_governo
+        description: Votos do ano em que o parlamentar seguiu a orientação do Governo.
+      - name: perc_governismo
+        description: Percentual de alinhamento ao Governo no ano.
+      - name: qt_votos_disciplina
+        description: Votos do ano em votações com orientação do próprio partido.
+      - name: perc_disciplina
+        description: Percentual de disciplina partidária no ano.
+      - name: percentil_governismo
+        description: >
+          Posição no eixo governismo dentro da casa e do ano, de 0 a 1. Calculado só sobre quem
+          tem pontuação e pelo menos 30 votos orientados no ano, para que este percentil e
+          percentil_pontuacao venham da mesma população. Nulo fora desse recorte, que tira 16 a
+          17 parlamentares por ano e 47 em 2026, um ano parcial.
+      - name: percentil_pontuacao
+        description: Posição no eixo do Ranking dos Políticos, de 0 a 1, na mesma população.
+      - name: gap_percentil
+        description: >
+          percentil_pontuacao menos percentil_governismo. Positivo é quem é mais bem avaliado
+          do que governista.
+      - name: quadrante
+        description: Cruzamento dos dois eixos pelas medianas da casa e do ano.
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - governista bem avaliado
+                  - governista mal avaliado
+                  - oposicao bem avaliada
+                  - oposicao mal avaliada
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - ano
+
+  - name: score_vs_governismo_por_partido
+    description: >
+      Grão: casa × partido × ano. Agregado de score_vs_governismo para o gráfico de bancadas
+      em vez de indivíduos, restrito aos parlamentares qualificados do modelo individual —
+      quem não tem percentil também não tem governismo confiável e puxaria a média sem base.
+      Todas as ressalvas de endogenia e de escala de score_vs_governismo valem aqui.
+    columns:
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: partido
+        description: Sigla predominante dos parlamentares agregados.
+      - name: ano
+        description: Ano da avaliação.
+      - name: qt_parlamentares
+        description: Parlamentares qualificados da sigla no ano — o tamanho da amostra da média.
+      - name: pontuacao_media
+        description: Média simples da pontuação dos parlamentares da bancada.
+      - name: nota_base_votacoes_media
+        description: Média da nota de votações. Componente endógeno ao governismo.
+      - name: nota_base_gastos_media
+        description: Média da nota de gastos.
+      - name: nota_base_presenca_media
+        description: Média da nota de presença.
+      - name: perc_governismo_medio
+        description: >
+          Média simples do governismo entre os parlamentares da bancada — cada um pesa igual,
+          independentemente de quantas vezes votou.
+      - name: perc_governismo_ponderado
+        description: >
+          Votos alinhados sobre votos totais da bancada. Diverge de perc_governismo_medio
+          quando a participação dentro da sigla é desigual, e é o número certo para responder
+          "como a bancada votou".
+      - name: perc_disciplina_ponderado
+        description: Disciplina da bancada ponderada pelo volume de votos de cada parlamentar.
+      - name: flag_componentes_normalizados
+        description: Verdadeiro quando os componentes do ano vieram na escala 0-1. Ver score_vs_governismo.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - partido
+              - ano
+
+  - name: ecidadania_proposicoes
+    description: "Apresentação de proposições da plataforma e-Cidadania enriquecida com atributos de tramitação e deliberação do Senado. DESABILITADO: arquivo SQL renomeado para .disabled enquanto a fonte e-Cidadania não estiver ativa."
+    columns:
+      - name: data_extracao
+        description: Data de extração dos dados da fonte.
+      - name: sk_proposicao_ecidadania
+        description: "Identificador do grão da e-Cidadania, derivado do rótulo textual da proposição. Não é FK de dim_proposicoes — as duas chaves vivem em espaços diferentes."
+        tests:
+          - not_null
+      - name: proposicao_id_nk
+        description: "Chave natural da proposição na fonte (título, ex: PL 123/2024)."
+      - name: ano_proposicao
+        description: Ano de apresentação da proposição.
+      - name: apelido
+        description: Apelido ou nome popular da proposição.
+      - name: ementa
+        description: Ementa descritiva da proposição.
+      - name: tramitando
+        description: Indica se a proposição está em tramitação ativa.
+      - name: votos_sim
+        description: Quantidade de votos favoráveis à proposição.
+      - name: votos_nao
+        description: Quantidade de votos contrários à proposição.
+      - name: total_votos
+        description: Total de votos registrados para a proposição.
+      - name: vontade_popular
+        description: Indicador da vontade popular (SIM/NÃO) com base na maioria dos votos.
+      - name: tipo_deliberacao
+        description: Categoria do tipo de deliberação da proposição.
+      - name: aderencia_vontade_popular
+        description: Indicador de aderência entre a deliberação parlamentar e a vontade popular.
+      - name: flag_mais_votado_no_dia
+        description: Booleano indicando se a proposição estava entre as mais votadas na data de extração.
+      - name: casa
+        description: Casa legislativa de origem da proposição (SF, CD).
+      - name: status_consultado
+        description: Status da consulta pública associada à proposição.
+      - name: nome_ente
+        description: Nome do ente vinculado à proposição.
+      - name: descricao_proposicao
+        description: Descrição completa do tipo de proposição.
+      - name: data_apresentacao
+        description: Data de apresentação da proposição.
+      - name: autoria
+        description: Autoria da proposição (parlamentar, comissão, poder executivo).
+      - name: descricao_deliberacao
+        description: Descrição textual do tipo de deliberação.
+      - name: data_deliberacao
+        description: Data da deliberação/votação mais recente.
+      - name: norma_gerada
+        description: Norma jurídica gerada pela proposição, se aprovada.
+      - name: link_documento
+        description: URL para o documento oficial da proposição.
+      - name: link_votacao
+        description: URL para a votação da proposição na plataforma e-Cidadania.

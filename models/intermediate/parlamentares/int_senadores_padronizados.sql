@@ -42,7 +42,6 @@ senadores_completo AS (
 
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'parlamentar_id_nk']) }} AS sk_parlamentar,
         casa,
         parlamentar_id_nk,
         nome,

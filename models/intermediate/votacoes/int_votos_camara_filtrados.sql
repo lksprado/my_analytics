@@ -13,12 +13,6 @@ camara_votos AS (
 
 votos_filtrados AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'deputado_id_nk','votacao_id_fk']) }} AS sk_voto,
-        CASE
-            WHEN deputado_id_nk IS NULL THEN '{{ var("null_key") }}'
-            ELSE {{ dbt_utils.generate_surrogate_key(['casa', 'deputado_id_nk']) }}
-        END                                                                          AS sk_parlamentar,
-        {{ dbt_utils.generate_surrogate_key(['casa', 'votacao_id_fk']) }}                   AS sk_votacao,
         casa,
         deputado_id_nk,
         partido_id_fk,
@@ -32,9 +26,6 @@ votos_filtrados AS (
 ),
 votos_com_partidos AS (
     SELECT 
-        t1.sk_voto,
-        t1.sk_parlamentar,
-        t1.sk_votacao,
         t1.casa,
         t1.deputado_id_nk,
         t1.partido_id_fk,

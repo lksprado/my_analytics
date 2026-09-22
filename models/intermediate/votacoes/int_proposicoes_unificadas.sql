@@ -9,7 +9,7 @@ camara_proposicoes AS (
         proposicao_id_nk                       AS id,
         {{ clean_string ("t2.nome","upper") }} AS tipo_proposicao,
         data_proposicao
-    FROM {{ ref('stg_camara_proposicoes') }} AS t1
+    FROM {{ ref('stg_camara_proposicao') }} AS t1
     LEFT JOIN {{ ref('seed_camara_tipos_proposicao') }} AS t2
         ON t1.codigo_tipo = t2.cod
 ),
@@ -20,9 +20,9 @@ senado_proposicoes AS (
         processo_id_nk                              AS id,
         {{ clean_string ("t2.descricao","upper") }} AS tipo_proposicao,
         data_apresentacao                           AS data_proposicao
-    FROM {{ ref('stg_senado_processos') }} AS t1
+    FROM {{ ref('stg_senado_processo') }} AS t1
     LEFT JOIN {{ ref('seed_senado_tipos_projetos') }} AS t2
-        ON t1.codigo_tipo = t2.sigla
+        ON t1.sigla_tipo = t2.sigla
 ),
 
 proposicoes AS (
@@ -33,12 +33,10 @@ proposicoes AS (
 
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'id']) }} AS sk_proposicao,
         casa,
-        id as proposicao_id_nk,
-        coalesce(tipo_proposicao, '{{ var("null_string") }}') as tipo_proposicao,
-        data_proposicao,
-        CAST(TO_CHAR(data_proposicao, 'YYYYMMDD') AS INTEGER)  AS sk_data
+        id                                                    AS proposicao_id_nk,
+        COALESCE(tipo_proposicao, '{{ var("null_string") }}')  AS tipo_proposicao,
+        data_proposicao
     FROM proposicoes
 ),
 
@@ -48,7 +46,7 @@ deduplicada AS (
     SELECT
         *,
         ROW_NUMBER() OVER (
-            PARTITION BY sk_proposicao
+            PARTITION BY casa, proposicao_id_nk
             ORDER BY
                 data_proposicao DESC NULLS LAST,
                 (tipo_proposicao <> '{{ var("null_string") }}') DESC
@@ -57,12 +55,10 @@ deduplicada AS (
 )
 
 SELECT
-    sk_proposicao,
     casa,
     proposicao_id_nk,
     tipo_proposicao,
     data_proposicao,
-    sk_data,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM deduplicada
 WHERE rn = 1

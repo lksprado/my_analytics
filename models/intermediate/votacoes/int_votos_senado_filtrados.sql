@@ -12,25 +12,18 @@ senado_votos AS (
 
 votos_tratados AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'senador_id_nk','codigo_votacao']) }} AS sk_voto,
-        CASE
-            WHEN senador_id_nk IS NULL THEN '{{ var("null_key") }}'
-            ELSE {{ dbt_utils.generate_surrogate_key(['casa', 'senador_id_nk']) }}
-        END                                                                                AS sk_parlamentar,
-        {{ dbt_utils.generate_surrogate_key(['casa', 'codigo_votacao']) }}                 AS sk_votacao,
         casa,
         senador_id_nk,
-        codigo_votacao                                                                     AS votacao_id_nk,
+        votacao_id_fk,
         sigla_partido,
-        data_sessao,
+        data_votacao,
         identificacao,
         CASE
             WHEN sigla_voto IN ('SIM', 'SIM - PRESIDENTE ART.48 INCISO XXIII') THEN 'SIM'
             WHEN sigla_voto = 'NAO' THEN 'NAO'
             WHEN sigla_voto = 'ABSTENCAO' THEN 'ABSTENCAO'
             WHEN sigla_voto IN ('OBSTRUCAO', 'P-OD') THEN 'OBSTRUCAO'
-        END                                                                                     AS voto,
-        CAST(TO_CHAR(data_sessao, 'YYYYMMDD') AS INTEGER)                                       AS sk_data
+        END AS voto
     FROM senado_votos
 ),
 
@@ -39,7 +32,7 @@ votos_filtrados AS (
     WHERE
         voto IS NOT NULL
         AND voto <> 'ABSTENCAO'
-        AND votacao_id_nk IS NOT NULL
+        AND votacao_id_fk IS NOT NULL
 ),
 
 partidos_norm AS (
@@ -90,23 +83,19 @@ partidos_senado AS (
 -- Siglas são reutilizadas (PL 25 vs 523, PSD 89 vs 557): desambigua pela vigência.
 votos_com_partidos AS (
     SELECT
-        t1.sk_voto,
-        t1.sk_parlamentar,
-        t1.sk_votacao,
         t1.casa,
         t1.senador_id_nk,
-        t1.votacao_id_nk,
+        t1.votacao_id_fk,
         t2.partido_sigla                                        AS partido,
         COALESCE(t2.partido_nome, '{{ var("null_string") }}')   AS partido_nome,
-        t1.data_sessao,
+        t1.data_votacao,
         t1.identificacao,
         t1.voto,
-        t1.sk_data,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM votos_filtrados t1
     LEFT JOIN partidos_senado t2
         ON t2.sigla_senado = t1.sigla_partido
-       AND t1.data_sessao BETWEEN t2.data_criacao AND t2.data_extincao
+       AND t1.data_votacao BETWEEN t2.data_criacao AND t2.data_extincao
 )
 
 SELECT * FROM votos_com_partidos

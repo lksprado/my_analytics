@@ -1,5 +1,4 @@
 {{ config(
-    enabled=false,
     tags=["stg","radar","parlamentar"]
 ) }}
 

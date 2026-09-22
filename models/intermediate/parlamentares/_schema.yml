@@ -3,17 +3,12 @@ version: 2
 models:
 
   - name: int_deputados_padronizados
-    description: "Deputados normalizados com renaming de colunas e código de sexo expandido. Combina o endpoint de detalhes (prioridade), o roster de legislaturas e, como último fallback, os deputados que aparecem apenas nos votos — garantindo que todo votante exista em dim_parlamentares. Alimenta dim_parlamentares."
+    description: "Deputados normalizados com renaming de colunas, código de sexo expandido e UF de representação. Combina o endpoint de detalhes (prioridade), o roster de legislaturas e, como último fallback, os deputados que aparecem apenas nos votos — garantindo que todo votante exista em dim_parlamentares. Alimenta dim_parlamentares."
     columns:
-      - name: sk_parlamentar
-        description: "Chave substituta gerada de (casa, parlamentar_id_nk)."
-        tests:
-          - not_null
-          - unique
       - name: casa
         description: "Casa legislativa (constante 'CAMARA')."
       - name: parlamentar_id_nk
-        description: "Chave natural do parlamentar na sua casa de origem (id do deputado na API da Câmara). Chave comum do UNION e da geração da sk_parlamentar."
+        description: "Chave natural do parlamentar na sua casa de origem (id do deputado na API da Câmara). Com casa, forma a chave que dim_parlamentares usa para gerar a sk_parlamentar."
         tests:
           - not_null
           - unique
@@ -24,22 +19,17 @@ models:
       - name: sexo
         description: "Sexo expandido (MASCULINO/FEMININO)."
       - name: uf
-        description: "UF de nascimento."
+        description: "UF de representação do mandato mais recente (roster de legislaturas ou registro do voto). Conformada com o Senado; o endpoint de detalhes só traz a UF de nascimento, que não é usada."
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_senadores_padronizados
     description: "Senadores normalizados combinando endpoint de senadores atuais (prioridade) com histórico de legislaturas. Alimenta dim_parlamentares."
     columns:
-      - name: sk_parlamentar
-        description: "Chave substituta gerada de (casa, parlamentar_id_nk)."
-        tests:
-          - not_null
-          - unique
       - name: casa
         description: "Casa legislativa (constante 'SENADO')."
       - name: parlamentar_id_nk
-        description: "Chave natural do parlamentar na sua casa de origem (código do senador na API do Senado). Chave comum do UNION e da geração da sk_parlamentar."
+        description: "Chave natural do parlamentar na sua casa de origem (código do senador na API do Senado). Com casa, forma a chave que dim_parlamentares usa para gerar a sk_parlamentar."
         tests:
           - not_null
           - unique

@@ -10,7 +10,6 @@ WITH source AS (
 renamed AS (
     SELECT
         TO_DATE(dt_extracao, 'YYYY-MM-DD')                 AS data_extracao,
-        {{ dbt_utils.generate_surrogate_key(['titulo']) }} AS sk_proposicao,
         titulo                                             AS proposicao_id_nk,
         tipo_proposicao,
         descritivo                                         AS ementa,
@@ -45,7 +44,6 @@ linha_representativa AS (
 
 SELECT
     t1.data_extracao,
-    t1.sk_proposicao,
     t1.proposicao_id_nk,
     t1.ementa,
     t1.link,

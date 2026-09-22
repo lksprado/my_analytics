@@ -3,26 +3,13 @@ version: 2
 models:
 
   - name: int_votos_camara_filtrados
-    description: "Votos individuais de deputados normalizados (BRANCO → NULL, FAVORAVEL COM RESTRICOES → SIM) com chaves substitutas geradas. Alimenta fct_votos."
+    description: "Votos individuais de deputados normalizados (BRANCO → NULL, FAVORAVEL COM RESTRICOES → SIM) no grão de um voto por parlamentar por votação. fct_votos gera as chaves substitutas."
     columns:
-      - name: sk_voto
-        description: Chave substituta do voto (deputado_id_nk + votacao_id_fk + casa).
-        tests:
-          - not_null
-          - unique
-      - name: sk_parlamentar
-        description: Chave substituta do parlamentar (deputado_id_nk + casa).
-        tests:
-          - not_null
-      - name: sk_votacao
-        description: Chave substituta da votação, compatível com int_votacoes_camara_deduplicadas.
-        tests:
-          - not_null
       - name: casa
         description: Casa legislativa (CAMARA).
       - name: deputado_id_nk
-        description: Chave natural do deputado na API da Câmara.
-      - name: votacao_id_nk
+        description: Chave natural do deputado na API da Câmara. Com casa e votacao_id_fk, é a chave que fct_votos usa para gerar sk_voto; nula vira null_key lá.
+      - name: votacao_id_fk
         description: Chave natural da votação.
       - name: partido
         description: "Sigla do partido vigente no momento do voto (ponto-no-tempo, da seed seed_partidos via partido_id_fk)."
@@ -34,15 +21,8 @@ models:
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_votacoes_camara_deduplicadas
-    description: "Sessões de votação da Câmara com chave substituta gerada. Alimenta dim_votacoes."
+    description: "Sessões de votação da Câmara no grão de uma linha por votação. dim_votacoes gera as chaves substitutas."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (votacao_id_nk + casa).
-        tests:
-          - not_null
-          - unique:
-              config:
-                severity: warn
       - name: casa
         description: Casa legislativa (CAMARA).
       - name: votacao_id_nk
@@ -51,23 +31,15 @@ models:
         description: Data em que a votação ocorreu.
       - name: sigla_orgao
         description: Sigla do órgão que realizou a votação (ex. PLEN, CSPCCO).
-      - name: sk_proposicao
-        description: Chave substituta da proposição objeto da votação.
       - name: aprovado
         description: Booleano indicando se a proposição foi aprovada.
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da votação.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_orientacoes_camara_corrigidas
     description: "Orientações de voto por partido/liderança por sessão de votação da Câmara. Alimenta dim_orientacao_votacoes."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (votacao_id_nk + casa).
-        tests:
-          - not_null
-      - name: votacao_id_nk
+      - name: votacao_id_fk
         description: Chave natural da votação à qual a orientação se refere.
       - name: casa
         description: Casa legislativa (CAMARA).
@@ -81,79 +53,49 @@ models:
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_votos_senado_filtrados
-    description: "Votos individuais de senadores normalizados com chaves substitutas geradas. Alimenta fct_votos."
+    description: "Votos individuais de senadores normalizados no grão de um voto por parlamentar por votação. fct_votos gera as chaves substitutas."
     columns:
-      - name: sk_voto
-        description: Chave substituta do voto (senador_id_nk + codigo_votacao + casa).
-        tests:
-          - not_null
-          - unique
-      - name: sk_parlamentar
-        description: Chave substituta do parlamentar (senador_id_nk + casa).
-        tests:
-          - not_null
-      - name: sk_votacao
-        description: Chave substituta da votação, compatível com int_votacoes_senado_filtradas.
-        tests:
-          - not_null
       - name: casa
         description: Casa legislativa (SENADO).
       - name: senador_id_nk
-        description: Chave natural do senador na API do Senado.
-      - name: votacao_id_nk
+        description: Chave natural do senador na API do Senado. Com casa e votacao_id_fk, é a chave que fct_votos usa para gerar sk_voto; nula vira null_key lá.
+      - name: votacao_id_fk
         description: Chave natural da votação na API do Senado.
       - name: partido
         description: "Sigla do partido vigente no momento do voto (ponto-no-tempo, normalizada)."
       - name: partido_nome
         description: "Nome do partido resolvido por sigla normalizada + período de vigência na seed seed_partidos; 'desconhecido' quando não há partido (ex. SEM REGISTRO)."
-      - name: data_sessao
+      - name: data_votacao
         description: Data da sessão de votação.
       - name: identificacao
         description: Descrição ou identificação da matéria votada.
       - name: voto
         description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO)."
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da sessão de votação.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_votacoes_senado_filtradas
-    description: "Sessões de votação do Senado com chave substituta gerada. Alimenta dim_votacoes."
+    description: "Sessões de votação do Senado no grão de uma linha por votação. dim_votacoes gera as chaves substitutas."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (codigo_votacao + casa).
-        tests:
-          - not_null
-          - unique:
-              config:
-                severity: warn
       - name: casa
         description: Casa legislativa (SENADO).
       - name: votacao_id_nk
         description: Chave natural da votação na API do Senado.
-      - name: sk_proposicao
-        description: Chave substituta da proposição objeto da votação.
       - name: data_votacao
         description: Data da sessão de votação.
       - name: identificacao
         description: Descrição da matéria votada.
       - name: aprovado
         description: 1 se aprovado, 0 caso contrário.
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da votação.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_orientacoes_senado_filtradas
     description: "Orientações de voto por partido/bancada por sessão de votação do Senado. Alimenta dim_orientacao_votacoes."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (codigo_votacao + casa).
-        tests:
-          - not_null
       - name: casa
         description: Casa legislativa (SENADO).
-      - name: codigo_votacao
+      - name: votacao_id_fk
         description: Código da votação na API do Senado.
       - name: numero_materia
         description: Número da matéria votada.
@@ -167,13 +109,8 @@ models:
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_proposicoes_unificadas
-    description: "Proposições unificadas (UNION de Câmara e Senado) com tipo padronizado e chave substituta gerada. Alimenta dim_proposicoes."
+    description: "Proposições unificadas (UNION de Câmara e Senado) com tipo padronizado, no grão de uma linha por (casa, proposição). dim_proposicoes gera as chaves substitutas."
     columns:
-      - name: sk_proposicao
-        description: Chave substituta da proposição (casa + id).
-        tests:
-          - not_null
-          - unique
       - name: casa
         description: Casa legislativa de origem da proposição (CAMARA ou SENADO).
       - name: proposicao_id_nk
@@ -182,7 +119,11 @@ models:
         description: Tipo da proposição padronizado em maiúsculas (ex. PL, PEC).
       - name: data_proposicao
         description: Data de apresentação da proposição.
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da apresentação da proposição.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - proposicao_id_nk

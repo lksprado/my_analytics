@@ -20,14 +20,12 @@ dedup AS (
 
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'votacao_id_nk']) }}    AS sk_votacao,
         casa,
         votacao_id_nk,
         data_votacao,
         sigla_orgao,
-        {{ dbt_utils.generate_surrogate_key(['casa', 'proposicao_id_fk']) }} AS sk_proposicao,
+        proposicao_id_fk,
         aprovado,
-        CAST(TO_CHAR(data_votacao, 'YYYYMMDD') AS INTEGER)                AS sk_data,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM dedup
     WHERE rn = 1

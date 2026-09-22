@@ -24,10 +24,6 @@ models:
         description: "Data de extração dos dados da fonte"
       - name: ano_proposicao
         description: "Ano de apresentação da proposição"
-      - name: sk_proposicao
-        description: "Chave substituta da proposição (sigla + id)"
-        tests:
-          - not_null
       - name: proposicao_id_nk
         description: "Chave natural da proposição na fonte (título, ex: PL 123/2024)."
       - name: tipo_proposicao
@@ -56,11 +52,6 @@ models:
         description: "Ano de apresentação da proposição"
       - name: sigla_proposicao
         description: "Sigla do tipo de proposição (ex: PL, PEC)"
-      - name: sk_proposicao
-        description: "Chave substituta da proposição (sigla + id)"
-        tests:
-          - not_null
-          - unique
       - name: proposicao_id_nk
         description: "Chave natural da proposição na fonte (título, ex: PL 123/2024)."
       - name: ementa
