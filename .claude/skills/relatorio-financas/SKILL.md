@@ -42,7 +42,7 @@ meses antigos em lote, sem sessão interativa, existe
 
 ## Passo 0 — Ler as regras do domínio
 
-**Antes de qualquer análise**, leia `models/marts/financas/_docs_financas.md`.
+**Antes de qualquer análise**, leia `models/presentation/financas/_docs_financas.md`.
 
 É a fonte única do que cada categoria de gasto engloba, do que cada camada de
 investimento significa e da política de investimento (aporte alvo, alocação-alvo
