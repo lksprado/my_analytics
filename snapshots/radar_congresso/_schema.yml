@@ -1,0 +1,73 @@
+version: 2
+
+snapshots:
+  - name: snap_radarcongresso_governismo_deputados
+    description: >
+      Governismo de deputados publicado pelo Radar Congresso. Grão: deputado × trimestre, mas as
+      três colunas de legislatura são o acumulado do mandato repetido nas doze linhas do
+      parlamentar — só perc_governismo varia entre elas.
+    columns:
+      - name: id
+        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa. Join com snap_radarcongresso_parlamentares."
+        tests:
+          - not_null
+      - name: afavor
+        description: "Votos do deputado alinhados ao governo no acumulado do mandato."
+      - name: "n"
+        description: "Denominador do cálculo: total de votos do deputado em votações com orientação do governo, no acumulado do mandato. A fonte chama essa coluna de n."
+      - name: total
+        description: "Percentual de alinhamento ao governo no acumulado do mandato, inteiro. Igual a ROUND(100 * afavor / n) em 100% das linhas."
+      - name: trimestre
+        description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
+      - name: perc_governismo
+        description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o deputado não votou em votação orientada no período."
+
+  - name: snap_radarcongresso_governismo_senadores
+    description: >
+      Governismo de senadores publicado pelo Radar Congresso, mesma estrutura do modelo de
+      deputados. É a única medida de governismo de senador no warehouse: o cálculo próprio não
+      cobre o Senado, por defeito de extração da orientação de bancada.
+    columns:
+      - name: id
+        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa."
+        tests:
+          - not_null
+      - name: afavor
+        description: "Votos do senador alinhados ao governo no acumulado do mandato."
+      - name: "n"
+        description: "Denominador do cálculo: total de votos do senador em votações com orientação do governo, no acumulado do mandato. A fonte chama essa coluna de n."
+      - name: total
+        description: "Percentual de alinhamento ao governo no acumulado do mandato, inteiro. Igual a ROUND(100 * afavor / n) em 100% das linhas."
+      - name: trimestre
+        description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
+      - name: perc_governismo
+        description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o senador não votou em votação orientada no período."
+
+  - name: snap_radarcongresso_parlamentares
+    description: >
+      De-para entre o id do Radar Congresso e o id oficial da Câmara ou do Senado. Cobre só quem
+      estava em exercício na extração: 513 deputados e 81 senadores, todos casando com
+      dim_parlamentares.
+    columns:
+      - name: idparlamentarvoz
+        description: "Identificador do parlamentar no Radar Congresso. Chave das tabelas de governismo."
+        tests:
+          - not_null
+      - name: idparlamentar
+        description: "Identificador do parlamentar na API oficial da Câmara ou do Senado. O id do radar é este número prefixado por 1 na Câmara e por 2 no Senado."
+        tests:
+          - not_null
+      - name: nomeeleitoral
+        description: "Nome eleitoral do parlamentar conforme o Radar Congresso."
+      - name: uf
+        description: "Unidade federativa representada."
+      - name: ultima_legislatura
+        description: "Código da última legislatura do parlamentar."
+      - name: emexercicio
+        description: "Indicador se o parlamentar está em exercício."
+      - name: casa
+        description: "Casa legislativa do parlamentar."
+      - name: parlamentarpartido
+        description: "Dicionário serializado com id e sigla do partido, como vem da fonte. Não parseado: o partido usado no domínio sai de fct_votos."
+      - name: nomeprocessado
+        description: "Nome completo do parlamentar, processado pela fonte."
