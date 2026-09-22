@@ -16,6 +16,7 @@ SELECT
     ranking_casa_estado,
     '{{ run_started_at }}'::TIMESTAMPTZ                                 AS model_run_at
 FROM scores
+WHERE pontuacao_geral IS NOT NULL
 UNION ALL
 {{ dummy_row([
     ['sk_parlamentar', 'sk'],
