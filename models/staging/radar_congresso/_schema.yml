@@ -7,7 +7,7 @@ models:
       três colunas de legislatura são o acumulado do mandato repetido nas doze linhas do
       parlamentar — só perc_governismo_trimestre varia entre elas.
     columns:
-      - name: id_parlamentar_radar
+      - name: radar_parlamentar_id_nk
         description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa. Join com stg_radarcongresso_parlamentares."
         tests:
           - not_null
@@ -21,8 +21,6 @@ models:
         description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
       - name: perc_governismo_trimestre
         description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o deputado não votou em votação orientada no período."
-      - name: loaded_at_utc
-        description: "Data/hora (UTC) de ingestão do registro na camada raw"
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
 
@@ -32,7 +30,7 @@ models:
       deputados. É a única medida de governismo de senador no warehouse: o cálculo próprio não
       cobre o Senado, por defeito de extração da orientação de bancada.
     columns:
-      - name: id_parlamentar_radar
+      - name: radar_parlamentar_id_nk
         description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa. Join com stg_radarcongresso_parlamentares."
         tests:
           - not_null
@@ -46,8 +44,6 @@ models:
         description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
       - name: perc_governismo_trimestre
         description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o senador não votou em votação orientada no período."
-      - name: loaded_at_utc
-        description: "Data/hora (UTC) de ingestão do registro na camada raw"
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
 
@@ -57,12 +53,12 @@ models:
       estava em exercício na extração: 513 deputados e 81 senadores, todos casando com
       dim_parlamentares.
     columns:
-      - name: id_parlamentar_radar
+      - name: radar_parlamentar_id_nk
         description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz). Chave das tabelas de governismo."
         tests:
           - not_null
           - unique
-      - name: id_parlamentar_congresso
+      - name: parlamentar_id_fk
         description: "Identificador do parlamentar na API oficial da Câmara ou do Senado. O id do radar é este número prefixado por 1 na Câmara e por 2 no Senado."
         tests:
           - not_null
@@ -85,7 +81,5 @@ models:
         description: "Nome completo do parlamentar"
       - name: arquivo_origem
         description: "Identificador do arquivo de origem da extração"
-      - name: loaded_at_utc
-        description: "Data/hora (UTC) de ingestão do registro na camada raw"
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
