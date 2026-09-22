@@ -14,8 +14,8 @@ datas_especiais AS (
 ),
 
 final AS (
-    SELECT
-        d.*,
+    SELECT  -- noqa: ST06
+        d.data_sk,
         d.date_day                                        AS data,
         d.prior_date_day                                  AS data_anterior,
         d.next_date_day                                   AS proxima_data,
@@ -47,6 +47,18 @@ final AS (
         d.year_number                                     AS ano,
         d.year_start_date                                 AS inicio_ano,
         d.year_end_date                                   AS fim_ano,
+        d.mes_sk,
+        d.semestre,
+        d.nome_dia_semana,
+        d.nome_dia_semana_abrev,
+        d.nome_mes,
+        d.nome_mes_abrev,
+        d.fl_fim_de_semana,
+        d.fl_feriado,
+        d.nome_feriado,
+        d.tipo_feriado,
+        d.fl_dia_util,
+        d.dia_util_mes,
         CASE
             WHEN EXISTS (
                     SELECT 1
@@ -57,7 +69,8 @@ final AS (
             ELSE 0
         END                                               AS fl_mes_especial,
         CASE WHEN de.motivo IS NOT NULL THEN 1 ELSE 0 END AS fl_data_especial,
-        COALESCE(de.motivo, 'NORMAL')                     AS motivo
+        COALESCE(de.motivo, 'NORMAL')                     AS motivo,
+        d.model_run_at
     FROM date_dimension AS d
     LEFT JOIN datas_especiais AS de
         ON d.month_of_year = de.mes_num

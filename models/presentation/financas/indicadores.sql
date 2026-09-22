@@ -13,9 +13,9 @@ WITH indexadores AS (
 
 datas AS (
     SELECT
-        date_day           AS mes_base,
-        quarter_of_year    AS trimestre,
-        year_number        AS ano
+        data             AS mes_base,
+        trimestre_do_ano AS trimestre,
+        ano
     FROM {{ ref('dim_datas') }}
 ),
 

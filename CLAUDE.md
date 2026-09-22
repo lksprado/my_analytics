@@ -17,13 +17,12 @@ dbt build -s
 dbt test
 dbt seed --full-refresh
 dbt deps
+sqfluff fix
 ```
 
-## Comments in SQL
+## Comments
 
-Comment only if it says something the code can't. Never write: model/grain/column docs (→ `_schema.yml`),
-history (`antes era…` — that's git's job), labels that repeat the next line, section banners, file paths,
-or commented-out code. Keep it concise.
+In Brazilian Portuguese. Comment only if it says something the code can't. Keep it concise.
 
 ## Architecture
 
@@ -36,28 +35,21 @@ or commented-out code. Keep it concise.
 | Marts | `table` | `marts_<subpasta>` | `fct_*` `dim_*` `bridge_*_*` | Dimension Modeling |
 | Presentation | `table` | `presentation_<subpasta>` | none | Visualization-ready |
 
-Not all projects are meant to be Star Schema modelling, when they do, they belong in the Marts layer. It is encouraged though.
+### Audit column
 
-### Coluna de auditoria
-
-Todo modelo termina com `model_run_at` como última coluna:
+Every model must contain `model_run_at` as last column to mark the moment it runs:
 
 ```sql
 '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 ```
 
-Literal resolvido na compilação, não `CURRENT_TIMESTAMP` — numa view `CURRENT_TIMESTAMP` seria a
-hora da consulta, não a do build. Todos os modelos de um mesmo run ficam com valor idêntico.
-
-Ficam de fora os modelos `ephemeral` (não são materializados) e os `enabled=false`. Onde o select
-final repassa `*` de um `ref()` que já traz a coluna, ela é herdada — não adicione uma segunda, o
-`CREATE TABLE AS` falha com coluna duplicada. Ao adicionar a coluna a um modelo que faz `UNION`
-com `dummy_row()`, inclua `['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"]` na lista do
-macro, senão os ramos ficam com contagens diferentes.
+Except `ephemeral` models and `enabled=false`. Beware to avoid column duplication error and `UNION`
+with `dummy_row()`, add `['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"]` to avoid different timestamps.
 
 ### Schema/YAML files
 
 Naming convention is `_schema.yml` (leading underscore);
+Do not write code and keep the columns description consistent if it is repeated in multiple models;
 
 ## Dependencies
 
@@ -68,16 +60,16 @@ Naming convention is `_schema.yml` (leading underscore);
 
 ## Commit patterns
 
-- `feat:` Commits do tipo feat indicam que seu trecho de código está incluindo um novo recurso.
-- `fix:` - Commits do tipo fix indicam que seu trecho de código commitado está solucionando um problema (bug fix).
-- `doc:` - Commits do tipo docs indicam que houveram mudanças na documentação, como por
- exemplo no Readme do seu repositório. (Não inclui alterações em código).
-- `test:` - Commits do tipo test são utilizados quando são realizadas alterações em testes,
-  seja criando, alterando ou excluindo testes unitários. (Não inclui alterações em código)
-- `build:` - Commits do tipo build são utilizados quando são realizadas modificações em arquivos de build e dependências.
-- `refactor:` - Commits do tipo refactor referem-se a mudanças devido a refatorações que não alterem sua funcionalidade.
-- `chore:` - Commits do tipo chore indicam atualizações de formatações de código, semicolons, trailing spaces,
-  lint, como por exemplo adicionar um pacote no gitignore. (Não inclui alterações em código)
-- `remove:` - Commits do tipo remove indicam a exclusão de arquivos, diretórios ou funcionalidades obsoletas ou não
-    utilizadas, qualquer outra forma de limpeza do código-fonte, reduzindo o tamanho e a complexidade do projeto e
-    mantendo-o mais organizado.
+- `feat:` Adds a new feature or functionality.
+- `fix:` Fixes a bug or issue.
+- `docs:` Changes documentation only, such as the repository README. No code changes.
+- `test:` Adds, modifies, or removes tests. No production code changes.
+- `build:` Changes build configuration or dependencies.
+- `refactor:` Restructures existing code without changing its functionality.
+- `chore:` Makes maintenance changes such as formatting, linting, semicolons, trailing spaces, or `.gitignore` updates.
+- `remove:` Removes obsolete or unused files, directories, features, or other source-code
+ elements to reduce complexity and keep the project organized.
+
+## Linting
+
+The project contains `sqlfluff` but it might not parse it correctly, so fix it to allign lines for human readability.

@@ -17,10 +17,8 @@ models:
         tests:
           - not_null
           - unique
-      - name: date_day
-        description: "Data do dia — chave natural, herdada de int_dates. As demais colunas de calendário estão descritas em int_dates."
       - name: data
-        description: "Alias para date_day em português."
+        description: "Data do dia — chave natural, herdada de int_dates (date_day). As demais colunas de calendário estão descritas em int_dates, aqui com nomes em português."
       - name: fl_data_especial
         description: "1 quando o dia exato é uma data especial (dia + mês batem, respeitado o ano_inicio); 0 caso contrário."
       - name: fl_mes_especial
@@ -32,25 +30,16 @@ models:
 
   - name: dim_dates
     description: >
-      English-language mirror of dim_datas: date dimension with calendar attributes and
-      national holidays, without family-specific date markings. One row per day from 1900-01-01 to
-      2100-12-31. Safe for publication in public domains; sensitive fields (fl_data_especial/motivo)
-      are not exposed.
+      Dimensão de datas em inglês: apenas as colunas geradas pela macro dbt_date.get_date_dimension
+      (via int_dates) mais a chave date_sk. Um registro por dia, de 1900-01-01 a 2100-12-31. Sem
+      feriados, dia útil, nomes em português nem datas especiais da família — para esses, usar dim_datas.
     columns:
       - name: date_sk
-        description: "Date surrogate key in YYYYMMDD format as integer (e.g., 20260131)."
+        description: "Chave surrogate da data no formato AAAAMMDD como inteiro (ex.: 20260131), herdada de int_dates."
         tests:
           - not_null
           - unique
       - name: date_day
-        description: "Calendar day — natural key. Other calendar attributes are described in int_dates."
-      - name: holiday_name
-        description: "Name of the holiday (e.g., CHRISTMAS, GOOD FRIDAY); multiple holidays on the same day are joined with ' / '. NULL for non-holiday dates."
-      - name: holiday_type
-        description: "NATIONAL for national holidays, OPTIONAL HOLIDAY for Carnival and Corpus Christi (which close banks and exchanges). NULL for non-holiday dates."
-        tests:
-          - accepted_values:
-              arguments:
-                values: ['NATIONAL', 'OPTIONAL HOLIDAY']
+        description: "Data do dia — chave natural, herdada de int_dates. As demais colunas de calendário estão descritas em int_dates."
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

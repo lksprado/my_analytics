@@ -16,10 +16,10 @@
 WITH
 datas AS (
     SELECT DISTINCT
-        month_start_date,
-        month_end_date,
-        quarter_of_year,
-        year_number
+        inicio_mes,
+        fim_mes,
+        trimestre_do_ano,
+        ano
     FROM {{ ref('dim_datas') }}
 ),
 
@@ -39,9 +39,9 @@ classificacao AS (
 final AS (
     SELECT
         t1.mes_base,
-        t2.month_end_date  AS mes_final,
-        t2.quarter_of_year AS trimestre,
-        t2.year_number     AS ano,
+        t2.fim_mes                              AS mes_final,
+        t2.trimestre_do_ano                     AS trimestre,
+        t2.ano,
         t1.pessoa,
         t1.instituicao,
         t1.emissor,
@@ -49,7 +49,6 @@ final AS (
         t1.classe_ativo,
         t1.tipo_ativo,
         t1.codigo_ativo,
-        COALESCE(t3.camada, 'NAO CLASSIFICADO') AS camada,
         t1.ativo,
         t1.indexador,
         t1.data_vencimento,
@@ -58,10 +57,11 @@ final AS (
         t1.vlr_atualizado_brl,
         t1.moeda_ativo,
         t1.fonte_dado,
-        t1.mes_base = MAX(t1.mes_base) OVER () AS fl_mes_atual
+        COALESCE(t3.camada, 'NAO CLASSIFICADO') AS camada,
+        t1.mes_base = MAX(t1.mes_base) OVER ()  AS fl_mes_atual
     FROM posicoes AS t1
     INNER JOIN datas AS t2
-        ON t1.mes_base = t2.month_start_date
+        ON t1.mes_base = t2.inicio_mes
     LEFT JOIN classificacao AS t3
         ON t1.pessoa = t3.pessoa
         AND t1.codigo_ativo = t3.codigo_ativo
@@ -72,4 +72,4 @@ SELECT
     final.*,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM final
-ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo
+ORDER BY final.mes_base, final.pessoa, final.instituicao, final.classe_ativo, final.tipo_ativo, final.ativo

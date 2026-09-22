@@ -42,7 +42,7 @@ final AS (
     FROM tab_energia AS t1
     INNER JOIN tab_clima AS t2
         ON t1.generation_date = t2.weather_date
-    INNER JOIN {{ref('dim_datas')}} t3
+    INNER JOIN {{ref('dim_dates')}} t3
         ON t1.generation_date = t3.date_day
     WHERE t1.generation_date > DATE '2021-09-16'  -- data de instalação do sistema solar
 )
