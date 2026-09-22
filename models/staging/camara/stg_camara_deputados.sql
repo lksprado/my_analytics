@@ -22,7 +22,7 @@ renamed AS (
         {{ clean_string('municipionascimento') }}                 AS uf_municipio_nascimento,
         {{ clean_string('escolaridade') }}                        AS escolaridade,
         COALESCE(ultimostatus_email, ultimostatus_gabinete_email) AS email,
-loaded_at_utc,
+        loaded_at_utc,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )

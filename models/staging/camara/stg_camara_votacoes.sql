@@ -9,18 +9,14 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        id                                           AS votacao_id_nk,
+        {{ clean_integer("id") }}::BIGINT            AS votacao_id_nk,
         data::DATE                                   AS data_votacao,
         datahoraregistro::TIMESTAMP                  AS datahora_votacao,
         siglaorgao                                   AS sigla_orgao,
         proposicaoobjeto                             AS proposicao_objeto,
         {{ clean_string("descricao", "upper") }}     AS descricao,
-        SPLIT_PART(uriproposicaoobjeto, '/', 7)::INT AS proposicao_id_fk,
+        id_proposicao::INT                           AS proposicao_id_fk,
         aprovacao::INT                               AS aprovado,
-        CASE
-            WHEN aprovacao::INT = 1 THEN 'APROVADO'
-            WHEN aprovacao::INT = 0 THEN 'REPROVADO'
-        END                                          AS resultado_votacao,
         loaded_at_utc,
         '{{ run_started_at }}'::TIMESTAMPTZ          AS model_run_at
     FROM source

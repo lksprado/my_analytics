@@ -13,7 +13,7 @@ renamed AS (
         {{ clean_string("tema", "upper") }} AS tema,
         codtema::BIGINT                     AS codigo_tema,
         relevancia::INT                     AS relevancia,
-loaded_at_utc,
+        loaded_at_utc,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
 )

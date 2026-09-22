@@ -65,8 +65,6 @@ models:
         description: "Chave estrangeira da proposição objeto da votação na API da Câmara."
       - name: aprovado
         description: "1 se a votação foi aprovada, 0 caso contrário, nulo se o resultado não foi informado."
-      - name: resultado_votacao
-        description: "Resultado da votação (APROVADO, REPROVADO). Coluna conformada com stg_senado_votacoes, que ainda distingue PREJUDICADO e EMPATE."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
@@ -101,8 +99,8 @@ models:
         description: "Sigla da UF do deputado conforme registrada no voto. Usada como roster de fallback em int_deputados_padronizados."
       - name: voto
         description: "Tipo do voto registrado (SIM, NÃO, ABSTENCAO, OBSTRUÇÃO, ARTIGO17)."
-      - name: legislatura_id_fk
-        description: "Chave estrangeira da legislatura na qual o voto foi registrado."
+      - name: legislatura
+        description: "Número da legislatura na qual o voto foi registrado."
       - name: votacao_id_fk
         description: "Chave estrangeira da votação à qual o voto se refere."
       - name: partido_id_fk
@@ -133,14 +131,42 @@ models:
     columns:
       - name: proposicao_id_nk
         description: "Chave natural da proposição na API da Câmara."
+      - name: sigla_tipo
+        description: "Sigla do tipo de proposição (ex: PL, PEC, MPV)."
       - name: codigo_tipo
         description: "Código numérico do tipo de proposição. Junta com seed_camara_tipos_proposicao.cod."
-      - name: descricao_tipo
-        description: "Descrição do tipo de proposição."
-      - name: data_proposicao
+      - name: numero
+        description: "Número da proposição no ano de apresentação."
+      - name: ano
+        description: "Ano de apresentação da proposição."
+      - name: ementa
+        description: "Ementa (resumo do teor) da proposição."
+      - name: data_apresentacao
         description: "Data de apresentação da proposição."
       - name: palavras_chave
         description: "Palavras-chave do que se trata a proposição."
+      - name: data_status
+        description: "Data e hora do status de tramitação mais recente da proposição."
+      - name: status_sequencia
+        description: "Número sequencial do status de tramitação."
+      - name: status_sigla_orgao
+        description: "Sigla do órgão responsável pelo status atual de tramitação (ex: PLEN, CCJC)."
+      - name: status_regime
+        description: "Regime de tramitação do status atual (ex: URGENCIA, PRIORIDADE)."
+      - name: status_descricao_tramitacao
+        description: "Descrição do tipo de tramitação do status atual (ex: DESPACHO, APRESENTAÇÃO)."
+      - name: status_codigo_tipo_tramitacao
+        description: "Código numérico do tipo de tramitação do status atual."
+      - name: status_descricao_situacao
+        description: "Descrição da situação atual da proposição (ex: TRAMITANDO, ARQUIVADA)."
+      - name: status_codigo_situacao
+        description: "Código numérico da situação atual da proposição."
+      - name: status_despacho
+        description: "Texto do despacho do status atual de tramitação."
+      - name: status_ambito
+        description: "Âmbito de tramitação do status atual (ex: Regimental, Apreciação Conclusiva)."
+      - name: status_apreciacao
+        description: "Forma de apreciação exigida no status atual da proposição."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
