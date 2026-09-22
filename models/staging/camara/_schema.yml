@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_camara_deputados
-    description: "Seleção mínima de colunas da API da Câmara para deputados. Renaming e enriquecimento ocorrem em int_deputados_padronizados."
+    description: "Atributos de deputados da legislatura atual, historicializado SCD2"
     columns:
       - name: deputado_id_nk
         description: "Chave natural do deputado na API da Câmara."

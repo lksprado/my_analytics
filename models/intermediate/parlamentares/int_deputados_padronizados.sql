@@ -38,7 +38,7 @@ deputados_votos AS (
         NULL                                AS sexo
     FROM {{ ref('stg_camara_votos_deputados') }}
     WHERE deputado_id_nk IS NOT NULL
-    ORDER BY deputado_id_nk, legislatura_id_fk DESC
+    ORDER BY deputado_id_nk, legislatura DESC
 ),
 
 -- O endpoint de detalhes só traz a UF de nascimento; a UF conformada com o Senado é a de
@@ -52,7 +52,7 @@ uf_mandatos AS (
     UNION ALL
     SELECT
         deputado_id_nk,
-        legislatura_id_fk,
+        legislatura,
         uf
     FROM {{ ref('stg_camara_votos_deputados') }}
     WHERE deputado_id_nk IS NOT NULL

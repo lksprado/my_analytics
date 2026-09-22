@@ -1,0 +1,32 @@
+version: 2
+
+snapshots:
+  - name: snap_camara_deputados
+    description: "Atributos de deputados da legislatura atual, historicializado SCD2"
+    columns:
+      - name: deputado_id_nk
+        description: "Chave natural do deputado na API da Câmara."
+      - name: nome_civil
+        description: "Nome civil do deputado."
+      - name: nome_eleitoral
+        description: "Nome eleitoral do último status do deputado."
+      - name: sexo
+        description: "Sexo informado no cadastro (M/F)."
+      - name: rede_social
+        description: "Campo único da API com links de redes sociais (texto ou JSON)."
+      - name: data_nascimento
+        description: "Data de nascimento."
+      - name: data_falecimento
+        description: "Data de falecimento, quando houver."
+      - name: uf_nascimento
+        description: "UF de nascimento."
+      - name: uf_municipio_nascimento
+        description: "Município de nascimento."
+      - name: escolaridade
+        description: "Grau de escolaridade informado."
+      - name: email
+        description: "E-mail institucional — COALESCE de ultimostatus_email e ultimostatus_gabinete_email."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

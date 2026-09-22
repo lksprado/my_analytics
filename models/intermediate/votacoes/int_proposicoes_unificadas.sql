@@ -8,7 +8,7 @@ camara_proposicoes AS (
         'CAMARA'                               AS casa,
         proposicao_id_nk                       AS id,
         {{ clean_string ("t2.nome","upper") }} AS tipo_proposicao,
-        data_proposicao
+        data_apresentacao                      AS data_proposicao
     FROM {{ ref('stg_camara_proposicao') }} AS t1
     LEFT JOIN {{ ref('seed_camara_tipos_proposicao') }} AS t2
         ON t1.codigo_tipo = t2.cod
