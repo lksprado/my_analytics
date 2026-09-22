@@ -4,8 +4,7 @@ models:
   - name: int_dates
     description: >
       Calendário conformado do warehouse, de 1900-01-01 a 2100-12-31, um registro por dia. Base
-      comum de dim_datas (finanças, energia, livros — acrescenta as datas especiais da família) e
-      de dim_dates (votações — só o calendário). Os atributos em inglês vêm da macro
+      de dim_datas, que lhe acrescenta as datas especiais da família. Os atributos em inglês vêm da macro
       dbt_date.get_date_dimension; os em português (nomes, feriados, dia útil) são calculados aqui.
       A espinha é larga de propósito: todo consumidor faz INNER JOIN a partir do próprio dado, e
       uma espinha mais curta descarta linhas sem aviso. Feriados seguem o calendário bancário

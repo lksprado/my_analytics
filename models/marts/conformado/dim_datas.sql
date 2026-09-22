@@ -2,7 +2,7 @@
     tags=["datas"]
 ) }}
 
-{#- Contém datas da família: não servir a domínios publicáveis (use dim_dates). -#}
+{#- Contém datas da família: não expor fl_data_especial/motivo em domínios publicáveis. -#}
 
 WITH
 date_dimension AS (

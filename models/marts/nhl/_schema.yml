@@ -83,7 +83,7 @@ models:
           - not_null
           - relationships:
               arguments:
-                to: ref('dim_dates')
+                to: ref('dim_datas')
                 field: data_sk
       - name: team_sk
         tests: &team_fk
