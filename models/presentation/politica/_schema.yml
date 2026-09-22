@@ -675,3 +675,213 @@ models:
         description: URL para o documento oficial da proposição.
       - name: link_votacao
         description: URL para a votação da proposição na plataforma e-Cidadania.
+
+  - name: comparativo_governismo_legislatura
+    description: >
+      Grão: um parlamentar. Confronta o governismo calculado a partir das APIs da Câmara e do
+      Senado com o publicado pelo Radar Congresso, no acumulado da legislatura corrente.
+      Restrito a quem existe nas duas fontes: 499 dos 643 deputados da legislatura 57 — os 144
+      de fora são suplentes de passagem curta, que o de-para do radar, montado com quem estava
+      em exercício na extração, não cobre. As 78 linhas do Senado têm o lado oficial nulo: o
+      cálculo próprio não cobre senadores, por defeito de extração do codigovotacaosve, e para
+      eles o radar não é comparação e sim a única medida disponível.
+      O lado oficial é restrito à janela que o radar cobre (2023 T1 a 2025 T4), tirada do próprio
+      dado e não do calendário. Sem esse recorte o erro absoluto médio sobe de 0,62 pp para
+      1,09 pp e o gap de denominador inverte de -13 para +60 votos, ou seja, quase toda a
+      divergência aparente seria só o nosso lado contar 2026.
+      Medido: correlação de 0,9995 e erro absoluto médio de 0,62 pp nos 499 deputados, com dois
+      casos acima de 5 pp.
+    columns:
+      - name: sk_parlamentar
+        description: Chave substituta estável do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+          - unique
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: deputado_id_nk
+        description: Identificador natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_nk
+        description: Identificador natural do senador na fonte do Senado. Nulo para deputados.
+      - name: nome
+        description: Nome eleitoral / parlamentar, conforme dim_parlamentares.
+      - name: uf
+        description: UF de representação do parlamentar.
+      - name: partido_predominante
+        description: Sigla com que o parlamentar mais votou na legislatura corrente, apurada sobre fct_votos. Desempate alfabético.
+      - name: id_parlamentar_radar
+        description: Identificador do parlamentar no Radar Congresso (idparlamentarvoz).
+      - name: nome_eleitoral_radar
+        description: Nome do parlamentar conforme o Radar Congresso, preservado para conferir o de-para contra o nome oficial.
+      - name: qt_votos_oficial
+        description: Votos do parlamentar em votações com orientação do Governo, no cálculo próprio, restrito à janela do radar. Nulo no Senado.
+      - name: qt_votos_alinhados_oficial
+        description: Votos alinhados à orientação do Governo no cálculo próprio, na mesma janela. Nulo no Senado.
+      - name: qt_votos_radar
+        description: Denominador do radar, o acumulado do mandato. A fonte chama essa coluna de n; não são votos contrários.
+      - name: qt_votos_alinhados_radar
+        description: Votos alinhados ao governo segundo o radar, no acumulado do mandato.
+      - name: perc_governismo_radar
+        description: Percentual de alinhamento segundo o radar, inteiro. Igual a ROUND(100 * qt_votos_alinhados_radar / qt_votos_radar) em 100% das linhas.
+      - name: perc_governismo_oficial
+        description: Percentual de alinhamento no cálculo próprio, restrito à janela do radar. É a coluna comparável com perc_governismo_radar. Nulo no Senado.
+      - name: perc_governismo_oficial_legislatura_completa
+        description: Percentual de alinhamento no cálculo próprio sobre toda a legislatura, sem o corte de janela. Exposto para deixar explícito o quanto os trimestres de 2026 mudam a conta; não comparar com o radar.
+      - name: diferenca_qt_votos
+        description: qt_votos_oficial menos qt_votos_radar. Mede a diferença de universo entre as duas fontes, que é o que explica a maior parte da divergência de percentual.
+      - name: diferenca_pp
+        description: perc_governismo_oficial menos perc_governismo_radar, em pontos percentuais. Positivo significa que o cálculo próprio vê o parlamentar como mais governista.
+      - name: diferenca_abs_pp
+        description: Módulo de diferenca_pp, para ordenar por divergência sem perder os dois sentidos.
+      - name: flag_divergencia_relevante
+        description: Booleano para diferenca_abs_pp acima de 5 pontos percentuais. Verdadeiro em 2 dos 499 deputados.
+      - name: fonte_disponivel
+        description: "'ambas' quando os dois cálculos existem, 'so_radar' quando só há o do Radar Congresso (todo o Senado)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['ambas', 'so_radar']
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
+
+  - name: comparativo_governismo_trimestre
+    description: >
+      Grão: parlamentar × ano × trimestre, nos doze trimestres que o Radar Congresso cobre
+      (2023 T1 a 2025 T4). Mesma comparação do modelo de legislatura, mas com o percentual
+      trimestral do radar contra o nosso agregado do mesmo trimestre.
+      Ficam de fora os 578 trimestres em que o radar não publica percentual: verificado que em
+      todos eles o parlamentar também não tem voto do nosso lado, ou seja, as duas fontes
+      concordam na ausência e a linha não informaria nada.
+      Medido: correlação entre 0,995 e 1,000 por trimestre, com erro absoluto médio de 0,29 a
+      2,87 pp. O pior trimestre é 2025 T2, e a causa é denominador pequeno — a média cai para
+      48,5 votos e as maiores divergências estão em parlamentares com 11 a 54 votos, onde um
+      punhado de votações move o percentual mais de 10 pp.
+    columns:
+      - name: sk_parlamentar
+        description: Chave substituta estável do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: deputado_id_nk
+        description: Identificador natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_nk
+        description: Identificador natural do senador na fonte do Senado. Nulo para deputados.
+      - name: nome
+        description: Nome eleitoral / parlamentar, conforme dim_parlamentares.
+      - name: uf
+        description: UF de representação do parlamentar.
+      - name: partido_predominante
+        description: Sigla com que o parlamentar mais votou na legislatura corrente, apurada sobre fct_votos.
+      - name: id_parlamentar_radar
+        description: Identificador do parlamentar no Radar Congresso (idparlamentarvoz).
+      - name: ano
+        description: Ano do trimestre medido.
+      - name: trimestre
+        description: Trimestre medido (1 a 4).
+      - name: data_trimestre
+        description: Marcador do trimestre como vem do radar — o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31. Preservado para rastrear a origem; o recorte confiável é (ano, trimestre).
+      - name: qt_votos_oficial
+        description: Votos do parlamentar em votações orientadas pelo Governo no trimestre, no cálculo próprio. Nulo no Senado.
+      - name: perc_governismo_oficial
+        description: Percentual de alinhamento no trimestre, no cálculo próprio. Nulo no Senado.
+      - name: perc_governismo_radar
+        description: Percentual de alinhamento no trimestre segundo o radar, inteiro.
+      - name: diferenca_pp
+        description: perc_governismo_oficial menos perc_governismo_radar, em pontos percentuais.
+      - name: diferenca_abs_pp
+        description: Módulo de diferenca_pp.
+      - name: fonte_disponivel
+        description: "'ambas' quando os dois cálculos existem, 'so_radar' quando só há o do Radar Congresso (todo o Senado)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['ambas', 'so_radar']
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - ano
+              - trimestre
+
+  - name: comparativo_governismo_resumo
+    description: >
+      Grão: casa × ano × trimestre. Agregado de comparativo_governismo_trimestre — o quanto as
+      duas fontes concordam ao longo do tempo. 23 linhas: 12 da Câmara e 11 do Senado, porque
+      em 2023 T1 nenhum senador tem percentual publicado pelo radar.
+      Nas linhas do Senado correlacao, erro_absoluto_medio e vies_medio são nulos por construção,
+      já que não existe o lado oficial para comparar.
+      vies_medio fica entre -0,63 e +0,36 pp em todos os trimestres, o que é o achado central:
+      não há erro sistemático entre as duas metodologias, só ruído concentrado nos trimestres de
+      pouco volume.
+    columns:
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: ano
+        description: Ano do trimestre medido.
+      - name: trimestre
+        description: Trimestre medido (1 a 4).
+      - name: qt_parlamentares
+        description: Parlamentares com percentual do radar no trimestre.
+      - name: qt_parlamentares_ambas_fontes
+        description: Subconjunto que também tem cálculo próprio no trimestre. Zero em todas as linhas do Senado.
+      - name: perc_governismo_oficial_medio
+        description: Média simples do percentual do cálculo próprio entre os parlamentares do trimestre.
+      - name: perc_governismo_radar_medio
+        description: Média simples do percentual do radar entre os parlamentares do trimestre.
+      - name: correlacao
+        description: Correlação de Pearson entre os dois percentuais no trimestre. Nulo no Senado.
+      - name: erro_absoluto_medio
+        description: Média do módulo da diferença, em pontos percentuais. Mede a dispersão entre as duas fontes. Nulo no Senado.
+      - name: vies_medio
+        description: Média da diferença com sinal, em pontos percentuais. Separa erro sistemático de ruído — próximo de zero significa que nenhuma das fontes é consistentemente mais governista. Nulo no Senado.
+      - name: qt_divergencias_acima_5pp
+        description: Parlamentares com diferença absoluta acima de 5 pontos percentuais no trimestre.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - ano
+              - trimestre
+
+  - name: comparativo_governismo_por_partido
+    description: >
+      Grão: casa × partido. Agregado de comparativo_governismo_legislatura pela sigla
+      predominante do parlamentar, para comparar as duas fontes no nível de bancada. 33 linhas:
+      22 da Câmara e 11 do Senado.
+      Na Câmara as duas fontes ficam dentro de 1 pp em todas as siglas, o que é a leitura de
+      bancada do mesmo resultado individual. As linhas do Senado só têm o lado do radar, e são
+      hoje a única visão de governismo por bancada do Senado no warehouse.
+    columns:
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: partido
+        description: Sigla predominante do parlamentar na legislatura corrente.
+      - name: qt_parlamentares
+        description: Parlamentares da sigla presentes no comparativo.
+      - name: qt_parlamentares_ambas_fontes
+        description: Subconjunto com os dois cálculos. Zero em todas as linhas do Senado.
+      - name: perc_governismo_oficial_medio
+        description: Média simples do percentual do cálculo próprio entre os parlamentares da sigla. Nulo no Senado.
+      - name: perc_governismo_radar_medio
+        description: Média simples do percentual do radar entre os parlamentares da sigla.
+      - name: diferenca_pp_media
+        description: Média da diferença com sinal, em pontos percentuais. Nulo no Senado.
+      - name: erro_absoluto_medio
+        description: Média do módulo da diferença, em pontos percentuais. Nulo no Senado.
+      - name: qt_divergencias_acima_5pp
+        description: Parlamentares da sigla com diferença absoluta acima de 5 pontos percentuais.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - partido
