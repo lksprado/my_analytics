@@ -49,7 +49,7 @@ SELECT * FROM final
 UNION ALL
 {{ dummy_row([
     ['sk_votacao', 'sk'],
-    ['votacao_id_nk', 'null::text'],
+    ['votacao_id_nk', 'null::BIGINT'],
     ['casa', 'text'],
     ['data_votacao', 'null::date'],
     ['sk_proposicao', 'sk'],

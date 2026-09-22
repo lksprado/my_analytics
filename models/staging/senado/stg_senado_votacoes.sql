@@ -11,7 +11,7 @@ SELECT
     codigosessao::INT                   AS codigo_sessao,
     codigosessaolegislativa::BIGINT     AS codigo_sessao_legislativa,
     codigosessaovotacao::BIGINT         AS codigo_sessao_votacao,
-    codigovotacaosve::INT               AS votacao_id_nk,
+    codigovotacaosve::BIGINT            AS votacao_id_nk,
     idprocesso::INT                     AS processo_id_nk,
     identificacao,
     numero,

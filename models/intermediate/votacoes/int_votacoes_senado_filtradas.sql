@@ -14,7 +14,7 @@ senado_votacoes AS (
 final AS (
     SELECT
         casa,
-        votacao_id_nk::TEXT                 AS votacao_id_nk,
+        votacao_id_nk,
         processo_id_nk,
         data_votacao,
         identificacao,

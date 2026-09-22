@@ -1,4 +1,5 @@
 {{ config(
+    enabled=false,
     tags=["camara", "senado", "parlamentar", "radar", "votacoes"]
 ) }}
 
