@@ -81,18 +81,30 @@ deputados_completo AS (
     )
 ),
 
+deputados_radar AS (
+    SELECT 
+        radar_parlamentar_id_nk,
+        parlamentar_id_fk,
+        uf
+    FROM {{ ref('stg_radarcongresso_parlamentares') }}
+    WHERE casa = 'CAMARA'
+),
+
 final AS (
     SELECT
         t1.casa,
         t1.parlamentar_id_nk,
+        t3.radar_parlamentar_id_nk AS radar_parlamentar_id_fk,
         t1.nome,
         t1.nome_completo,
         t1.sexo,
-        t2.uf,
+        COALESCE(t2.uf, t3.uf)     AS uf,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM deputados_completo AS t1
     LEFT JOIN uf_representacao AS t2
         ON t1.parlamentar_id_nk = t2.parlamentar_id_nk
+    LEFT JOIN deputados_radar AS t3 
+        ON t1.parlamentar_id_nk = t3.parlamentar_id_fk
     WHERE t1.rn = 1
 )
 

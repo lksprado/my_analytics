@@ -12,6 +12,8 @@ models:
         tests:
           - not_null
           - unique
+      - name: radar_parlamentar_id_fk
+        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa."
       - name: nome
         description: "Nome eleitoral do deputado."
       - name: nome_completo
@@ -33,6 +35,8 @@ models:
         tests:
           - not_null
           - unique
+      - name: radar_parlamentar_id_fk
+        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa."
       - name: nome
         description: "Nome parlamentar do senador."
       - name: nome_completo
