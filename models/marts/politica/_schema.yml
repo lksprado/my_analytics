@@ -185,25 +185,6 @@ models:
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
-  - name: dim_dates
-    description: >
-      Dimensão de datas do domínio de votações: o calendário conformado de int_dates (1900-01-01 a
-      2100-12-31, com feriados nacionais e dia útil), sem as datas especiais da família que
-      dim_datas acrescenta. Liga-se aos fatos por data_sk = sk_data (AAAAMMDD). Exceção da
-      convenção de SK: PK inteira data_sk. Colunas descritas em int_dates.
-    columns:
-      - name: data_sk
-        description: Chave primária inteira no formato YYYYMMDD.
-        tests:
-          - not_null
-          - unique
-      - name: date_day
-        description: Data do dia — chave natural.
-        tests:
-          - not_null
-          - unique
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_votos
     description: "Fato de votos individuais unificado (Câmara e Senado). Grain: um voto por parlamentar por votação."
