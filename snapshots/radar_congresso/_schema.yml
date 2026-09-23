@@ -1,0 +1,64 @@
+version: 2
+
+snapshots:
+  - name: snap_radarcongresso_governismo_deputados
+    description: "Governismo de deputados publicado pelo Radar Congresso (SCD2)."
+    columns:
+      - name: id
+        description: "Id do parlamentar no Radar Congresso."
+        tests:
+          - not_null
+      - name: afavor
+        description: "Votos do deputado alinhados ao governo no acumulado do mandato."
+      - name: "n"
+        description: "Votos em votações orientadas pelo Governo no mandato."
+      - name: total
+        description: "Percentual de governismo no mandato (0–100)."
+      - name: trimestre
+        description: "Data de referência do trimestre."
+      - name: perc_governismo
+        description: "Percentual de governismo no trimestre (0–100)."
+
+  - name: snap_radarcongresso_governismo_senadores
+    description: "Governismo de senadores publicado pelo Radar Congresso (SCD2)."
+    columns:
+      - name: id
+        description: "Id do parlamentar no Radar Congresso."
+        tests:
+          - not_null
+      - name: afavor
+        description: "Votos do senador alinhados ao governo no acumulado do mandato."
+      - name: "n"
+        description: "Votos em votações orientadas pelo Governo no mandato."
+      - name: total
+        description: "Percentual de governismo no mandato (0–100)."
+      - name: trimestre
+        description: "Data de referência do trimestre."
+      - name: perc_governismo
+        description: "Percentual de governismo no trimestre (0–100)."
+
+  - name: snap_radarcongresso_parlamentares
+    description: "De-para entre o id do Radar Congresso e o id da casa (SCD2)."
+    columns:
+      - name: idparlamentarvoz
+        description: "Id do parlamentar no Radar Congresso."
+        tests:
+          - not_null
+      - name: idparlamentar
+        description: "Id do parlamentar na casa."
+        tests:
+          - not_null
+      - name: nomeeleitoral
+        description: "Nome eleitoral do parlamentar conforme o Radar Congresso."
+      - name: uf
+        description: "Unidade federativa representada."
+      - name: ultima_legislatura
+        description: "Código da última legislatura do parlamentar."
+      - name: emexercicio
+        description: "Indicador se o parlamentar está em exercício."
+      - name: casa
+        description: "Casa legislativa do parlamentar."
+      - name: parlamentarpartido
+        description: "Partido do parlamentar como vem da fonte (texto serializado)."
+      - name: nomeprocessado
+        description: "Nome completo do parlamentar, processado pela fonte."

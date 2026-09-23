@@ -1,6 +1,6 @@
 {{ config(
     enabled=false,
-    tags=["prs","ecidadania"]
+    tags=["politica"]
 ) }}
 
 WITH
@@ -16,7 +16,7 @@ tipo_de_proposicoes AS (
 final as (
     select
     t1.data_extracao,
-    t1.sk_proposicao,
+    t1.sk_proposicao_ecidadania,
     t1.id_proposicao,
     t1.ano_proposicao,
     t2.apelido,
@@ -38,7 +38,7 @@ final as (
     END AS aderencia_vontade_popular,
     t1.flag_mais_votado_no_dia,
     t2.casa,
-    CASE WHEN t2.sk_proposicao is not null then true else false END::boolean as status_consultado,
+    CASE WHEN t2.sk_proposicao_ecidadania is not null then true else false END::boolean as status_consultado,
     t2.nome_ente,
     t3.descricao_proposicao,
     t2.data_apresentacao,
@@ -50,7 +50,7 @@ final as (
     t1.link as link_votacao
     from proposicoes t1
     left join status t2
-    on t1.sk_proposicao = t2.sk_proposicao
+    on t1.sk_proposicao_ecidadania = t2.sk_proposicao_ecidadania
     left join tipo_de_proposicoes t3
     on t1.sigla_proposicao = t3.sigla_proposicao
     ORDER BY total_votos DESC

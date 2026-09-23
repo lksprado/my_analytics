@@ -1,28 +1,30 @@
 {{ config(
-    enabled=false,
-    tags=["stg","radar","parlamentar"]
+    tags=["politica"]
 ) }}
 
 
 WITH source AS (
-    SELECT * 
-    FROM {{ source('radar','raw_radar_parlamentares')}}
+    SELECT *
+    FROM {{ ref('snap_radarcongresso_parlamentares') }}
 ),
+
+-- idparlamentarvoz é o id oficial da casa prefixado por 1 (Câmara) ou 2 (Senado).
 renamed AS (
     SELECT
-        idparlamentarvoz::int AS id_parlamentar_radar,
-        idparlamentar::int AS id_parlamentar_congresso,
-        nomeeleitoral as nome_eleitoral,
+        idparlamentarvoz::INT                        AS radar_parlamentar_id_nk,
+        idparlamentar::INT                           AS parlamentar_id_fk,
+        {{ clean_string("nomeeleitoral","upper") }}  AS nome_eleitoral,
+        {{ clean_string("nomeprocessado","upper") }} AS nome_completo,
         uf,
-        emexercicio::BOOLEAN as is_ativo,
-        case 
-            when casa like 'camara' then 'deputado'
-            when casa like 'senado' then 'senador'
-        end as tipo_mandato,
-        parlamentarpartido as partido_dict,
-        nomeprocessado as nome_completo,
-        arquivo_origem,
-        loaded_at_utc
+        emexercicio::BOOLEAN                         AS is_ativo,
+        CASE
+            WHEN casa LIKE 'camara' THEN 'CAMARA'
+            WHEN casa LIKE 'senado' THEN 'SENADO'
+        END                                          AS casa,
+        parlamentarpartido                           AS partido_dict,
+        '{{ run_started_at }}'::TIMESTAMPTZ          AS model_run_at
     FROM source
+    WHERE dbt_valid_to IS NULL
 )
+
 SELECT * FROM renamed

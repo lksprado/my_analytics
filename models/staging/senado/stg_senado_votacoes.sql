@@ -1,5 +1,5 @@
 {{ config(
-    tags=["senado", "votacoes"]
+    tags=["politica"]
 ) }}
 
 WITH source AS (
@@ -7,31 +7,37 @@ WITH source AS (
 )
 
 SELECT
-    codigomateria::INT                AS codigo_materia,
-    codigosessao::INT                 AS codigo_sessao,
-    codigosessaolegislativa::BIGINT   AS codigo_sessao_legislativa,
-    codigosessaovotacao::BIGINT       AS codigo_sessao_votacao,
-    codigovotacaosve::INT             AS codigo_votacao,
-    idprocesso::INT                   AS processo_id_nk,
+    codigomateria::INT                  AS codigo_materia,
+    codigosessao::INT                   AS codigo_sessao,
+    codigosessaolegislativa::BIGINT     AS codigo_sessao_legislativa,
+    -- codigovotacaosve só existe a partir de 2019; codigosessaovotacao cobre desde 2001.
+    codigosessaovotacao::BIGINT         AS votacao_id_nk,
+    codigovotacaosve::BIGINT            AS votacao_sve_id,
+    idprocesso::INT                     AS processo_id_nk,
     identificacao,
     numero,
-    numerosessao::INT                 AS numero_sessao,
+    numerosessao::INT                   AS numero_sessao,
     sigla,
-    descricaovotacao                  AS descricao_votacao,
-    siglatiposessao                   AS sigla_tipo_sessao,
-    totalvotosabstencao::INT          AS total_votos_abstencao,
-    totalvotosnao::INT                AS total_votos_contra,
-    totalvotossim::INT                AS total_votos_favor,
-    TO_DATE(datasessao, 'YYYY-MM-DD') AS data_sessao,
+    descricaovotacao                    AS descricao_votacao,
+    siglatiposessao                     AS sigla_tipo_sessao,
+    totalvotosabstencao::INT            AS total_votos_abstencao,
+    totalvotosnao::INT                  AS total_votos_contra,
+    totalvotossim::INT                  AS total_votos_favor,
+    TO_DATE(datasessao, 'YYYY-MM-DD')   AS data_votacao,
     CASE
         WHEN resultadovotacao = 'A' THEN 'APROVADO'
         WHEN resultadovotacao = 'R' THEN 'REPROVADO'
         WHEN resultadovotacao = 'P' THEN 'PREJUDICADO'
         WHEN resultadovotacao = 'E' THEN 'EMPATE'
-    END                               AS resultado_votacao,
+    END                                 AS resultado_votacao,
     CASE
         WHEN votacaosecreta = 'N' THEN 'NAO'
         WHEN votacaosecreta = 'S' THEN 'SIM'
-    END                               AS votacao_secreta,
+    END                                 AS votacao_secreta,
+    CASE
+        WHEN resultadovotacao = 'A' THEN 1
+        WHEN resultadovotacao IN ('R', 'E', 'P') THEN 0
+    END                                 AS aprovado,
+    loaded_at_utc,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM source

@@ -1,5 +1,5 @@
 {{ config(
-    tags=["senado", "legislacao"]
+    tags=["politica"]
 ) }}
 
 WITH source AS (
@@ -8,13 +8,13 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        nome                             AS nome_ente,
-        "siglaTipo"                      AS tipo_ente,
-        SPLIT_PART(UPPER(sigla), ' ', 1) AS codigo_ente,
+        {{ clean_string("nome","upper") }} AS nome_ente,
+        "siglaTipo"                        AS tipo_ente,
+        SPLIT_PART(UPPER(sigla), ' ', 1)   AS codigo_ente,
         CASE
             WHEN casa = '-' THEN NULL
             ELSE casa
-        END                              AS codigo_casa
+        END                                AS codigo_casa
     FROM source
     WHERE sigla IS NOT NULL AND sigla <> '-'
     GROUP BY

@@ -1,5 +1,5 @@
 {{ config(
-    tags=["camara", "votacoes"]
+    tags=["politica"]
 ) }}
 
 
@@ -14,20 +14,23 @@ camara_votacoes AS (
 dedup AS (
     SELECT
         *,
-        ROW_NUMBER() OVER (PARTITION BY votacao_id_nk) AS rn
+        -- Sobram só duplicatas exatas da origem; a ordem apenas torna a escolha estável.
+        ROW_NUMBER() OVER (
+            PARTITION BY votacao_id_nk
+            ORDER BY datahora_votacao DESC NULLS LAST, loaded_at_utc DESC
+        ) AS rn
     FROM camara_votacoes
 ),
 
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'votacao_id_nk']) }}    AS sk_votacao,
         casa,
         votacao_id_nk,
         data_votacao,
         sigla_orgao,
-        {{ dbt_utils.generate_surrogate_key(['casa', 'proposicao_id_fk']) }} AS sk_proposicao,
+        descricao,
+        proposicao_id_fk,
         aprovado,
-        CAST(TO_CHAR(data_votacao, 'YYYYMMDD') AS INTEGER)                AS sk_data,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM dedup
     WHERE rn = 1

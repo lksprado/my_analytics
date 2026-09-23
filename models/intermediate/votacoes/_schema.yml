@@ -2,159 +2,121 @@ version: 2
 
 models:
 
-  - name: int_votos_camara_filtrados
-    description: "Votos individuais de deputados normalizados (BRANCO → NULL, FAVORAVEL COM RESTRICOES → SIM) com chaves substitutas geradas. Alimenta fct_votos."
+  - name: int_votos_camara_normalizados
+    description: "Registros de voto dos deputados. Grão: deputado × votação."
     columns:
-      - name: sk_voto
-        description: Chave substituta do voto (deputado_id_nk + votacao_id_fk + casa).
-        tests:
-          - not_null
-          - unique
-      - name: sk_parlamentar
-        description: Chave substituta do parlamentar (deputado_id_nk + casa).
-        tests:
-          - not_null
-      - name: sk_votacao
-        description: Chave substituta da votação, compatível com int_votacoes_camara_deduplicadas.
-        tests:
-          - not_null
       - name: casa
-        description: Casa legislativa (CAMARA).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: deputado_id_nk
-        description: Chave natural do deputado na API da Câmara.
-      - name: votacao_id_nk
-        description: Chave natural da votação.
+        description: "Id do deputado na Câmara."
+      - name: partido_id_fk
+        description: "Chave estrangeira do partido na API da Câmara."
+      - name: partido_id_senado
+        description: "Id da entidade partidária."
+      - name: votacao_id_fk
+        description: Chave natural da votação, texto no formato da API.
       - name: partido
-        description: "Sigla do partido vigente no momento do voto (ponto-no-tempo, da seed seed_partidos via partido_id_fk)."
+        description: "Sigla do partido no momento do voto."
       - name: partido_nome
-        description: "Nome do partido resolvido por partido_id_fk = seed_partidos.id_camara."
-      - name: voto
-        description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO). BRANCO e FAVORAVEL COM RESTRICOES normalizados."
+        description: "Nome do partido no momento do voto."
+      - name: codigo_voto
+        description: "Código do voto na origem."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_votacoes_camara_deduplicadas
-    description: "Sessões de votação da Câmara com chave substituta gerada. Alimenta dim_votacoes."
+    description: "Votações da Câmara. Grão: uma votação."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (votacao_id_nk + casa).
-        tests:
-          - not_null
-          - unique:
-              config:
-                severity: warn
       - name: casa
-        description: Casa legislativa (CAMARA).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na API da Câmara.
       - name: data_votacao
         description: Data em que a votação ocorreu.
       - name: sigla_orgao
         description: Sigla do órgão que realizou a votação (ex. PLEN, CSPCCO).
-      - name: sk_proposicao
-        description: Chave substituta da proposição objeto da votação.
+      - name: descricao
+        description: "Descrição da votação."
+      - name: proposicao_id_fk
+        description: "Id da proposição votada na Câmara."
       - name: aprovado
         description: Booleano indicando se a proposição foi aprovada.
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da votação.
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_camara_corrigidas
-    description: "Orientações de voto por partido/liderança por sessão de votação da Câmara. Alimenta dim_orientacao_votacoes."
+    description: "Orientações das lideranças da Câmara. Grão: liderança × votação."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (votacao_id_nk + casa).
-        tests:
-          - not_null
-      - name: votacao_id_nk
+      - name: votacao_id_fk
         description: Chave natural da votação à qual a orientação se refere.
       - name: casa
-        description: Casa legislativa (CAMARA).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: orientacao_voto
-        description: Orientação de voto dada pelo líder (SIM, NÃO, OBSTRUÇÃO).
+        description: "Orientação da liderança (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO)."
       - name: tipo_lideranca
         description: Tipo de liderança que deu a orientação (BANCADA ou PARTIDO).
       - name: sigla_partido_bloco
-        description: Sigla do partido ou bloco que recebeu a orientação (normalizada).
+        description: "Sigla do partido ou bloco orientado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
-  - name: int_votos_senado_filtrados
-    description: "Votos individuais de senadores normalizados com chaves substitutas geradas. Alimenta fct_votos."
+  - name: int_votos_senado_normalizados
+    description: "Registros de voto dos senadores. Grão: senador × votação."
     columns:
-      - name: sk_voto
-        description: Chave substituta do voto (senador_id_nk + codigo_votacao + casa).
-        tests:
-          - not_null
-          - unique
-      - name: sk_parlamentar
-        description: Chave substituta do parlamentar (senador_id_nk + casa).
-        tests:
-          - not_null
-      - name: sk_votacao
-        description: Chave substituta da votação, compatível com int_votacoes_senado_filtradas.
-        tests:
-          - not_null
       - name: casa
-        description: Casa legislativa (SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: senador_id_nk
-        description: Chave natural do senador na API do Senado.
-      - name: votacao_id_nk
+        description: "Id do senador no Senado."
+      - name: votacao_id_fk
         description: Chave natural da votação na API do Senado.
+      - name: partido_id_senado
+        description: "Id da entidade partidária."
       - name: partido
-        description: "Sigla do partido vigente no momento do voto (ponto-no-tempo, normalizada)."
+        description: "Sigla do partido no momento do voto."
       - name: partido_nome
-        description: "Nome do partido resolvido por sigla normalizada + período de vigência na seed seed_partidos; 'desconhecido' quando não há partido (ex. SEM REGISTRO)."
-      - name: data_sessao
+        description: "Nome do partido no momento do voto."
+      - name: data_votacao
         description: Data da sessão de votação.
       - name: identificacao
         description: Descrição ou identificação da matéria votada.
-      - name: voto
-        description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO)."
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da sessão de votação.
+      - name: codigo_voto
+        description: "Código do voto na origem."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_votacoes_senado_filtradas
-    description: "Sessões de votação do Senado com chave substituta gerada. Alimenta dim_votacoes."
+    description: "Votações do Senado. Grão: uma votação."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (codigo_votacao + casa).
-        tests:
-          - not_null
-          - unique:
-              config:
-                severity: warn
       - name: casa
-        description: Casa legislativa (SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na API do Senado.
-      - name: sk_proposicao
-        description: Chave substituta da proposição objeto da votação.
+      - name: processo_id_nk
+        description: "Chave natural do processo legislativo associado à votação."
       - name: data_votacao
         description: Data da sessão de votação.
       - name: identificacao
         description: Descrição da matéria votada.
+      - name: descricao
+        description: Descrição da votação, maiúscula e sem acento.
+      - name: fl_secreta
+        description: 1 quando a votação foi secreta.
       - name: aprovado
         description: 1 se aprovado, 0 caso contrário.
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da votação.
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_senado_filtradas
-    description: "Orientações de voto por partido/bancada por sessão de votação do Senado. Alimenta dim_orientacao_votacoes."
+    description: "Orientações das lideranças do Senado. Grão: liderança × votação."
     columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (codigo_votacao + casa).
-        tests:
-          - not_null
       - name: casa
-        description: Casa legislativa (SENADO).
-      - name: codigo_votacao
-        description: Código da votação na API do Senado.
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: votacao_id_fk
+        description: "Chave da votação orientada."
+      - name: votacao_origem_id
+        description: "Chave da votação na fonte de orientações."
+      - name: data_votacao
+        description: Data da votação orientada.
       - name: numero_materia
         description: Número da matéria votada.
       - name: sigla_tipo_materia
@@ -162,27 +124,254 @@ models:
       - name: partido
         description: Sigla do partido que recebeu a orientação.
       - name: orientacao_voto
-        description: Orientação de voto (SIM, NAO, OBSTRUCAO — LIBERADO já filtrado).
+        description: Orientação de voto (SIM, NAO, OBSTRUCAO, LIBERADO).
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_proposicoes_unificadas
-    description: "Proposições unificadas (UNION de Câmara e Senado) com tipo padronizado e chave substituta gerada. Alimenta dim_proposicoes."
+    description: "Proposições da Câmara e do Senado. Grão: proposição × casa."
     columns:
-      - name: sk_proposicao
-        description: Chave substituta da proposição (casa + id).
-        tests:
-          - not_null
-          - unique
       - name: casa
-        description: Casa legislativa de origem da proposição (CAMARA ou SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: proposicao_id_nk
         description: Chave natural da proposição na casa de origem.
       - name: tipo_proposicao
         description: Tipo da proposição padronizado em maiúsculas (ex. PL, PEC).
       - name: data_proposicao
         description: Data de apresentação da proposição.
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da apresentação da proposição.
+      - name: identificacao
+        description: "Identificação da proposição (ex.: PL 1234/2023)."
+      - name: ementa
+        description: Ementa da proposição; só a Câmara traz.
+      - name: situacao_atual
+        description: "Situação atual de tramitação."
+      - name: regime
+        description: "Regime de tramitação atual (só Câmara)."
+      - name: autoria
+        description: Autoria da proposição; só o Senado traz.
+      - name: norma_gerada
+        description: "Norma gerada pela proposição (só Senado)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - proposicao_id_nk
+
+  - name: int_votos_unificados
+    description: "Registros de voto das duas casas. Grão: parlamentar × votação."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - parlamentar_id_nk
+              - votacao_id_nk
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: parlamentar_id_nk
+        description: "Id do parlamentar na casa."
+      - name: votacao_id_nk
+        description: Chave natural da votação na casa, como texto.
+      - name: partido_id_senado
+        description: "Id da entidade partidária."
+      - name: partido
+        description: Sigla do partido no momento do voto.
+      - name: partido_nome
+        description: Nome do partido no momento do voto.
+      - name: codigo_voto
+        description: Código do voto como vem da origem.
+      - name: voto
+        description: "Posição do voto (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO); nula quando não é voto."
+      - name: categoria
+        description: "Categoria do registro de voto."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: int_votacoes_unificadas
+    description: "Votações das duas casas. Grão: uma votação."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - votacao_id_nk
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: votacao_id_nk
+        description: Chave natural da votação na casa, como texto.
+      - name: data_votacao
+        description: Data da votação.
+      - name: sigla_orgao
+        description: "Sigla do órgão que votou."
+      - name: descricao
+        description: Descrição da votação, maiúscula e sem acento.
+      - name: proposicao_id_nk
+        description: "Id da proposição votada na casa."
+      - name: aprovado
+        description: 1 se aprovada, 0 caso contrário.
+      - name: fl_secreta
+        description: 1 quando a votação foi secreta (só no Senado).
+      - name: classe_votacao
+        description: "Classe da votação (MERITO, EMENDA/DESTAQUE, URGENCIA, REQUERIMENTO PROCEDIMENTAL, PARECER, AUTORIDADE, OUTROS)."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: int_orientacoes_unificadas
+    description: "Orientações das lideranças das duas casas. Grão: liderança × votação."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - votacao_origem_id
+              - sigla_lideranca
+      # Garante que a orientação partidária não multiplica os votos em fct_votos.
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - votacao_id_nk
+              - partido_id_senado
+          config:
+            where: "votacao_id_nk IS NOT NULL AND partido_id_senado IS NOT NULL"
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: votacao_id_nk
+        description: "Chave natural da votação na casa."
+      - name: votacao_origem_id
+        description: "Chave da votação na fonte de orientações."
+      - name: data_votacao
+        description: "Data da votação."
+      - name: tipo_lideranca
+        description: "Tipo de liderança (BANCADA, PARTIDO)."
+      - name: sigla_lideranca
+        description: Sigla do partido, bloco ou liderança (GOVERNO, MAIORIA...).
+      - name: orientacao_voto
+        description: "Orientação da liderança (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO)."
+      - name: partido_id_senado
+        description: "Id da entidade partidária que orientou."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: int_partidos_siglas
+    description: "Siglas partidárias com vigência. Grão: sigla × entidade partidária."
+    columns:
+      - name: sigla
+        description: Sigla normalizada (maiúscula, sem acento).
+      - name: partido_id_senado
+        description: "Id da entidade partidária."
+      - name: inicio
+        description: Início da vigência da entidade.
+      - name: fim
+        description: Fim da vigência da entidade (9999-12-31 quando ativa).
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+unit_tests:
+
+  - name: int_votacoes_unificadas_classe_votacao
+    description: >
+      A classe sai do objeto da votação na descrição: requerimento (de urgência ou procedimental),
+      parecer e pressupostos, emenda e destaque (inclusive "mantido o texto" e artigo do
+      substitutivo), mérito (projeto, PEC, MP, redação final, texto-base ressalvados os destaques),
+      escolha de autoridade no Senado. No Senado a descrição às vezes é a própria ementa ("MODIFICA...",
+      "INSTITUI..."), e isso também é mérito. O que não se reconhece fica OUTROS.
+    model: int_votacoes_unificadas
+    given:
+      - input: ref('int_votacoes_camara_deduplicadas')
+        rows:
+          - {casa: CAMARA, votacao_id_nk: c1, descricao: "APROVADO O REQUERIMENTO DE URGENCIA (ART. 155 DO RICD). SIM: 316; NAO: 86; ABSTENCAO: 1; TOTAL: 403."}
+          - {casa: CAMARA, votacao_id_nk: c2, descricao: "REJEITADO O REQUERIMENTO. SIM: 7; NAO: 263; ABSTENCAO: 1; TOTAL: 271."}
+          - {casa: CAMARA, votacao_id_nk: c3, descricao: "MANTIDO O TEXTO. SIM: 235; NAO: 121; ABSTENCAO: 2; TOTAL: 358."}
+          - {casa: CAMARA, votacao_id_nk: c4, descricao: "REJEITADA A EMENDA DE PLENARIO Nº 18. SIM: 133; NAO: 204; TOTAL: 337."}
+          - {casa: CAMARA, votacao_id_nk: c5, descricao: "REJEITADO O ARTIGO 1º DO SUBSTITUTIVO. SIM: 210; NAO: 267; ABSTENCAO: 5; TOTAL: 482."}
+          - {casa: CAMARA, votacao_id_nk: c6, descricao: "APROVADA, EM SEGUNDO TURNO, A PROPOSTA DE EMENDA A CONSTITUICAO Nº 66, DE 2023, RESSALVADO O DESTAQUE. SIM: 367; NAO: 97"}
+          - {casa: CAMARA, votacao_id_nk: c7, descricao: "APROVADO O PROJETO DE LEI COMPLEMENTAR Nº 459, DE 2017. SIM: 384; NAO: 59; ABSTENCAO: 1; TOTAL: 444."}
+          - {casa: CAMARA, votacao_id_nk: c8, descricao: "APROVADA A REDACAO FINAL ASSINADA PELO RELATOR, DEP. BETO MANSUR (PRB-SP). SIM: 226; NAO: 180"}
+          - {casa: CAMARA, votacao_id_nk: c9, descricao: "APROVADO, EM APRECIACAO PRELIMINAR, O PARECER DA COMISSAO MISTA, NA PARTE EM QUE MANIFESTA OPINIAO FAVORAVEL QUANTO AO ATENDIMENTO DOS PRESSUPOSTOS"}
+          - {casa: CAMARA, votacao_id_nk: c10, descricao: "APROVADO O PROJETO DE LEI Nº 1.234, DE 2023, NOS TERMOS DO PARECER DO RELATOR. SIM: 300; NAO: 100"}
+          - {casa: CAMARA, votacao_id_nk: c11, descricao: "APROVADO"}
+      - input: ref('int_votacoes_senado_filtradas')
+        rows:
+          - {casa: SENADO, votacao_id_nk: 1, descricao: "ESCOLHA DO SR. CARLOS AUGUSTO REGO SANTOS NEVES, PARA, CUMULATIVAMENTE COM O CARGO DE EMBAIXADOR", fl_secreta: 1}
+          - {casa: SENADO, votacao_id_nk: 2, descricao: "VOTACAO NOMINAL DO REQUERIMENTO Nº 1.103, DE 2023 - SOLICITA O ENCERRAMENTO DA DISCUSSAO", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 3, descricao: "VOTACAO QUANTO AOS PRESSUPOSTOS CONSTITUCIONAIS DE RELEVANCIA, URGENCIA E ADEQUACAO FINANCEIRA", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 4, descricao: "VOTACAO NOMINAL DA EMENDA Nº 1 (SUBSTITUTIVO) AO PROJETO DE LEI COMPLEMENTAR Nº 12", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 5, descricao: "VOTACAO NOMINAL DA PROPOSTA DE EMENDA A CONSTITUICAO Nº 48, DE 2023, NOS TERMOS DO PARECER", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 6, descricao: "VOTACAO NOMINAL.", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 7, descricao: "MODIFICA O SISTEMA DE PREVIDENCIA SOCIAL, ESTABELECE REGRAS DE TRANSICAO", fl_secreta: 0}
+    expect:
+      rows:
+        - {votacao_id_nk: c1, classe_votacao: URGENCIA}
+        - {votacao_id_nk: c2, classe_votacao: REQUERIMENTO PROCEDIMENTAL}
+        - {votacao_id_nk: c3, classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: c4, classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: c5, classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: c6, classe_votacao: MERITO}
+        - {votacao_id_nk: c7, classe_votacao: MERITO}
+        - {votacao_id_nk: c8, classe_votacao: MERITO}
+        - {votacao_id_nk: c9, classe_votacao: PARECER}
+        - {votacao_id_nk: c10, classe_votacao: MERITO}
+        - {votacao_id_nk: c11, classe_votacao: OUTROS}
+        - {votacao_id_nk: '1', classe_votacao: AUTORIDADE}
+        - {votacao_id_nk: '2', classe_votacao: REQUERIMENTO PROCEDIMENTAL}
+        - {votacao_id_nk: '3', classe_votacao: PARECER}
+        - {votacao_id_nk: '4', classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: '5', classe_votacao: MERITO}
+        - {votacao_id_nk: '6', classe_votacao: OUTROS}
+        - {votacao_id_nk: '7', classe_votacao: MERITO}
+
+  - name: int_orientacoes_senado_filtradas_resolve_votacao
+    description: >
+      A chave do endpoint de orientação é outro espaço; a votação sai da matéria no dia (data, sigla,
+      número). Com várias candidatas, vale a única cujo placar SIM/NÃO dos votos bate com o da
+      orientação; empate, placar divergente, nenhuma candidata ou duas orientações caindo na mesma
+      votação deixam a orientação sem par.
+    model: int_orientacoes_senado_filtradas
+    given:
+      - input: ref('stg_senado_votos_orientacao')
+        rows:
+          - {votacao_id_fk: 13059, data_votacao: '2026-08-12', sigla_tipo_materia: PLP, numero_materia: 124, total_votos_favor: 1, total_votos_contra: 0, partido: PT, orientacao_voto: SIM}
+          - {votacao_id_fk: 13059, data_votacao: '2026-08-12', sigla_tipo_materia: PLP, numero_materia: 124, total_votos_favor: 1, total_votos_contra: 0, partido: PL, orientacao_voto: NAO}
+          - {votacao_id_fk: 13036, data_votacao: '2026-07-15', sigla_tipo_materia: PLP, numero_materia: 18, total_votos_favor: 2, total_votos_contra: 1, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13098, data_votacao: '2026-07-15', sigla_tipo_materia: PLP, numero_materia: 18, total_votos_favor: 1, total_votos_contra: 2, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13200, data_votacao: '2026-08-12', sigla_tipo_materia: PLP, numero_materia: 124, total_votos_favor: 5, total_votos_contra: 5, partido: GOVERNO, orientacao_voto: NAO}
+          - {votacao_id_fk: 99999, data_votacao: '2026-01-01', sigla_tipo_materia: PL, numero_materia: 1, total_votos_favor: 10, total_votos_contra: 10, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13300, data_votacao: '2026-08-13', sigla_tipo_materia: PEC, numero_materia: 1, total_votos_favor: 1, total_votos_contra: 0, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13301, data_votacao: '2026-08-13', sigla_tipo_materia: PEC, numero_materia: 1, total_votos_favor: 1, total_votos_contra: 0, partido: GOVERNO, orientacao_voto: SIM}
+      - input: ref('int_votacoes_senado_filtradas')
+        rows:
+          - {votacao_id_nk: 7101, data_votacao: '2026-08-12', sigla: PLP, numero: '124'}
+          - {votacao_id_nk: 7098, data_votacao: '2026-07-15', sigla: PLP, numero: '18'}
+          - {votacao_id_nk: 7099, data_votacao: '2026-07-15', sigla: PLP, numero: '18'}
+          - {votacao_id_nk: 7100, data_votacao: '2026-07-15', sigla: PLP, numero: '18'}
+          - {votacao_id_nk: 7102, data_votacao: '2026-08-13', sigla: PEC, numero: '1'}
+      - input: ref('int_votos_unificados')
+        rows:
+          - {casa: SENADO, votacao_id_nk: '7101', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7098', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7098', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7098', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7099', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7099', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7099', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7100', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7100', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7100', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7102', voto: SIM}
+    expect:
+      rows:
+        - {votacao_origem_id: 13059, partido: PT, votacao_id_fk: 7101}
+        - {votacao_origem_id: 13059, partido: PL, votacao_id_fk: 7101}
+        - {votacao_origem_id: 13036, partido: GOVERNO, votacao_id_fk: 7098}
+        - {votacao_origem_id: 13098, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 13200, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 99999, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 13300, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 13301, partido: GOVERNO, votacao_id_fk: null}

@@ -1,5 +1,5 @@
 {{ config(
-    tags=["senado", "parlamentar"]
+    tags=["politica"]
 ) }}
 
 WITH
@@ -40,17 +40,31 @@ senadores_completo AS (
     )
 ),
 
+senadores_radar AS (
+    SELECT 
+        radar_parlamentar_id_nk,
+        parlamentar_id_fk,
+        uf
+    FROM {{ ref('stg_radarcongresso_parlamentares') }}
+    WHERE casa = 'SENADO'
+),
+
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['casa', 'parlamentar_id_nk']) }} AS sk_parlamentar,
-        casa,
-        parlamentar_id_nk,
-        nome,
-        nome_completo,
-        sexo,
-        uf,
+        t1.casa,
+        t1.parlamentar_id_nk,
+        t2.radar_parlamentar_id_nk AS radar_parlamentar_id_fk,
+        t1.nome,
+        t1.nome_completo,
+        t1.sexo,
+        COALESCE(t1.uf, t2.uf)     AS uf,
+        -- A extração do Senado não traz nascimento nem escolaridade.
+        NULL::DATE                 AS data_nascimento,
+        NULL::TEXT                 AS escolaridade,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
-    FROM senadores_completo
+    FROM senadores_completo t1
+    LEFT JOIN senadores_radar AS t2 
+        ON t1.parlamentar_id_nk = t2.parlamentar_id_fk
     WHERE rn = 1
 )
 

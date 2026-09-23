@@ -18,7 +18,7 @@ tab_energia_hora AS (
         t1.kwh,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM {{ ref('stg_solar_hourly_energy') }} t1
-    INNER JOIN {{ref('dim_datas')}} t2
+    INNER JOIN {{ref('dim_dates')}} t2
         ON t1.generation_date = t2.date_day
 )
 

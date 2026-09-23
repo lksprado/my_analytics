@@ -1,24 +1,25 @@
 {{ config(
-    enabled=false,
-    tags=["stg","radar","congresso"]
+    tags=["politica"]
 ) }}
 
 
 WITH source AS (
     SELECT *
-    FROM {{ source('radar','raw_radar_governismo_deputados')}}
+    FROM {{ ref('snap_radarcongresso_governismo_deputados') }}
 ),
 
+-- afavor, n e total são o acumulado do mandato; n é o denominador, não votos contra.
 renamed AS (
     SELECT
-        id::int AS id_parlamentar_radar,
-        afavor::int AS total_votos_favor_governo,
-        n::int AS total_votos_contra_governo,
-        total::int AS perc_governismo,
-        to_date(trimestre, 'YYYY-MM-DD') AS data_trimestre,
-        perc_governismo::int AS perc_governismo_trimestre,
-        loaded_at_utc
+        id::INT                             AS radar_parlamentar_id_nk,
+        afavor::INT                         AS qt_votos_alinhados_legislatura,
+        n::INT                              AS qt_votos_legislatura,
+        total::INT                          AS perc_governismo_legislatura,
+        perc_governismo::INT                AS perc_governismo_trimestre,
+        TO_DATE(trimestre, 'YYYY-MM-DD')    AS data_trimestre,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM source
+    WHERE dbt_valid_to IS NULL
 )
 
 SELECT * FROM renamed

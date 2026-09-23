@@ -8,16 +8,16 @@ WITH
 -- motivo varia dentro do mês: com ele no DISTINCT o mês duplicaria no join.
 datas AS (
     SELECT
-        month_start_date,
-        MAX(quarter_of_year) AS quarter_of_year,
-        MAX(year_number)     AS year_number,
-        MAX(fl_mes_especial) AS fl_mes_especial,
+        inicio_mes,
+        MAX(trimestre_do_ano) AS trimestre_do_ano,
+        MAX(ano)              AS ano,
+        MAX(fl_mes_especial)  AS fl_mes_especial,
         COALESCE(
             STRING_AGG(DISTINCT NULLIF(motivo, 'NORMAL'), ' / '),
             'NORMAL'
-        )                    AS motivo
+        )                     AS motivo
     FROM {{ ref('dim_datas') }}
-    GROUP BY month_start_date
+    GROUP BY inicio_mes
 ),
 
 consolidados AS (
@@ -25,8 +25,8 @@ consolidados AS (
         t1.mes_debito,
         t2.fl_mes_especial,
         t2.motivo,
-        t2.quarter_of_year                          AS trimestre,
-        t2.year_number                              AS ano,
+        t2.trimestre_do_ano                         AS trimestre,
+        t2.ano,
         SUM(t1.receita_total)                       AS total_receita,
         SUM(t1.despesas_total)                      AS total_despesas,
         SUM(t1.receita_total) - SUM(despesas_total) AS resultado,
@@ -45,14 +45,14 @@ consolidados AS (
 
     FROM {{ ref('int_dre_consolidado') }} AS t1
     INNER JOIN datas AS t2
-        ON t1.mes_debito = t2.month_start_date
+        ON t1.mes_debito = t2.inicio_mes
     WHERE t1.mes_debito > '2023-08-01'
     GROUP BY
         t1.mes_debito,
         t2.fl_mes_especial,
         t2.motivo,
-        t2.quarter_of_year,
-        t2.year_number
+        t2.trimestre_do_ano,
+        t2.ano
     ORDER BY t1.mes_debito
 )
 

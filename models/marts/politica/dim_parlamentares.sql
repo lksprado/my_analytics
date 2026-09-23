@@ -1,35 +1,36 @@
 {{ config(
-    tags=["camara", "senado", "parlamentar"]
+    tags=["politica"]
 ) }}
 
 WITH
-deputados AS (
-    SELECT *
-    FROM {{ ref('int_deputados_padronizados') }}
-),
-
-senadores AS (
-    SELECT *
-    FROM {{ ref('int_senadores_padronizados') }}
-),
-
 parlamentares AS (
-    SELECT * FROM deputados
+    SELECT * FROM {{ ref('int_deputados_padronizados') }}
     UNION ALL
-    SELECT * FROM senadores
+    SELECT * FROM {{ ref('int_senadores_padronizados') }}
 ),
 
 final AS (
     SELECT
-        sk_parlamentar,
-        CASE WHEN casa = 'CAMARA' THEN parlamentar_id_nk END AS deputado_id_nk,
-        CASE WHEN casa = 'SENADO' THEN parlamentar_id_nk END AS senador_id_nk,
+        {{ dbt_utils.generate_surrogate_key(['casa', 'parlamentar_id_nk']) }} AS sk_parlamentar,
+        CASE WHEN casa = 'CAMARA' THEN parlamentar_id_nk END                  AS deputado_id_nk,
+        CASE WHEN casa = 'SENADO' THEN parlamentar_id_nk END                  AS senador_id_nk,
+        CASE WHEN casa = 'CAMARA' THEN radar_parlamentar_id_fk END            AS radar_deputado_id_fk,
+        CASE WHEN casa = 'SENADO' THEN radar_parlamentar_id_fk END            AS radar_senador_id_fk,
         casa,
         nome,
-        nome_completo,
+        COALESCE(nome_completo, nome)                                         AS nome_completo,
         sexo,
         uf,
-        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+        CASE
+            WHEN uf IN ('AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO') THEN 'NORTE'
+            WHEN uf IN ('AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE') THEN 'NORDESTE'
+            WHEN uf IN ('DF', 'GO', 'MS', 'MT') THEN 'CENTRO-OESTE'
+            WHEN uf IN ('ES', 'MG', 'RJ', 'SP') THEN 'SUDESTE'
+            WHEN uf IN ('PR', 'RS', 'SC') THEN 'SUL'
+        END                                                                   AS regiao,
+        data_nascimento,
+        escolaridade,
+        '{{ run_started_at }}'::TIMESTAMPTZ                                   AS model_run_at
     FROM parlamentares
 )
 
@@ -39,10 +40,15 @@ UNION ALL
     ['sk_parlamentar', 'sk'],
     ['deputado_id_nk', 'null::int'],
     ['senador_id_nk', 'null::int'],
+    ['radar_deputado_id_fk', 'null::int'],
+    ['radar_senador_id_fk', 'null::int'],
     ['casa', 'text'],
     ['nome', 'text'],
     ['nome_completo', 'text'],
     ['sexo', 'text'],
     ['uf', 'text'],
+    ['regiao', 'text'],
+    ['data_nascimento', 'null::date'],
+    ['escolaridade', 'text'],
     ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

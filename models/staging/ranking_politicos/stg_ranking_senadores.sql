@@ -1,5 +1,5 @@
 {{ config(
-    tags=["ranking", "score"]
+    tags=["politica"]
 ) }}
 
 WITH source AS (

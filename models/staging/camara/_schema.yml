@@ -1,0 +1,173 @@
+version: 2
+
+models:
+  - name: stg_camara_deputados
+    description: "Deputados da legislatura atual (SCD2)."
+    columns:
+      - name: deputado_id_nk
+        description: "Chave natural do deputado na API da Câmara."
+      - name: nome_civil
+        description: "Nome civil do deputado."
+      - name: nome_eleitoral
+        description: "Nome eleitoral do último status do deputado."
+      - name: sexo
+        description: "Sexo informado no cadastro (M/F)."
+      - name: rede_social
+        description: "Campo único da API com links de redes sociais (texto ou JSON)."
+      - name: data_nascimento
+        description: "Data de nascimento."
+      - name: data_falecimento
+        description: "Data de falecimento, quando houver."
+      - name: uf_nascimento
+        description: "UF de nascimento."
+      - name: uf_municipio_nascimento
+        description: "Município de nascimento."
+      - name: escolaridade
+        description: "Grau de escolaridade informado."
+      - name: email
+        description: "E-mail institucional."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: stg_camara_legislaturas
+    description: "Deputados por legislatura. Grão: deputado × legislatura."
+    columns:
+      - name: legislatura_id_nk
+        description: "Chave natural da legislatura."
+      - name: deputado_id_fk
+        description: "Chave estrangeira do deputado na API da Câmara."
+      - name: nome
+        description: "Nome do deputado na legislatura, conforme a API da Câmara."
+      - name: uf
+        description: "UF de representação do deputado na legislatura (siglauf)."
+      - name: partido_id_fk
+        description: "Chave estrangeira do partido na API da Câmara."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+  - name: stg_camara_votacoes
+    description: "Votações da Câmara. Grão: uma votação."
+    columns:
+      - name: votacao_id_nk
+        description: "Id da votação na Câmara (ex.: 2265603-43)."
+      - name: data_votacao
+        description: "Data da votação."
+      - name: datahora_votacao
+        description: "Data e hora do registro da votação."
+      - name: sigla_orgao
+        description: "Sigla do órgão que realizou a votação (ex: PLEN, CSPCCO)."
+      - name: proposicao_objeto
+        description: "Descrição da proposição objeto da votação."
+      - name: descricao
+        description: "Descrição da votação."
+      - name: proposicao_id_fk
+        description: "Id da proposição votada."
+      - name: aprovado
+        description: "1 quando a votação foi aprovada."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: stg_camara_votacoes_orientacao
+    description: "Orientações das lideranças da Câmara. Grão: liderança × votação."
+    columns:
+      - name: votacao_id_fk
+        description: "Id da votação orientada."
+      - name: orientacao_voto
+        description: "Orientação da liderança (SIM, NÃO, LIBERADO, OBSTRUÇÃO)."
+      - name: codigo_tipo_lideranca
+        description: "Código do tipo de liderança que deu a orientação."
+      - name: codigo_partido_bloco
+        description: "Código do partido ou bloco que recebeu a orientação."
+      - name: sigla_partido_bloco
+        description: "Sigla do partido ou bloco que recebeu a orientação."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: stg_camara_votos_deputados
+    description: "Votos dos deputados. Grão: deputado × votação."
+    columns:
+      - name: deputado_id_nk
+        description: "Chave natural do deputado na API da Câmara."
+      - name: nome
+        description: "Nome eleitoral do deputado no voto."
+      - name: uf
+        description: "UF do deputado no voto."
+      - name: voto
+        description: "Voto registrado (SIM, NÃO, ABSTENCAO, OBSTRUÇÃO, ARTIGO17)."
+      - name: legislatura
+        description: "Número da legislatura na qual o voto foi registrado."
+      - name: votacao_id_fk
+        description: "Id da votação."
+      - name: partido_id_fk
+        description: "Chave estrangeira do partido na API da Câmara."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: stg_camara_proposicao_tema
+    description: "Temas das proposições da Câmara. Grão: proposição × tema."
+    columns:
+      - name: proposicao_id_nk
+        description: "Chave natural da proposição na API da Câmara."
+      - name: tema
+        description: "Nome do tema."
+      - name: codigo_tema
+        description: "Código do tema."
+      - name: relevancia
+        description: "Não identificado. Tudo zero."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: stg_camara_proposicao
+    description: "Proposições da Câmara. Grão: uma proposição."
+    columns:
+      - name: proposicao_id_nk
+        description: "Chave natural da proposição na API da Câmara."
+      - name: sigla_tipo
+        description: "Sigla do tipo de proposição (ex: PL, PEC, MPV)."
+      - name: codigo_tipo
+        description: "Código do tipo de proposição."
+      - name: numero
+        description: "Número da proposição no ano de apresentação."
+      - name: ano
+        description: "Ano de apresentação da proposição."
+      - name: ementa
+        description: "Ementa (resumo do teor) da proposição."
+      - name: data_apresentacao
+        description: "Data de apresentação da proposição."
+      - name: palavras_chave
+        description: "Palavras-chave do que se trata a proposição."
+      - name: data_status
+        description: "Data e hora do status de tramitação mais recente da proposição."
+      - name: status_sequencia
+        description: "Número sequencial do status de tramitação."
+      - name: status_sigla_orgao
+        description: "Sigla do órgão do status atual (ex.: PLEN, CCJC)."
+      - name: status_regime
+        description: "Regime de tramitação atual (ex.: URGENCIA, PRIORIDADE)."
+      - name: status_descricao_tramitacao
+        description: "Tipo de tramitação do status atual."
+      - name: status_codigo_tipo_tramitacao
+        description: "Código numérico do tipo de tramitação do status atual."
+      - name: status_descricao_situacao
+        description: "Situação atual da proposição (ex.: TRAMITANDO, ARQUIVADA)."
+      - name: status_codigo_situacao
+        description: "Código numérico da situação atual da proposição."
+      - name: status_despacho
+        description: "Texto do despacho do status atual de tramitação."
+      - name: status_ambito
+        description: "Âmbito de tramitação do status atual."
+      - name: status_apreciacao
+        description: "Forma de apreciação exigida no status atual da proposição."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."

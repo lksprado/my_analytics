@@ -2,55 +2,55 @@ version: 2
 
 models:
   - name: stg_radarcongresso_governismo_deputados
-    description: "Modelo staging com métricas de alinhamento ao governo para deputados (Radar Congresso)"
+    description: "Governismo de deputados publicado pelo Radar Congresso. Grão: deputado × trimestre."
     columns:
-      - name: id_parlamentar_radar
-        description: "Identificador único do parlamentar no Radar Congresso"
+      - name: radar_parlamentar_id_nk
+        description: "Id do parlamentar no Radar Congresso."
         tests:
           - not_null
-      - name: total_votos_favor_governo
-        description: "Quantidade total de votos do deputado alinhados ao governo"
-      - name: total_votos_contra_governo
-        description: "Quantidade total de votos do deputado contrários ao governo"
-      - name: perc_governismo
-        description: "Percentual de alinhamento total ao governo"
+      - name: qt_votos_alinhados_legislatura
+        description: "Votos do deputado alinhados ao governo no acumulado do mandato."
+      - name: qt_votos_legislatura
+        description: "Votos em votações orientadas pelo Governo no mandato."
+      - name: perc_governismo_legislatura
+        description: "Percentual de governismo no mandato (0–100)."
       - name: data_trimestre
-        description: "Data representativa do trimestre de referência"
+        description: "Data de referência do trimestre no Radar."
       - name: perc_governismo_trimestre
-        description: "Percentual de alinhamento ao governo no trimestre"
-      - name: loaded_at_utc
-        description: "Data/hora (UTC) de ingestão do registro na camada raw"
+        description: "Percentual de governismo no trimestre (0–100)."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_radarcongresso_governismo_senadores
-    description: "Modelo staging com métricas de alinhamento ao governo para senadores (Radar Congresso)"
+    description: "Governismo de senadores publicado pelo Radar Congresso. Grão: senador × trimestre."
     columns:
-      - name: id_parlamentar_radar
-        description: "Identificador único do parlamentar no Radar Congresso"
+      - name: radar_parlamentar_id_nk
+        description: "Id do parlamentar no Radar Congresso."
         tests:
           - not_null
-      - name: total_votos_favor_governo
-        description: "Quantidade total de votos do senador alinhados ao governo"
-      - name: total_votos_contra_governo
-        description: "Quantidade total de votos do senador contrários ao governo"
-      - name: perc_governismo
-        description: "Percentual de alinhamento total ao governo"
+      - name: qt_votos_alinhados_legislatura
+        description: "Votos do senador alinhados ao governo no acumulado do mandato."
+      - name: qt_votos_legislatura
+        description: "Votos em votações orientadas pelo Governo no mandato."
+      - name: perc_governismo_legislatura
+        description: "Percentual de governismo no mandato (0–100)."
       - name: data_trimestre
-        description: "Data representativa do trimestre de referência"
+        description: "Data de referência do trimestre no Radar."
       - name: perc_governismo_trimestre
-        description: "Percentual de alinhamento ao governo no trimestre"
-      - name: loaded_at_utc
-        description: "Data/hora (UTC) de ingestão do registro na camada raw"
+        description: "Percentual de governismo no trimestre (0–100)."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_radarcongresso_parlamentares
-    description: "Modelo staging com tabela de-para entre IDs da API oficial (Câmara/Senado) e IDs do Radar Congresso"
+    description: "De-para entre o id do Radar Congresso e o id da casa. Grão: um parlamentar."
     columns:
-      - name: id_parlamentar_radar
-        description: "Identificador único do parlamentar no Radar Congresso"
+      - name: radar_parlamentar_id_nk
+        description: "Id do parlamentar no Radar Congresso."
         tests:
           - not_null
           - unique
-      - name: id_parlamentar_congresso
-        description: "Identificador único do parlamentar na API oficial da Câmara ou do Senado"
+      - name: parlamentar_id_fk
+        description: "Id do parlamentar na casa."
         tests:
           - not_null
           - unique
@@ -60,13 +60,15 @@ models:
         description: "Unidade federativa representada"
       - name: is_ativo
         description: "Booleano indicando se o parlamentar está em exercício"
-      - name: tipo_mandato
-        description: "Tipo do mandato (DEPUTADO, SENADOR)"
+      - name: casa
+        description: "Casa legislativa (CAMARA ou SENADO), conformada com o resto do domínio."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CAMARA', 'SENADO']
       - name: partido_dict
-        description: "Dicionário/objeto com dados do partido do parlamentar"
+        description: "Partido do parlamentar como vem da fonte (texto serializado)."
       - name: nome_completo
         description: "Nome completo do parlamentar"
-      - name: arquivo_origem
-        description: "Identificador do arquivo de origem da extração"
-      - name: loaded_at_utc
-        description: "Data/hora (UTC) de ingestão do registro na camada raw"
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."

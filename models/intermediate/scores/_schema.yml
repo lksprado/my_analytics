@@ -2,22 +2,24 @@ version: 2
 
 models:
 
-  - name: int_deputados_pontuacao
-    description: "Scores agregados do Ranking dos Políticos para deputados, com ranking renomeado e sk_parlamentar gerado. Alimenta dim_parlamentares_score."
+  - name: int_parlamentares_pontuacao
+    description: "Pontuação atual no Ranking dos Políticos. Grão: um parlamentar."
     columns:
-      - name: sk_parlamentar
-        description: "Chave substituta gerada de (casa, congresso_id_fk)."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
         tests:
           - not_null
-          - unique
-      - name: casa
-        description: "Casa legislativa (constante 'CAMARA')."
+          - accepted_values:
+              arguments:
+                values: ['CAMARA', 'SENADO']
       - name: ranking_id_nk
         description: "Chave natural do parlamentar no Ranking dos Políticos."
       - name: congresso_id_fk
-        description: "FK do deputado na API da Câmara."
+        description: "Id do parlamentar na casa."
+        tests:
+          - not_null
       - name: nome
-        description: "Nome completo padronizado."
+        description: "Nome parlamentar."
       - name: nome_civil
         description: "Nome civil padronizado."
       - name: partido
@@ -26,79 +28,49 @@ models:
         description: "Situação do mandato."
       - name: slug
         description: "Slug no Ranking dos Políticos."
+      - name: uf
+        description: "UF de representação."
+      - name: composicao_pontuacao_anos
+        description: "Histórico anual de pontuação (JSON)."
       - name: pontuacao_geral
         description: "Pontuação total atual no Ranking dos Políticos."
       - name: ranking_geral
         description: "Posição no ranking geral."
       - name: ranking_casa
-        description: "Posição no ranking da Câmara."
+        description: "Posição no ranking da própria casa."
       - name: ranking_partido
         description: "Posição no ranking do partido."
       - name: ranking_estado
         description: "Posição no ranking do estado."
       - name: ranking_casa_estado
-        description: "Posição no ranking da Câmara por estado."
-      - name: uf
-        description: "UF de representação (normalizada para sigla)."
+        description: "Posição no ranking da casa por estado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - congresso_id_fk
 
-  - name: int_senadores_pontuacao
-    description: "Scores agregados do Ranking dos Políticos para senadores, com ranking renomeado e sk_parlamentar gerado. Alimenta dim_parlamentares_score."
+  - name: int_parlamentares_pontuacao_explodida
+    description: "Pontuação anual no Ranking dos Políticos. Grão: parlamentar × ano."
     columns:
-      - name: sk_parlamentar
-        description: "Chave substituta gerada de (casa, congresso_id_fk)."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
         tests:
           - not_null
-          - unique
-      - name: casa
-        description: "Casa legislativa (constante 'SENADO')."
+          - accepted_values:
+              arguments:
+                values: ['CAMARA', 'SENADO']
       - name: ranking_id_nk
         description: "Chave natural do parlamentar no Ranking dos Políticos."
       - name: congresso_id_fk
-        description: "FK do senador na API do Senado."
-      - name: nome
-        description: "Nome completo padronizado."
-      - name: nome_civil
-        description: "Nome civil padronizado."
-      - name: partido
-        description: "Sigla do partido."
-      - name: situacao
-        description: "Situação do mandato."
-      - name: slug
-        description: "Slug no Ranking dos Políticos."
-      - name: pontuacao_geral
-        description: "Pontuação total atual no Ranking dos Políticos."
-      - name: ranking_geral
-        description: "Posição no ranking geral."
-      - name: ranking_casa
-        description: "Posição no ranking do Senado."
-      - name: ranking_partido
-        description: "Posição no ranking do partido."
-      - name: ranking_estado
-        description: "Posição no ranking do estado."
-      - name: ranking_casa_estado
-        description: "Posição no ranking do Senado por estado."
-      - name: uf
-        description: "UF de representação (normalizada para sigla)."
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
-  - name: int_deputados_pontuacao_explodida
-    description: "Scores de deputados explodidos por ano via JSON (composicao_pontuacao_anos). Uma linha por deputado por ano. Alimenta dim_parlamentares_score_historico."
-    columns:
-      - name: sk_parlamentar
-        description: "Chave substituta gerada de (casa, congresso_id_fk)."
+        description: "Id do parlamentar na casa."
         tests:
           - not_null
-      - name: casa
-        description: "Casa legislativa (constante 'CAMARA')."
-      - name: ranking_id_nk
-        description: "Chave natural do parlamentar no Ranking dos Políticos."
-      - name: congresso_id_fk
-        description: "FK do deputado na API da Câmara."
       - name: nome
-        description: "Nome completo padronizado."
+        description: "Nome parlamentar."
       - name: nome_civil
         description: "Nome civil padronizado."
       - name: partido
@@ -106,7 +78,7 @@ models:
       - name: situacao
         description: "Situação do mandato."
       - name: uf
-        description: "UF de representação (normalizada para sigla)."
+        description: "UF de representação."
       - name: slug
         description: "Slug no Ranking dos Políticos."
       - name: pontuacao_geral
@@ -114,15 +86,17 @@ models:
       - name: ranking_geral
         description: "Posição no ranking geral."
       - name: ranking_casa
-        description: "Posição no ranking da Câmara."
+        description: "Posição no ranking da própria casa."
       - name: ranking_partido
         description: "Posição no ranking do partido."
       - name: ranking_estado
         description: "Posição no ranking do estado."
       - name: ranking_casa_estado
-        description: "Posição no ranking da Câmara por estado."
+        description: "Posição no ranking da casa por estado."
       - name: ano
         description: "Ano de referência do score explodido."
+        tests:
+          - not_null
       - name: nota_base_votacoes
         description: "Nota base referente a votações naquele ano."
       - name: nota_base_gastos
@@ -138,64 +112,13 @@ models:
       - name: bonus_articulacao_legislativa
         description: "Bônus por articulação legislativa."
       - name: pontuacao
-        description: "Pontuação final do deputado naquele ano."
+        description: "Pontuação final do parlamentar naquele ano."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
-  - name: int_senadores_pontuacao_explodida
-    description: "Scores de senadores explodidos por ano via JSON. Uma linha por senador por ano. Alimenta dim_parlamentares_score_historico."
-    columns:
-      - name: sk_parlamentar
-        description: "Chave substituta gerada de (casa, congresso_id_fk)."
-        tests:
-          - not_null
-      - name: casa
-        description: "Casa legislativa (constante 'SENADO')."
-      - name: ranking_id_nk
-        description: "Chave natural do parlamentar no Ranking dos Políticos."
-      - name: congresso_id_fk
-        description: "FK do senador na API do Senado."
-      - name: nome
-        description: "Nome completo padronizado."
-      - name: nome_civil
-        description: "Nome civil padronizado."
-      - name: partido
-        description: "Sigla do partido."
-      - name: situacao
-        description: "Situação do mandato."
-      - name: uf
-        description: "UF de representação (normalizada para sigla)."
-      - name: slug
-        description: "Slug no Ranking dos Políticos."
-      - name: pontuacao_geral
-        description: "Pontuação total atual."
-      - name: ranking_geral
-        description: "Posição no ranking geral."
-      - name: ranking_casa
-        description: "Posição no ranking do Senado."
-      - name: ranking_partido
-        description: "Posição no ranking do partido."
-      - name: ranking_estado
-        description: "Posição no ranking do estado."
-      - name: ranking_casa_estado
-        description: "Posição no ranking do Senado por estado."
-      - name: ano
-        description: "Ano de referência do score explodido."
-      - name: nota_base_votacoes
-        description: "Nota base referente a votações naquele ano."
-      - name: nota_base_gastos
-        description: "Nota base referente a controle de gastos naquele ano."
-      - name: nota_base_presenca
-        description: "Nota base referente a presença/assiduidade naquele ano."
-      - name: nota_base_privilegios
-        description: "Nota base referente à rejeição de privilégios naquele ano."
-      - name: bonus_processos
-        description: "Bônus/penalidade por processos judiciais."
-      - name: bonus_producao_legislativa
-        description: "Bônus por produção legislativa."
-      - name: bonus_articulacao_legislativa
-        description: "Bônus por articulação legislativa."
-      - name: pontuacao
-        description: "Pontuação final do senador naquele ano."
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - congresso_id_fk
+              - ano
