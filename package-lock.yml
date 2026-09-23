@@ -5,4 +5,7 @@ packages:
   - name: dbt_date
     package: godatadriven/dbt_date
     version: 0.10.1
-sha1_hash: 1c0795a2935aee0401996b2459eeb1661d188f29
+  - name: dbt_orphan
+    package: Matts52/dbt_orphan
+    version: 0.3.0
+sha1_hash: 311acfe613c067d680e1ac7c644ac1ac07ab3b78
