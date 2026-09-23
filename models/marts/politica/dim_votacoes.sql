@@ -1,5 +1,5 @@
 {{ config(
-    tags=["camara", "senado", "votacoes"]
+    tags=["politica"]
 ) }}
 
 WITH
@@ -8,7 +8,7 @@ votacoes AS (
         casa,
         votacao_id_nk,
         data_votacao,
-        proposicao_id_fk AS proposicao_ref,
+        proposicao_id_fk,
         aprovado
     FROM {{ ref('int_votacoes_camara_deduplicadas') }}
     UNION ALL
@@ -27,6 +27,14 @@ deduplicada AS (
     ORDER BY casa, votacao_id_nk
 ),
 
+legislaturas AS (
+    SELECT
+        legislatura::INT AS legislatura,
+        inicio::DATE     AS inicio,
+        fim::DATE        AS fim
+    FROM {{ ref('seed_legislaturas') }}
+),
+
 final AS (
     SELECT
         {{ dbt_utils.generate_surrogate_key(['casa', 'votacao_id_nk']) }} AS sk_votacao,
@@ -36,13 +44,16 @@ final AS (
         -- Hash de FK nula devolveria uma sk válida apontando para proposição nenhuma:
         -- 2/3 das votações da Câmara não declaram proposição objeto.
         CASE
-            WHEN proposicao_ref IS NULL THEN '{{ var("null_key") }}'
-            ELSE {{ dbt_utils.generate_surrogate_key(['casa', 'proposicao_ref']) }}
+            WHEN proposicao_id_fk IS NULL THEN '{{ var("null_key") }}'
+            ELSE {{ dbt_utils.generate_surrogate_key(['casa', 'proposicao_id_fk']) }}
         END                                                               AS sk_proposicao,
         aprovado,
+        leg.legislatura,
         CAST(TO_CHAR(data_votacao, 'YYYYMMDD') AS INTEGER)                AS sk_data,
         '{{ run_started_at }}'::TIMESTAMPTZ                               AS model_run_at
     FROM deduplicada
+    LEFT JOIN legislaturas AS leg
+        ON deduplicada.data_votacao BETWEEN leg.inicio AND leg.fim
 )
 
 SELECT * FROM final
@@ -54,6 +65,7 @@ UNION ALL
     ['data_votacao', 'null::date'],
     ['sk_proposicao', 'sk'],
     ['aprovado', 'null::int'],
+    ['legislatura', 'null::INT'],
     ['sk_data', '1'],
     ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

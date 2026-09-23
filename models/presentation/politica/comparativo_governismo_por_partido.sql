@@ -1,6 +1,6 @@
 {{ config(
     enabled=false,
-    tags=["camara", "senado", "radar", "votacoes"]
+    tags=["politica"]
 ) }}
 
 WITH

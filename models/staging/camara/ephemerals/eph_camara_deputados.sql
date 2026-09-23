@@ -1,6 +1,6 @@
 {{ config(
     materialized='ephemeral',
-    tags=["camara", "parlamentar"]
+    tags=["politica"]
 ) }}
 
 WITH source AS (

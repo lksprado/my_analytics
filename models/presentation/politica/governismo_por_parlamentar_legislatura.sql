@@ -1,5 +1,5 @@
 {{ config(
-    tags=["camara", "senado", "parlamentar", "votacoes"]
+    tags=["politica"]
 ) }}
 
 WITH governismo AS (

@@ -1,6 +1,6 @@
 {{ config(
     materialized='ephemeral',
-    tags=["ecidadania", "participacao"]
+    tags=["politica"]
 ) }}
 
 

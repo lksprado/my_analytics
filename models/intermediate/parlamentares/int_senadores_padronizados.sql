@@ -1,5 +1,5 @@
 {{ config(
-    tags=["senado", "parlamentar"]
+    tags=["politica"]
 ) }}
 
 WITH

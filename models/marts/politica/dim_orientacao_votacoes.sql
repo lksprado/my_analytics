@@ -1,5 +1,5 @@
 {{ config(
-    tags=["camara", "senado", "votacoes"]
+    tags=["politica"]
 ) }}
 
 WITH
@@ -14,7 +14,7 @@ unioned AS (
     UNION ALL
     SELECT
         casa,
-        votacao_id_fk::TEXT,
+        votacao_id_fk,
         '{{ var('null_string') }}',
         partido,
         orientacao_voto

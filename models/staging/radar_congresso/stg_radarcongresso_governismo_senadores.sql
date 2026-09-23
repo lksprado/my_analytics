@@ -1,5 +1,5 @@
 {{ config(
-    tags=["stg","radar","senado"]
+    tags=["politica"]
 ) }}
 
 

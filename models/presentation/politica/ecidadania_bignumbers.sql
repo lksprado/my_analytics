@@ -1,5 +1,5 @@
 {{ config(
-    tags=["ecidadania", "participacao"]
+    tags=["politica"]
 ) }}
 
 WITH

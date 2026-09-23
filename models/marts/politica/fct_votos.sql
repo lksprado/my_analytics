@@ -1,5 +1,5 @@
 {{ config(
-    tags=["camara", "senado", "votacoes"]
+    tags=["politica"]
 ) }}
 
 WITH
@@ -53,6 +53,6 @@ final AS (
     FROM votos_unidos t1 
     INNER JOIN {{ ref('dim_votacoes') }} t2
     ON t1.votacao_id_fk = t2.votacao_id_nk
-    WHERE t2.sk_parlamentar IS NOT NULL 
+    WHERE t1.sk_parlamentar IS NOT NULL 
 )
 SELECT * FROM final

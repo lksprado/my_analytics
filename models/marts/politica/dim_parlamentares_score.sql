@@ -1,5 +1,5 @@
 {{ config(
-    tags=["camara", "senado", "score"]
+    tags=["politica"]
 ) }}
 
 WITH scores AS (

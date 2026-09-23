@@ -1,5 +1,5 @@
 {{ config(
-    tags=["camara", "parlamentar"]
+    tags=["politica"]
 ) }}
 
 WITH snap AS (

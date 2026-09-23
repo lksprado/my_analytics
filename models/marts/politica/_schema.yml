@@ -62,6 +62,8 @@ models:
                 severity: warn
       - name: aprovado
         description: 1 se aprovada, 0 caso contrário.
+      - name: legislatura
+        description: Número da legislatura (51–58) derivado da data da votação via seed_legislaturas.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da votação.
       - name: model_run_at
@@ -275,3 +277,46 @@ models:
         description: Booleano indicando se a proposição estava entre as mais votadas na data de extração.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_governismo_legislatura
+    description: "Percentual de alinhamento ao governo por parlamentar e legislatura."
+    columns:
+      - name: sk_parlamentar
+        description: "Surrogate key do parlamentar (FK de dim_parlamentares)."
+      - name: legislatura
+        description: "Número da legislatura."
+      - name: qt_votos_alinhados_legislatura
+        description: "Quantidade de votos alinhados com a orientação do governo na legislatura."
+      - name: qt_votos_legislatura
+        description: "Quantidade de votações orientadas pelo governo em que o parlamentar votou na legislatura."
+      - name: perc_governismo_legislatura
+        description: "Percentual de governismo na legislatura (0–100)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso)."
+
+  - name: fct_governismo_legislatura_trimestre
+    description: "Percentual de alinhamento ao governo por parlamentar, legislatura, ano e trimestre."
+    columns:
+      - name: sk_parlamentar
+        description: "Surrogate key do parlamentar (FK de dim_parlamentares)."
+      - name: legislatura
+        description: "Número da legislatura."
+      - name: ano
+        description: "Ano da votação."
+      - name: trimestre
+        description: "Trimestre da votação (1 a 4)."
+      - name: qt_votos_alinhados_trimestre
+        description: "Quantidade de votos alinhados com a orientação do governo no trimestre."
+      - name: qt_votos_trimestre
+        description: "Quantidade de votações orientadas pelo governo em que o parlamentar votou no trimestre."
+      - name: perc_governismo_trimestre
+        description: "Percentual de governismo no trimestre (0–100)."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso)."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - sk_parlamentar
+            - legislatura
+            - ano
+            - trimestre

@@ -1,6 +1,6 @@
 {{ config(
     enabled=false,
-    tags=["prs","ecidadania"]
+    tags=["politica"]
 ) }}
 
 WITH
