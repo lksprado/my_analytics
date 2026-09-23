@@ -9,6 +9,8 @@ models:
         description: Casa legislativa (CAMARA).
       - name: deputado_id_nk
         description: Chave natural do deputado na API da Câmara. Com casa e votacao_id_fk, é a chave que fct_votos usa para gerar sk_voto; nula vira null_key lá.
+      - name: partido_id_fk
+        description: "Chave estrangeira do partido na API da Câmara."
       - name: votacao_id_fk
         description: Chave natural da votação.
       - name: partido
@@ -31,6 +33,8 @@ models:
         description: Data em que a votação ocorreu.
       - name: sigla_orgao
         description: Sigla do órgão que realizou a votação (ex. PLEN, CSPCCO).
+      - name: proposicao_id_fk
+        description: "Chave estrangeira da proposição objeto da votação na API da Câmara."
       - name: aprovado
         description: Booleano indicando se a proposição foi aprovada.
       - name: model_run_at
@@ -81,6 +85,8 @@ models:
         description: Casa legislativa (SENADO).
       - name: votacao_id_nk
         description: Chave natural da votação na API do Senado.
+      - name: processo_id_nk
+        description: "Chave natural do processo legislativo associado à votação."
       - name: data_votacao
         description: Data da sessão de votação.
       - name: identificacao
@@ -127,49 +133,3 @@ models:
             combination_of_columns:
               - casa
               - proposicao_id_nk
-
-  - name: int_radar_governismo
-    description: >
-      Governismo do Radar Congresso unificado nas duas casas e resolvido para o id oficial do
-      parlamentar. Grão: parlamentar × trimestre, doze trimestres de 2023 T1 a 2025 T4. As três
-      colunas de legislatura são o acumulado do mandato, constantes nas doze linhas de cada
-      parlamentar; só perc_governismo_trimestre varia. Alimenta os modelos comparativo_governismo_*.
-    columns:
-      - name: casa
-        description: "Casa legislativa (CAMARA ou SENADO), derivada da tabela de origem."
-      - name: parlamentar_id_nk
-        description: "Identificador do parlamentar na API oficial da casa. Com casa, é a chave que dim_parlamentares usa em deputado_id_nk e senador_id_nk."
-        tests:
-          - not_null
-      - name: id_parlamentar_radar
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz)."
-        tests:
-          - not_null
-      - name: nome_eleitoral
-        description: "Nome eleitoral conforme o Radar Congresso, preservado para conferir o de-para contra o nome de dim_parlamentares."
-      - name: uf
-        description: "UF de representação conforme o Radar Congresso."
-      - name: ano
-        description: "Ano do trimestre medido, derivado de data_trimestre recuada um dia."
-      - name: trimestre
-        description: "Trimestre medido (1 a 4), derivado de data_trimestre recuada um dia."
-      - name: data_trimestre
-        description: "Marcador do trimestre como vem da fonte: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
-      - name: perc_governismo_trimestre
-        description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o parlamentar não votou em votação orientada no período."
-      - name: qt_votos_legislatura
-        description: "Denominador do acumulado do mandato: votos em votações com orientação do governo. Constante nas doze linhas do parlamentar."
-      - name: qt_votos_alinhados_legislatura
-        description: "Votos alinhados ao governo no acumulado do mandato. Constante nas doze linhas do parlamentar."
-      - name: perc_governismo_legislatura
-        description: "Percentual de alinhamento no acumulado do mandato, inteiro. Constante nas doze linhas do parlamentar."
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - casa
-              - parlamentar_id_nk
-              - ano
-              - trimestre

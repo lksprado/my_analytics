@@ -26,8 +26,6 @@ models:
         description: "Grau de escolaridade informado."
       - name: email
         description: "E-mail institucional — COALESCE de ultimostatus_email e ultimostatus_gabinete_email."
-      - name: loaded_at_utc
-        description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
@@ -38,6 +36,8 @@ models:
         description: "Chave natural da legislatura."
       - name: deputado_id_fk
         description: "Chave estrangeira do deputado na API da Câmara."
+      - name: nome
+        description: "Nome do deputado na legislatura, conforme a API da Câmara."
       - name: uf
         description: "UF de representação do deputado na legislatura (siglauf)."
       - name: partido_id_fk

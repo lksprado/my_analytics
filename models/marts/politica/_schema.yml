@@ -14,6 +14,10 @@ models:
         description: Chave natural do deputado na fonte da Câmara. Nulo para senadores.
       - name: senador_id_nk
         description: Chave natural do senador na fonte do Senado. Nulo para deputados.
+      - name: radar_deputado_id_fk
+        description: "Identificador do deputado no Radar Congresso (idparlamentarvoz), não o id oficial da casa. Nulo para senadores."
+      - name: radar_senador_id_fk
+        description: "Identificador do senador no Radar Congresso (idparlamentarvoz), não o id oficial da casa. Nulo para deputados."
       - name: casa
         description: Casa legislativa (CAMARA ou SENADO).
         tests:
@@ -212,8 +216,14 @@ models:
               arguments:
                 to: ref('dim_votacoes')
                 field: sk_votacao
-      - name: votacao_id_nk
+      - name: sk_data
+        description: Chave substituta de data (YYYYMMDD) da votação, join com dim_datas.
+      - name: votacao_id_fk
         description: Chave natural da votação na casa de origem (id da Câmara ou codigo_votacao do Senado), mantida para rastreabilidade.
+      - name: deputado_id_fk
+        description: Chave natural do deputado na fonte da Câmara. Nulo para votos de senadores.
+      - name: senador_id_fk
+        description: Chave natural do senador na fonte do Senado. Nulo para votos de deputados.
       - name: casa
         description: Casa legislativa do voto (CAMARA ou SENADO).
       - name: partido
@@ -229,60 +239,15 @@ models:
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
-  - name: fct_ecidadania_bignumbers
-    description: Fato com os totais agregados de votações e votantes na plataforma e-Cidadania.
-    columns:
-      - name: data_extracao
-        description: Data de extração dos dados da fonte.
-      - name: total_proposicoes_votadas
-        description: Quantidade total de proposições que receberam votos.
-      - name: total_pessoas_votaram
-        description: Quantidade total de pessoas distintas que votaram.
-      - name: total_votos_registrados
-        description: Quantidade total de votos registrados na plataforma.
-      - name: votos_por_pessoa
-        description: Média de votos por pessoa (total_votos / total_pessoas).
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
-  - name: fct_ecidadania_proposicoes
-    description: Fato com métricas de votação por proposição na plataforma e-Cidadania, com flag indicando se foi a mais votada no dia da extração.
-    columns:
-      - name: data_extracao
-        description: Data de extração dos dados da fonte.
-      - name: ano_proposicao
-        description: Ano de apresentação da proposição.
-      - name: sigla_proposicao
-        description: Sigla do tipo de proposição (ex PL, PEC).
-      - name: sk_proposicao_ecidadania
-        description: "Identificador do grão da e-Cidadania, derivado do rótulo textual da proposição. Não é FK de dim_proposicoes — as duas chaves vivem em espaços diferentes."
-        tests:
-          - not_null
-          - unique
-      - name: proposicao_id_nk
-        description: "Chave natural da proposição na fonte (título, ex: PL 123/2024)."
-      - name: ementa
-        description: Ementa descritiva da proposição.
-      - name: votos_sim
-        description: Quantidade de votos favoráveis à proposição.
-      - name: votos_nao
-        description: Quantidade de votos contrários à proposição.
-      - name: total_votos
-        description: Total de votos registrados para a proposição.
-      - name: vontade_popular
-        description: Indicador da vontade popular (SIM/NÃO) com base na maioria dos votos.
-      - name: link
-        description: URL da proposição na plataforma e-Cidadania.
-      - name: flag_mais_votado_no_dia
-        description: Booleano indicando se a proposição estava entre as mais votadas na data de extração.
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
   - name: fct_governismo_legislatura
     description: "Percentual de alinhamento ao governo por parlamentar e legislatura."
     columns:
       - name: sk_parlamentar
         description: "Surrogate key do parlamentar (FK de dim_parlamentares)."
+      - name: deputado_id_fk
+        description: Chave natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_fk
+        description: Chave natural do senador na fonte do Senado. Nulo para deputados.
       - name: legislatura
         description: "Número da legislatura."
       - name: qt_votos_alinhados_legislatura
@@ -299,6 +264,10 @@ models:
     columns:
       - name: sk_parlamentar
         description: "Surrogate key do parlamentar (FK de dim_parlamentares)."
+      - name: deputado_id_fk
+        description: Chave natural do deputado na fonte da Câmara. Nulo para senadores.
+      - name: senador_id_fk
+        description: Chave natural do senador na fonte do Senado. Nulo para deputados.
       - name: legislatura
         description: "Número da legislatura."
       - name: ano
@@ -320,3 +289,45 @@ models:
             - legislatura
             - ano
             - trimestre
+
+  - name: fct_radarcongresso_governismo_legislatura
+    description: >
+      Governismo do Radar Congresso resolvido para o id oficial do parlamentar, no acumulado do
+      mandato. Grain: um registro por parlamentar (casa + radar_parlamentar_id_nk).
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA ou SENADO), derivada da tabela de origem."
+      - name: radar_parlamentar_id_nk
+        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz). Join com dim_parlamentares via radar_deputado_id_fk/radar_senador_id_fk."
+      - name: deputado_id_fk
+        description: "Chave natural do deputado na fonte da Câmara, resolvida via dim_parlamentares. Nulo para senadores."
+      - name: senador_id_fk
+        description: "Chave natural do senador na fonte do Senado, resolvida via dim_parlamentares. Nulo para deputados."
+      - name: qt_votos_alinhados_legislatura
+        description: "Votos alinhados ao governo no acumulado do mandato."
+      - name: qt_votos_legislatura
+        description: "Denominador do cálculo: total de votos em votações com orientação do governo, no acumulado do mandato."
+      - name: perc_governismo_legislatura
+        description: "Percentual de alinhamento ao governo no acumulado do mandato, inteiro."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_radarcongresso_governismo_trimestre
+    description: >
+      Governismo do Radar Congresso resolvido para o id oficial do parlamentar, por trimestre.
+      Grain: um registro por parlamentar por trimestre.
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA ou SENADO), derivada da tabela de origem."
+      - name: radar_parlamentar_id_nk
+        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz). Join com dim_parlamentares via radar_deputado_id_fk/radar_senador_id_fk."
+      - name: deputado_id_fk
+        description: "Chave natural do deputado na fonte da Câmara, resolvida via dim_parlamentares. Nulo para senadores."
+      - name: senador_id_fk
+        description: "Chave natural do senador na fonte do Senado, resolvida via dim_parlamentares. Nulo para deputados."
+      - name: perc_governismo_trimestre
+        description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o parlamentar não votou em votação orientada no período."
+      - name: data_trimestre
+        description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."

@@ -32,7 +32,7 @@ renamed AS (
 final AS (
     SELECT 
         data_extracao,
-        sigla
+        sigla,
         numero,
         ano,
         identificacao,

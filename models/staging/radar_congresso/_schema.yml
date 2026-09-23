@@ -79,7 +79,5 @@ models:
         description: "Dicionário Python serializado com id e sigla do partido, como vem da fonte. Não parseado: o partido usado no domínio sai de fct_votos."
       - name: nome_completo
         description: "Nome completo do parlamentar"
-      - name: arquivo_origem
-        description: "Identificador do arquivo de origem da extração"
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."

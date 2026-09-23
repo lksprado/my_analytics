@@ -33,6 +33,10 @@ models:
         description: Nome eleitoral / parlamentar.
       - name: uf
         description: UF de representação do parlamentar.
+      - name: partido
+        description: "Dimensão degenerada: sigla do partido do parlamentar no momento do voto."
+      - name: partido_nome
+        description: "Dimensão degenerada: nome do partido no momento do voto ('desconhecido' quando não há partido)."
       - name: votacao_id_nk
         description: Identificador natural da votação na casa de origem (id da Câmara ou codigo_votacao do Senado).
       - name: tipo_proposicao
@@ -619,6 +623,38 @@ models:
               - casa
               - partido
               - ano
+
+  - name: ecidadania_bignumbers
+    description: "Totais agregados de votações e votantes na plataforma e-Cidadania, enriquecidos com atributos de calendário de dim_datas."
+    columns:
+      - name: data_extracao
+        description: Data de extração dos dados da fonte.
+      - name: total_proposicoes_votadas
+        description: Quantidade total de proposições que receberam votos.
+      - name: total_pessoas_votaram
+        description: Quantidade total de pessoas distintas que votaram.
+      - name: total_votos_registrados
+        description: Quantidade total de votos registrados na plataforma.
+      - name: votos_por_pessoa
+        description: Média de votos por pessoa (total_votos / total_pessoas).
+      - name: ano
+        description: "Ano com quatro dígitos, herdado de dim_datas."
+      - name: mes_do_ano
+        description: "Número do mês (1-12), herdado de dim_datas."
+      - name: dia_do_ano
+        description: "Dia do ano (1-366), herdado de dim_datas."
+      - name: nome_dia_semana
+        description: "Nome do dia da semana em português, maiúsculo e sem acento (SEGUNDA-FEIRA … DOMINGO), herdado de dim_datas."
+      - name: nome_dia_semana_abrev
+        description: "Dia da semana abreviado em português (SEG … DOM), herdado de dim_datas."
+      - name: nome_mes
+        description: "Nome do mês em português, maiúsculo e sem acento (JANEIRO … DEZEMBRO), herdado de dim_datas."
+      - name: nome_mes_abrev
+        description: "Mês abreviado em português (JAN … DEZ), herdado de dim_datas."
+      - name: fl_fim_de_semana
+        description: "TRUE aos sábados e domingos, herdado de dim_datas."
+      - name: fl_feriado
+        description: "TRUE quando o dia é feriado nacional ou ponto facultativo bancário, herdado de dim_datas."
 
   - name: ecidadania_proposicoes
     description: "Apresentação de proposições da plataforma e-Cidadania enriquecida com atributos de tramitação e deliberação do Senado. DESABILITADO: arquivo SQL renomeado para .disabled enquanto a fonte e-Cidadania não estiver ativa."

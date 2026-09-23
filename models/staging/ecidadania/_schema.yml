@@ -22,12 +22,16 @@ models:
     columns:
       - name: data_extracao
         description: "Data de extração dos dados da fonte"
-      - name: ano_proposicao
-        description: "Ano de apresentação da proposição"
-      - name: sigla_proposicao
+      - name: sigla
         description: "Sigla do tipo de proposição (ex: PL, PEC)"
-      - name: proposicao_id_nk
+      - name: numero
+        description: "Número da proposição."
+      - name: ano
+        description: "Ano de apresentação da proposição"
+      - name: identificacao
         description: "Chave natural da proposição na fonte (título, ex: PL 123/2024)."
+      - name: tipo_proposicao
+        description: "Tipo da proposição normalizado (ex: PROJETO DE LEI)."
       - name: ementa
         description: "Ementa descritiva da proposição"
       - name: votos_sim
@@ -40,5 +44,3 @@ models:
         description: "Indicador da vontade popular (SIM/NÃO) com base na maioria dos votos"
       - name: link
         description: "URL da proposição na plataforma e-Cidadania"
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
