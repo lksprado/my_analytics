@@ -260,11 +260,12 @@ models:
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso)."
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - sk_parlamentar
-            - legislatura
-            - ano
-            - trimestre
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - legislatura
+              - ano
+              - trimestre
 
   - name: fct_radarcongresso_governismo_legislatura
     description: >
