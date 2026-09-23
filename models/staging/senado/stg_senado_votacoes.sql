@@ -10,8 +10,9 @@ SELECT
     codigomateria::INT                  AS codigo_materia,
     codigosessao::INT                   AS codigo_sessao,
     codigosessaolegislativa::BIGINT     AS codigo_sessao_legislativa,
-    codigosessaovotacao::BIGINT         AS codigo_sessao_votacao,
-    codigovotacaosve::BIGINT            AS votacao_id_nk,
+    -- codigovotacaosve só existe a partir de 2019; codigosessaovotacao cobre desde 2001.
+    codigosessaovotacao::BIGINT         AS votacao_id_nk,
+    codigovotacaosve::BIGINT            AS votacao_sve_id,
     idprocesso::INT                     AS processo_id_nk,
     identificacao,
     numero,

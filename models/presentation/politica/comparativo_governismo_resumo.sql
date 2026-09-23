@@ -7,8 +7,6 @@ comparativo AS (
     SELECT * FROM {{ ref('comparativo_governismo_trimestre') }}
 ),
 
--- Nas linhas do Senado só existe o lado do radar, então correlação, erro e viés ficam nulos:
--- não há o que comparar enquanto a orientação de bancada do Senado não for extraída.
 final AS (
     SELECT
         casa,

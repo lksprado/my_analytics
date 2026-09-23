@@ -3,13 +3,10 @@
 ) }}
 
 WITH
--- Mesmo motivo de governismo: no Senado só 1.674 dos 27.400 votos têm orientação do próprio
--- partido, contra 1.118.127 na Câmara. Não sustenta métrica.
 votos AS (
     SELECT * FROM {{ ref('fct_votos') }}
     WHERE
         fl_seguiu_partido IS NOT NULL
-        AND casa = 'CAMARA'
         AND sk_parlamentar <> '{{ var("null_key") }}'
 ),
 

@@ -32,6 +32,7 @@ final AS (
         COALESCE(p.sk_partido, '{{ var("null_key") }}')                           AS sk_partido,
         o.casa,
         o.votacao_id_nk,
+        o.votacao_origem_id,
         o.sigla_lideranca,
         o.tipo_lideranca,
         o.orientacao_voto,

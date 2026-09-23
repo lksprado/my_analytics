@@ -118,8 +118,12 @@ erDiagram
   bancada por `voto IN ('SIM', 'NAO', 'OBSTRUCAO')`.
 - `fct_governismo_*` são somas de `fct_votos.fl_seguiu_governo` e têm o mesmo grão das fatos do Radar,
   para comparar as duas fontes lado a lado.
-- A maior parte das orientações do Senado é órfã (`sk_votacao = null_key`): o `codigovotacaosve` do
-  endpoint de orientação é outro espaço de chave. O teste de `relationships` avisa quantas.
+- No Senado a orientação vem do endpoint `orientacaoBancada`, cujo `codigovotacaosve` é outro espaço de
+  chave: a votação é resolvida pela matéria no dia, com desempate pelo placar SIM/NÃO dos votos.
+  Casam 384 das 487 votações orientadas; o resto cai em `sk_votacao = null_key`, e o teste de
+  `relationships` avisa quantas linhas.
+- A chave natural das votações do Senado é `codigosessaovotacao`, que existe desde 2001;
+  `codigovotacaosve` só existe a partir de 2019 e fica como `votacao_sve_id`.
 - `dim_calendario_legislativo` é o recorte público de `dim_datas` (mesma `data_sk`), sem as datas especiais
   da família, com legislatura, presidente e anos eleitorais.
 - `dim_partidos` tem grão de entidade (rebrands juntos, siglas reutilizadas separadas). Voto e

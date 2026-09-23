@@ -3,12 +3,14 @@ version: 2
 models:
   - name: governismo
     description: >
-      Grão: um voto por parlamentar por votação onde o Governo emitiu orientação.
-      Restrito à Câmara: no Senado só 24 votações têm orientação de GOVERNO que casa com
-      fct_votacoes, por defeito de extração do codigovotacaosve, e as 1.658 linhas resultantes
-      desapareciam em qualquer agregação. É o recorte de fct_votos com fl_seguiu_governo
-      preenchido, enriquecido com nome e uf; tipo de proposição, legislatura, presidente, mandato,
-      ano e trimestre vêm de votacoes_placar, que os resolve em dim_calendario_legislativo.
+      Grão: um voto por parlamentar por votação onde o Governo emitiu orientação, nas duas casas.
+      No Senado a orientação só existe de 2019 em diante e vem de outro espaço de chave, resolvido
+      pela matéria votada no dia (int_orientacoes_senado_filtradas): são 18.201 votos de
+      senadores contra 1,48 milhão da Câmara. Contra o Radar Congresso, o cálculo do Senado dá
+      correlação de 0,9985 e erro absoluto médio de 1,22 pp. É o recorte de fct_votos com
+      fl_seguiu_governo preenchido, enriquecido com nome e uf; tipo de proposição, legislatura,
+      presidente, mandato, ano e trimestre vêm de votacoes_placar, que os resolve em
+      dim_calendario_legislativo.
     columns:
       - name: casa
         description: Casa legislativa do voto (CAMARA ou SENADO).
@@ -222,8 +224,11 @@ models:
     description: >
       Grão: um voto em que o PRÓPRIO partido do parlamentar emitiu orientação.
       É o recorte de fct_votos com fl_seguiu_partido preenchido.
-      Restrito à Câmara, onde cobre 1.118.127 dos 1.883.614 votos SIM/NÃO/OBSTRUÇÃO (59%); no Senado
-      cobriria 1.674 de 27.400 (6%), pelo mesmo defeito de extração que limita o governismo.
+      Cobre 1.225.638 dos 1.883.614 votos SIM/NÃO/OBSTRUÇÃO da Câmara (65%) e 17.528 dos 89.338
+      do Senado (20%), onde só há orientação de 2019 em diante. O partido do voto casa com a
+      orientação pela entidade de dim_partidos, não pela sigla (PR orienta o PL). Desde 2023 PT,
+      PCdoB, PV, PSDB, Cidadania, PSOL e REDE orientam como federação, e esses votos ficam sem
+      orientação do próprio partido.
       É o complemento do governismo — mede lealdade à bancada, não ao Executivo — e permite
       separar quem segue o partido de quem segue o governo.
     columns:
@@ -288,9 +293,8 @@ models:
       atributo: a posse de Temer em 2016-08-31 corta um trimestre ao meio, e tratá-los como
       atributo produziria linha ambígua.
       Traz três famílias de métrica com coberturas diferentes, o que é intencional —
-      governismo e disciplina dependem de orientação de voto e por isso só existem para a
-      Câmara; a coesão (índice de Rice) não depende, e é a única métrica de comportamento de
-      bancada disponível para o Senado.
+      governismo e disciplina dependem de orientação de voto, que no Senado só existe de 2019 em
+      diante; a coesão (índice de Rice) não depende e cobre as duas casas desde 2001.
     columns:
       - name: casa
         description: Casa legislativa (CAMARA ou SENADO).
@@ -323,17 +327,17 @@ models:
           dentro da bancada, ignorando obstrução: 1 é bancada unânime, 0 é bancada rachada ao
           meio. Nulo quando nenhuma votação do período teve dois votos polarizados.
       - name: qt_votos_governismo
-        description: Votos da bancada em votações com orientação do Governo. Nulo no Senado.
+        description: Votos da bancada em votações com orientação do Governo. Nulo sem orientação no período (Senado antes de 2019).
       - name: qt_votos_alinhados_governo
-        description: Votos da bancada que seguiram a orientação do Governo. Nulo no Senado.
+        description: Votos da bancada que seguiram a orientação do Governo. Nulo sem orientação no período.
       - name: perc_governismo
-        description: Percentual de alinhamento da bancada ao Governo no período. Nulo no Senado.
+        description: Percentual de alinhamento da bancada ao Governo no período. Nulo sem orientação no período.
       - name: qt_votos_disciplina
-        description: Votos da bancada em votações com orientação do próprio partido. Nulo no Senado.
+        description: Votos da bancada em votações com orientação do próprio partido. Nulo sem orientação no período.
       - name: qt_votos_disciplinados
-        description: Votos da bancada que seguiram a orientação do próprio partido. Nulo no Senado.
+        description: Votos da bancada que seguiram a orientação do próprio partido. Nulo sem orientação no período.
       - name: perc_disciplina
-        description: Percentual de disciplina da bancada no período. Nulo no Senado.
+        description: Percentual de disciplina da bancada no período. Nulo sem orientação no período.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
     tests:
@@ -353,8 +357,8 @@ models:
       Grão: um parlamentar por legislatura. Tabela larga (OBT) para ranking, dispersão e
       ficha individual — uma linha por entidade, sem necessidade de join no dataviz.
       O esqueleto é governismo_por_parlamentar_legislatura_ajustado, então cobre apenas
-      parlamentares com voto em votação orientada pelo Governo, o que na prática restringe
-      à Câmara.
+      parlamentares com voto em votação orientada pelo Governo: todas as legislaturas da Câmara
+      e, no Senado, só as que têm orientação (56 e 57).
     columns:
       - name: sk_parlamentar
         description: Chave substituta do parlamentar, join com dim_parlamentares.
@@ -483,8 +487,8 @@ models:
       A disciplina partidária, por contraste, é praticamente ortogonal ao índice (-0,117).
       Segunda, os componentes de 2026 vieram em outra escala — ver
       flag_componentes_normalizados.
-      Os 70 senadores do histórico aparecem com governismo nulo, pelo mesmo defeito de
-      extração que restringe governismo e disciplina_partidaria à Câmara.
+      Os 70 senadores do histórico têm governismo próprio; 108 dos 280 senador-ano passam o corte
+      de 30 votos orientados e entram nos percentis e no quadrante.
     columns:
       - name: sk_parlamentar
         description: Chave substituta do parlamentar, join com dim_parlamentares.
@@ -719,9 +723,9 @@ models:
       Senado com o publicado pelo Radar Congresso, no acumulado da legislatura corrente.
       Restrito a quem existe nas duas fontes: 499 dos 643 deputados da legislatura 57 — os 144
       de fora são suplentes de passagem curta, que o de-para do radar, montado com quem estava
-      em exercício na extração, não cobre. As 78 linhas do Senado têm o lado oficial nulo: o
-      cálculo próprio não cobre senadores, por defeito de extração do codigovotacaosve, e para
-      eles o radar não é comparação e sim a única medida disponível.
+      em exercício na extração, não cobre. No Senado, 77 dos 78 senadores têm os dois lados, com
+      correlação de 0,9985, erro absoluto médio de 1,22 pp e viés de +1,10 pp (o cálculo próprio
+      sai um pouco mais governista); o que sobra fica so_radar.
       O lado oficial é restrito à janela que o radar cobre (2023 T1 a 2025 T4), tirada do próprio
       dado e não do calendário. Sem esse recorte o erro absoluto médio sobe de 0,62 pp para
       1,09 pp e o gap de denominador inverte de -13 para +60 votos, ou seja, quase toda a
@@ -749,9 +753,9 @@ models:
       - name: id_parlamentar_radar
         description: Identificador do parlamentar no Radar Congresso (idparlamentarvoz).
       - name: qt_votos_oficial
-        description: Votos do parlamentar em votações com orientação do Governo, no cálculo próprio, restrito à janela do radar. Nulo no Senado.
+        description: Votos do parlamentar em votações com orientação do Governo, no cálculo próprio, restrito à janela do radar. Nulo quando o parlamentar não votou em votação orientada.
       - name: qt_votos_alinhados_oficial
-        description: Votos alinhados à orientação do Governo no cálculo próprio, na mesma janela. Nulo no Senado.
+        description: Votos alinhados à orientação do Governo no cálculo próprio, na mesma janela.
       - name: qt_votos_radar
         description: Denominador do radar, o acumulado do mandato. A fonte chama essa coluna de n; não são votos contrários.
       - name: qt_votos_alinhados_radar
@@ -759,7 +763,7 @@ models:
       - name: perc_governismo_radar
         description: Percentual de alinhamento segundo o radar, inteiro. Igual a ROUND(100 * qt_votos_alinhados_radar / qt_votos_radar) em 100% das linhas.
       - name: perc_governismo_oficial
-        description: Percentual de alinhamento no cálculo próprio, restrito à janela do radar. É a coluna comparável com perc_governismo_radar. Nulo no Senado.
+        description: Percentual de alinhamento no cálculo próprio, restrito à janela do radar. É a coluna comparável com perc_governismo_radar.
       - name: perc_governismo_oficial_legislatura_completa
         description: Percentual de alinhamento no cálculo próprio sobre toda a legislatura, sem o corte de janela. Exposto para deixar explícito o quanto os trimestres de 2026 mudam a conta; não comparar com o radar.
       - name: diferenca_qt_votos
@@ -771,7 +775,7 @@ models:
       - name: flag_divergencia_relevante
         description: Booleano para diferenca_abs_pp acima de 5 pontos percentuais. Verdadeiro em 2 dos 499 deputados.
       - name: fonte_disponivel
-        description: "'ambas' quando os dois cálculos existem, 'so_radar' quando só há o do Radar Congresso (todo o Senado)."
+        description: "'ambas' quando os dois cálculos existem, 'so_radar' quando só há o do Radar Congresso (parlamentar sem voto orientado no cálculo próprio)."
         tests:
           - accepted_values:
               arguments:
@@ -817,9 +821,9 @@ models:
       - name: data_trimestre
         description: Marcador do trimestre como vem do radar — o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31. Preservado para rastrear a origem; o recorte confiável é (ano, trimestre).
       - name: qt_votos_oficial
-        description: Votos do parlamentar em votações orientadas pelo Governo no trimestre, no cálculo próprio. Nulo no Senado.
+        description: Votos do parlamentar em votações orientadas pelo Governo no trimestre, no cálculo próprio.
       - name: perc_governismo_oficial
-        description: Percentual de alinhamento no trimestre, no cálculo próprio. Nulo no Senado.
+        description: Percentual de alinhamento no trimestre, no cálculo próprio.
       - name: perc_governismo_radar
         description: Percentual de alinhamento no trimestre segundo o radar, inteiro.
       - name: diferenca_pp
@@ -827,7 +831,7 @@ models:
       - name: diferenca_abs_pp
         description: Módulo de diferenca_pp.
       - name: fonte_disponivel
-        description: "'ambas' quando os dois cálculos existem, 'so_radar' quando só há o do Radar Congresso (todo o Senado)."
+        description: "'ambas' quando os dois cálculos existem, 'so_radar' quando só há o do Radar Congresso (parlamentar sem voto orientado no cálculo próprio)."
         tests:
           - accepted_values:
               arguments:
@@ -847,11 +851,11 @@ models:
       Grão: casa × ano × trimestre. Agregado de comparativo_governismo_trimestre — o quanto as
       duas fontes concordam ao longo do tempo. 23 linhas: 12 da Câmara e 11 do Senado, porque
       em 2023 T1 nenhum senador tem percentual publicado pelo radar.
-      Nas linhas do Senado correlacao, erro_absoluto_medio e vies_medio são nulos por construção,
-      já que não existe o lado oficial para comparar.
-      vies_medio fica entre -0,63 e +0,36 pp em todos os trimestres, o que é o achado central:
-      não há erro sistemático entre as duas metodologias, só ruído concentrado nos trimestres de
-      pouco volume.
+      Na Câmara vies_medio fica entre -0,63 e +0,36 pp em todos os trimestres, o que é o achado
+      central: não há erro sistemático entre as duas metodologias, só ruído concentrado nos
+      trimestres de pouco volume. No Senado a correlação fica entre 0,976 e 1,000, mas o erro
+      chega a 5,9 pp e o viés oscila entre -4,1 e +5,0 pp: há poucas votações orientadas por
+      trimestre, e cada uma move muito o percentual.
     columns:
       - name: casa
         description: Casa legislativa (CAMARA ou SENADO).
@@ -862,17 +866,17 @@ models:
       - name: qt_parlamentares
         description: Parlamentares com percentual do radar no trimestre.
       - name: qt_parlamentares_ambas_fontes
-        description: Subconjunto que também tem cálculo próprio no trimestre. Zero em todas as linhas do Senado.
+        description: Subconjunto que também tem cálculo próprio no trimestre.
       - name: perc_governismo_oficial_medio
         description: Média simples do percentual do cálculo próprio entre os parlamentares do trimestre.
       - name: perc_governismo_radar_medio
         description: Média simples do percentual do radar entre os parlamentares do trimestre.
       - name: correlacao
-        description: Correlação de Pearson entre os dois percentuais no trimestre. Nulo no Senado.
+        description: Correlação de Pearson entre os dois percentuais no trimestre.
       - name: erro_absoluto_medio
-        description: Média do módulo da diferença, em pontos percentuais. Mede a dispersão entre as duas fontes. Nulo no Senado.
+        description: Média do módulo da diferença, em pontos percentuais. Mede a dispersão entre as duas fontes.
       - name: vies_medio
-        description: Média da diferença com sinal, em pontos percentuais. Separa erro sistemático de ruído — próximo de zero significa que nenhuma das fontes é consistentemente mais governista. Nulo no Senado.
+        description: Média da diferença com sinal, em pontos percentuais. Separa erro sistemático de ruído — próximo de zero significa que nenhuma das fontes é consistentemente mais governista.
       - name: qt_divergencias_acima_5pp
         description: Parlamentares com diferença absoluta acima de 5 pontos percentuais no trimestre.
       - name: model_run_at
@@ -891,8 +895,8 @@ models:
       predominante do parlamentar, para comparar as duas fontes no nível de bancada. 33 linhas:
       22 da Câmara e 11 do Senado.
       Na Câmara as duas fontes ficam dentro de 1 pp em todas as siglas, o que é a leitura de
-      bancada do mesmo resultado individual. As linhas do Senado só têm o lado do radar, e são
-      hoje a única visão de governismo por bancada do Senado no warehouse.
+      bancada do mesmo resultado individual. No Senado as 11 siglas têm os dois lados, com erro
+      absoluto médio de até 3,4 pp.
     columns:
       - name: casa
         description: Casa legislativa (CAMARA ou SENADO).
@@ -901,15 +905,15 @@ models:
       - name: qt_parlamentares
         description: Parlamentares da sigla presentes no comparativo.
       - name: qt_parlamentares_ambas_fontes
-        description: Subconjunto com os dois cálculos. Zero em todas as linhas do Senado.
+        description: Subconjunto com os dois cálculos.
       - name: perc_governismo_oficial_medio
-        description: Média simples do percentual do cálculo próprio entre os parlamentares da sigla. Nulo no Senado.
+        description: Média simples do percentual do cálculo próprio entre os parlamentares da sigla.
       - name: perc_governismo_radar_medio
         description: Média simples do percentual do radar entre os parlamentares da sigla.
       - name: diferenca_pp_media
-        description: Média da diferença com sinal, em pontos percentuais. Nulo no Senado.
+        description: Média da diferença com sinal, em pontos percentuais.
       - name: erro_absoluto_medio
-        description: Média do módulo da diferença, em pontos percentuais. Nulo no Senado.
+        description: Média do módulo da diferença, em pontos percentuais.
       - name: qt_divergencias_acima_5pp
         description: Parlamentares da sigla com diferença absoluta acima de 5 pontos percentuais.
       - name: model_run_at

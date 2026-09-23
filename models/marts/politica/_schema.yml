@@ -441,15 +441,16 @@ models:
     description: >
       Fato sem fato das orientações de voto (Câmara e Senado). Grão: uma liderança (partido, bloco,
       Governo, Maioria, Minoria, Oposição) por votação. LIBERADO e ABSTENCAO ficam, porque são
-      eventos. No Senado a maior parte das orientações é órfã — o codigovotacaosve do endpoint
-      orientacaoBancada é outro espaço de chave — e cai em null_key; o teste de relationships avisa
-      quantas.
+      eventos. No Senado o codigovotacaosve do endpoint orientacaoBancada é outro espaço de chave;
+      a votação é resolvida pela matéria no dia com desempate pelo placar
+      (int_orientacoes_senado_filtradas), e o que não se resolve cai em null_key — o teste de
+      relationships avisa quantas.
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns:
               - casa
-              - votacao_id_nk
+              - votacao_origem_id
               - sigla_lideranca
     columns:
       - name: sk_votacao
@@ -475,7 +476,9 @@ models:
       - name: casa
         description: Casa legislativa (CAMARA ou SENADO).
       - name: votacao_id_nk
-        description: "Dimensão degenerada: chave da votação como vem da origem da orientação."
+        description: "Dimensão degenerada: chave da votação na casa; no Senado, a resolvida pela matéria no dia (nula quando ficou sem par)."
+      - name: votacao_origem_id
+        description: "Dimensão degenerada: chave da votação como vem do endpoint de orientação."
       - name: sigla_lideranca
         description: Sigla do partido, bloco ou liderança que emitiu a orientação (GOVERNO, MAIORIA...).
       - name: tipo_lideranca
@@ -562,7 +565,7 @@ models:
     description: >
       Agregado de governismo por parlamentar e legislatura: somas das flags de fct_votos, sem regra
       própria. Mesmo grão de fct_radarcongresso_governismo_legislatura, para comparar as duas fontes.
-      Cobre as duas casas; a presentation é que restringe à Câmara.
+      Cobre as duas casas; no Senado, só há orientação de 2019 em diante.
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

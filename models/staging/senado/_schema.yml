@@ -192,10 +192,10 @@ models:
         description: "Código da sessão."
       - name: codigo_sessao_legislativa
         description: "Código da sessão legislativa."
-      - name: codigo_sessao_votacao
-        description: "Código da sessão de votação."
       - name: votacao_id_nk
-        description: "Chave natural da votação na API do Senado."
+        description: "Chave natural da votação: codigosessaovotacao, que existe desde 2001. Único nas votações."
+      - name: votacao_sve_id
+        description: "codigovotacaosve, a chave do sistema eletrônico de votação; só existe a partir de 2019 e fica para rastreabilidade."
       - name: processo_id_nk
         description: "Chave natural do processo legislativo associado à votação."
       - name: identificacao
@@ -238,10 +238,10 @@ models:
         description: "Código da sessão."
       - name: codigo_sessao_legislativa
         description: "Código da sessão legislativa."
-      - name: codigo_sessao_votacao
-        description: "Código da sessão de votação."
       - name: votacao_id_fk
-        description: "Chave estrangeira da votação à qual o voto se refere."
+        description: "Chave estrangeira da votação à qual o voto se refere (codigosessaovotacao, igual a stg_senado_votacoes.votacao_id_nk)."
+      - name: votacao_sve_id
+        description: "codigovotacaosve da votação; só existe a partir de 2019."
       - name: data_votacao
         description: "Data da sessão de votação."
       - name: processo_id_nk
@@ -273,7 +273,7 @@ models:
     description: "Orientação de votos das bancadas e partidos no Senado por votação."
     columns:
       - name: votacao_id_fk
-        description: "Chave estrangeira da votação à qual o voto se refere."
+        description: "codigovotacaosve do endpoint de orientação: outro espaço de chave que o das votações; a votação é resolvida em int_orientacoes_senado_filtradas."
       - name: sigla_tipo_materia
         description: "Sigla do tipo de matéria votada."
       - name: numero_materia

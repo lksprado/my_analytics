@@ -3,14 +3,10 @@
 ) }}
 
 WITH
--- Só 24 votações do Senado têm orientação de GOVERNO que casa com fct_votacoes — o
--- codigovotacaosve do endpoint orientacaoBancada é outro espaço de chave. Deixar o Senado
--- entrar daria 1.658 linhas contra 1,4M da Câmara, que somem em qualquer agregação.
 votos AS (
     SELECT * FROM {{ ref('fct_votos') }}
     WHERE
         fl_seguiu_governo IS NOT NULL
-        AND casa = 'CAMARA'
         AND sk_parlamentar <> '{{ var("null_key") }}'
 ),
 

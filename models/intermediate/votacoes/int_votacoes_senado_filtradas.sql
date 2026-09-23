@@ -17,13 +17,14 @@ final AS (
         votacao_id_nk,
         processo_id_nk,
         data_votacao,
+        sigla,
+        numero,
         identificacao,
         {{ clean_string("descricao_votacao", "upper") }} AS descricao,
         (votacao_secreta = 'SIM')::INT                  AS fl_secreta,
         aprovado,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM senado_votacoes
-    WHERE votacao_id_nk IS NOT NULL
     ORDER BY data_votacao DESC
 
 )

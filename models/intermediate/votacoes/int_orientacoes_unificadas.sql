@@ -7,6 +7,7 @@ orientacoes AS (
     SELECT
         casa,
         votacao_id_fk       AS votacao_id_nk,
+        votacao_id_fk       AS votacao_origem_id,
         NULL::DATE          AS data_votacao,
         tipo_lideranca,
         sigla_partido_bloco AS sigla_lideranca,
@@ -16,6 +17,7 @@ orientacoes AS (
     SELECT
         casa,
         votacao_id_fk::TEXT,
+        votacao_origem_id::TEXT,
         data_votacao,
         '{{ var("null_string") }}',
         partido,
@@ -28,6 +30,7 @@ com_data AS (
     SELECT
         o.casa,
         o.votacao_id_nk,
+        o.votacao_origem_id,
         COALESCE(o.data_votacao, v.data_votacao) AS data_votacao,
         o.tipo_lideranca,
         o.sigla_lideranca,
@@ -40,7 +43,7 @@ com_data AS (
 -- A sigla vale para a entidade vigente na data; nas transições (fusão, rebrand) a origem ainda
 -- usa a sigla antiga por alguns dias, e fica a entidade mais próxima no tempo.
 com_partido AS (
-    SELECT DISTINCT ON (o.casa, o.votacao_id_nk, o.sigla_lideranca)
+    SELECT DISTINCT ON (o.casa, o.votacao_origem_id, o.sigla_lideranca)
         o.*,
         p.partido_id_senado
     FROM com_data AS o
@@ -48,7 +51,7 @@ com_partido AS (
         ON o.sigla_lideranca = p.sigla
     ORDER BY
         o.casa,
-        o.votacao_id_nk,
+        o.votacao_origem_id,
         o.sigla_lideranca,
         CASE
             WHEN o.data_votacao BETWEEN p.inicio AND p.fim THEN 0

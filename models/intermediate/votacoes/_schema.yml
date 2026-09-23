@@ -107,12 +107,17 @@ models:
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: int_orientacoes_senado_filtradas
-    description: "Orientações de voto por partido/bancada por sessão de votação do Senado, inclusive LIBERADO. Alimenta int_orientacoes_unificadas."
+    description: "Orientações de voto por partido/bancada por sessão de votação do Senado, inclusive LIBERADO, com a votação resolvida pela matéria no dia. Alimenta int_orientacoes_unificadas."
     columns:
       - name: casa
         description: Casa legislativa (SENADO).
       - name: votacao_id_fk
-        description: Código da votação no endpoint de orientação do Senado — outro espaço de chave que o das votações na maior parte dos casos.
+        description: >
+          Votação resolvida (codigo_sessao_votacao) pela matéria no dia — data, sigla e número —, com
+          desempate pelo placar SIM/NÃO dos votos. Nula quando não há candidata, há empate, o placar
+          diverge ou outra orientação já caiu na mesma votação.
+      - name: votacao_origem_id
+        description: Código da votação no endpoint de orientação (codigovotacaosve), outro espaço de chave que o das votações.
       - name: data_votacao
         description: Data da votação orientada.
       - name: numero_materia
@@ -229,13 +234,24 @@ models:
           arguments:
             combination_of_columns:
               - casa
-              - votacao_id_nk
+              - votacao_origem_id
               - sigla_lideranca
+      # Garante que a orientação partidária não multiplica os votos em fct_votos.
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - votacao_id_nk
+              - partido_id_senado
+          config:
+            where: "votacao_id_nk IS NOT NULL AND partido_id_senado IS NOT NULL"
     columns:
       - name: casa
         description: Casa legislativa (CAMARA ou SENADO).
       - name: votacao_id_nk
-        description: Chave da votação como vem da origem da orientação, em texto.
+        description: Chave da votação na casa, em texto; no Senado é a votação resolvida pela matéria, nula quando a orientação ficou sem par.
+      - name: votacao_origem_id
+        description: Chave da votação como vem da origem da orientação (na Câmara, a mesma de votacao_id_nk).
       - name: data_votacao
         description: Data da votação; na Câmara vem da própria votação, no Senado da orientação.
       - name: tipo_lideranca
@@ -321,3 +337,52 @@ unit_tests:
         - {votacao_id_nk: '5', classe_votacao: MERITO}
         - {votacao_id_nk: '6', classe_votacao: OUTROS}
         - {votacao_id_nk: '7', classe_votacao: MERITO}
+
+  - name: int_orientacoes_senado_filtradas_resolve_votacao
+    description: >
+      A chave do endpoint de orientação é outro espaço; a votação sai da matéria no dia (data, sigla,
+      número). Com várias candidatas, vale a única cujo placar SIM/NÃO dos votos bate com o da
+      orientação; empate, placar divergente, nenhuma candidata ou duas orientações caindo na mesma
+      votação deixam a orientação sem par.
+    model: int_orientacoes_senado_filtradas
+    given:
+      - input: ref('stg_senado_votos_orientacao')
+        rows:
+          - {votacao_id_fk: 13059, data_votacao: '2026-08-12', sigla_tipo_materia: PLP, numero_materia: 124, total_votos_favor: 1, total_votos_contra: 0, partido: PT, orientacao_voto: SIM}
+          - {votacao_id_fk: 13059, data_votacao: '2026-08-12', sigla_tipo_materia: PLP, numero_materia: 124, total_votos_favor: 1, total_votos_contra: 0, partido: PL, orientacao_voto: NAO}
+          - {votacao_id_fk: 13036, data_votacao: '2026-07-15', sigla_tipo_materia: PLP, numero_materia: 18, total_votos_favor: 2, total_votos_contra: 1, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13098, data_votacao: '2026-07-15', sigla_tipo_materia: PLP, numero_materia: 18, total_votos_favor: 1, total_votos_contra: 2, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13200, data_votacao: '2026-08-12', sigla_tipo_materia: PLP, numero_materia: 124, total_votos_favor: 5, total_votos_contra: 5, partido: GOVERNO, orientacao_voto: NAO}
+          - {votacao_id_fk: 99999, data_votacao: '2026-01-01', sigla_tipo_materia: PL, numero_materia: 1, total_votos_favor: 10, total_votos_contra: 10, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13300, data_votacao: '2026-08-13', sigla_tipo_materia: PEC, numero_materia: 1, total_votos_favor: 1, total_votos_contra: 0, partido: GOVERNO, orientacao_voto: SIM}
+          - {votacao_id_fk: 13301, data_votacao: '2026-08-13', sigla_tipo_materia: PEC, numero_materia: 1, total_votos_favor: 1, total_votos_contra: 0, partido: GOVERNO, orientacao_voto: SIM}
+      - input: ref('int_votacoes_senado_filtradas')
+        rows:
+          - {votacao_id_nk: 7101, data_votacao: '2026-08-12', sigla: PLP, numero: '124'}
+          - {votacao_id_nk: 7098, data_votacao: '2026-07-15', sigla: PLP, numero: '18'}
+          - {votacao_id_nk: 7099, data_votacao: '2026-07-15', sigla: PLP, numero: '18'}
+          - {votacao_id_nk: 7100, data_votacao: '2026-07-15', sigla: PLP, numero: '18'}
+          - {votacao_id_nk: 7102, data_votacao: '2026-08-13', sigla: PEC, numero: '1'}
+      - input: ref('int_votos_unificados')
+        rows:
+          - {casa: SENADO, votacao_id_nk: '7101', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7098', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7098', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7098', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7099', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7099', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7099', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7100', voto: SIM}
+          - {casa: SENADO, votacao_id_nk: '7100', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7100', voto: NAO}
+          - {casa: SENADO, votacao_id_nk: '7102', voto: SIM}
+    expect:
+      rows:
+        - {votacao_origem_id: 13059, partido: PT, votacao_id_fk: 7101}
+        - {votacao_origem_id: 13059, partido: PL, votacao_id_fk: 7101}
+        - {votacao_origem_id: 13036, partido: GOVERNO, votacao_id_fk: 7098}
+        - {votacao_origem_id: 13098, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 13200, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 99999, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 13300, partido: GOVERNO, votacao_id_fk: null}
+        - {votacao_origem_id: 13301, partido: GOVERNO, votacao_id_fk: null}
