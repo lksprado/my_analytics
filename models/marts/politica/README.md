@@ -1,4 +1,32 @@
-# Relacionamentos — marts/politica
+# Mart política
+
+Modelo dimensional das votações da Câmara e do Senado.
+
+## Entidades
+
+### Fatos
+
+| Modelo                                                     | Representa                                                      | Grão                                |
+| ---------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------- |
+| `fct_votacoes`                                             | Votação, com placar e resultado                                 | votação                             |
+| `fct_votos`                                                | Registro de voto do parlamentar, inclusive abstenção e ausência | parlamentar × votação               |
+| `fct_orientacoes`                                          | Orientação de voto de uma liderança                             | liderança × votação                 |
+| `fct_governismo_legislatura` / `_trimestre`                | Alinhamento ao Governo, calculado a partir dos votos            | parlamentar × legislatura/trimestre |
+| `fct_radarcongresso_governismo_legislatura` / `_trimestre` | Alinhamento ao Governo publicado pelo Radar Congresso           | parlamentar × legislatura/trimestre |
+| `fct_ranking_politicos`                                    | Pontuação atual no Ranking dos Políticos                        | parlamentar                         |
+| `fct_ranking_politicos_anual`                              | Pontuação anual no Ranking dos Políticos                        | parlamentar × ano                   |
+
+### Dimensões
+
+| Modelo                       | Representa                                                          | Grão                       |
+| ---------------------------- | ------------------------------------------------------------------- | -------------------------- |
+| `dim_parlamentares`          | Deputado ou senador                                                 | parlamentar × casa         |
+| `dim_partidos`               | Partido como entidade, agrupando as siglas que já usou              | entidade partidária        |
+| `dim_proposicoes`            | Proposição legislativa (PL, PEC, MP...)                             | proposição × casa          |
+| `dim_calendario_legislativo` | Dia com legislatura, sessão legislativa, presidente e ano eleitoral | dia                        |
+| `dim_orgaos`                 | Órgão que vota (plenário, comissão, CPI, mesa)                      | casa × sigla               |
+| `dim_tipo_votacao`           | Tipo de votação (mérito, procedimental...), nominal e secreta       | classe × nominal × secreta |
+| `dim_tipo_voto`              | Código de voto da origem, com posição e categoria                   | casa × código              |
 
 ## Bus matrix
 
