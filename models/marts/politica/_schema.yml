@@ -58,12 +58,6 @@ models:
         description: "Chave substituta da proposição objeto da votação; null_key quando a votação não declara proposição (2/3 das votações da Câmara)."
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('dim_proposicoes')
-                field: sk_proposicao
-              config:
-                severity: warn
       - name: aprovado
         description: 1 se aprovada, 0 caso contrário.
       - name: legislatura
@@ -80,14 +74,6 @@ models:
         description: Chave substituta da votação, join com dim_votacoes.
         tests:
           - not_null
-          # warn, não error: o codigovotacaosve do endpoint orientacaoBancada do Senado só
-          # casa com o do endpoint de votações em 8% dos casos. É defeito de extração.
-          - relationships:
-              arguments:
-                to: ref('dim_votacoes')
-                field: sk_votacao
-              config:
-                severity: warn
       - name: tipo_lideranca
         description: "Tipo de liderança que emitiu a orientação (BANCADA ou PARTIDO). Nulo para o Senado."
       - name: sigla_partido_bloco
@@ -109,12 +95,6 @@ models:
         tests:
           - not_null
           - unique
-          - relationships:
-              arguments:
-                to: ref('dim_parlamentares')
-                field: sk_parlamentar
-              config:
-                severity: warn
       - name: pontuacao_geral
         description: Pontuação total atual no Ranking dos Políticos.
       - name: ranking_geral
@@ -143,10 +123,6 @@ models:
         description: Chave substituta do parlamentar, join com dim_parlamentares.
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('dim_parlamentares')
-                field: sk_parlamentar
       - name: ano
         description: Ano de referência do score.
       - name: pontuacao

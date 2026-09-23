@@ -11,7 +11,7 @@ renamed AS (
     SELECT
         id::INT                                                             AS proposicao_id_nk,
         siglatipo                                                           AS sigla_tipo,
-        codtipo                                                             AS codigo_tipo,
+        codtipo::INT                                                        AS codigo_tipo,
         numero::INT                                                         AS numero,
         ano::INT                                                            AS ano,
         {{ clean_string('ementa', 'upper') }}                               AS ementa,
