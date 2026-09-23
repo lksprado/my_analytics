@@ -15,19 +15,30 @@ votacoes AS (
         votacao_id_nk,
         sk_data,
         sk_proposicao,
+        sk_orgao,
+        sk_tipo_votacao,
         orientacao_governo,
         fl_aprovada,
         fl_governo_orientou
     FROM {{ ref('fct_votacoes') }}
 ),
 
+-- O partido casa com a orientação pela entidade, não pela sigla: PR orienta o PL, PMDB o MDB.
 orientacoes_partido AS (
     SELECT
         casa,
         votacao_id_nk,
-        sigla_lideranca,
+        partido_id_senado,
         orientacao_voto
     FROM {{ ref('int_orientacoes_unificadas') }}
+    WHERE partido_id_senado IS NOT NULL
+),
+
+partidos AS (
+    SELECT
+        sk_partido,
+        partido_id_nk
+    FROM {{ ref('dim_partidos') }}
 ),
 
 parlamentares AS (
@@ -51,8 +62,11 @@ final AS (
         {{ dbt_utils.generate_surrogate_key(['v.casa', 'v.parlamentar_id_nk', 'v.votacao_id_nk']) }} AS sk_voto,
         COALESCE(vt.sk_votacao, '{{ var("null_key") }}')                                             AS sk_votacao,
         COALESCE(pd.sk_parlamentar, ps.sk_parlamentar, '{{ var("null_key") }}')                      AS sk_parlamentar,
+        COALESCE(pt.sk_partido, '{{ var("null_key") }}')                                             AS sk_partido,
         vt.sk_data,
         COALESCE(vt.sk_proposicao, '{{ var("null_key") }}')                                          AS sk_proposicao,
+        COALESCE(vt.sk_orgao, '{{ var("null_key") }}')                                               AS sk_orgao,
+        COALESCE(vt.sk_tipo_votacao, '{{ var("null_key") }}')                                        AS sk_tipo_votacao,
         COALESCE(tv.sk_tipo_voto, '{{ var("null_key") }}')                                           AS sk_tipo_voto,
         v.casa,
         v.votacao_id_nk,
@@ -80,7 +94,7 @@ final AS (
     LEFT JOIN votacoes AS vt
         ON v.casa = vt.casa AND v.votacao_id_nk = vt.votacao_id_nk
     LEFT JOIN orientacoes_partido AS o
-        ON v.casa = o.casa AND v.votacao_id_nk = o.votacao_id_nk AND v.partido = o.sigla_lideranca
+        ON v.casa = o.casa AND v.votacao_id_nk = o.votacao_id_nk AND v.partido_id_senado = o.partido_id_senado
     -- Um lookup por casa, cada um por uma coluna só: juntar por (casa, COALESCE(ids)) faz o
     -- planner casar só pela casa e comparar cada voto com todos os parlamentares dela.
     LEFT JOIN parlamentares AS pd
@@ -89,6 +103,8 @@ final AS (
         ON v.casa = 'SENADO' AND v.parlamentar_id_nk = ps.senador_id_nk
     LEFT JOIN tipos_voto AS tv
         ON v.casa = tv.casa AND v.codigo_voto = tv.codigo_origem
+    LEFT JOIN partidos AS pt
+        ON v.partido_id_senado = pt.partido_id_nk
 )
 
 SELECT * FROM final

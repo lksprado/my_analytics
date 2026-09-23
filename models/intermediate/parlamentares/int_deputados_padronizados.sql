@@ -12,7 +12,9 @@ deputados AS (
         CASE
             WHEN sexo = 'M' THEN 'MASCULINO'
             WHEN sexo = 'F' THEN 'FEMININO'
-        END            AS sexo
+        END            AS sexo,
+        data_nascimento,
+        NULLIF(TRIM(escolaridade), '') AS escolaridade
     FROM {{ ref('stg_camara_deputados') }}
     ORDER BY deputado_id_nk
 ),
@@ -23,7 +25,9 @@ deputados_historico AS (
         deputado_id_fk AS parlamentar_id_nk,
         nome,
         NULL           AS nome_completo,
-        NULL           AS sexo
+        NULL           AS sexo,
+        NULL::DATE     AS data_nascimento,
+        NULL           AS escolaridade
     FROM {{ ref('stg_camara_legislaturas') }}
     ORDER BY deputado_id_fk
 ),
@@ -35,7 +39,9 @@ deputados_votos AS (
         deputado_id_nk                      AS parlamentar_id_nk,
         {{ clean_string("nome","upper") }}  AS nome,
         NULL                                AS nome_completo,
-        NULL                                AS sexo
+        NULL                                AS sexo,
+        NULL::DATE                          AS data_nascimento,
+        NULL                                AS escolaridade
     FROM {{ ref('stg_camara_votos_deputados') }}
     WHERE deputado_id_nk IS NOT NULL
     ORDER BY deputado_id_nk, legislatura DESC
@@ -99,6 +105,8 @@ final AS (
         t1.nome_completo,
         t1.sexo,
         COALESCE(t2.uf, t3.uf)     AS uf,
+        t1.data_nascimento,
+        t1.escolaridade,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM deputados_completo AS t1
     LEFT JOIN uf_representacao AS t2

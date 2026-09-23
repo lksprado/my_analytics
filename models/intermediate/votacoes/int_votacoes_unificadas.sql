@@ -26,9 +26,56 @@ votacoes AS (
         aprovado,
         fl_secreta
     FROM {{ ref('int_votacoes_senado_filtradas') }}
+),
+
+-- O objeto é o que sobra depois do verbo e do artigo ("APROVADO, EM SEGUNDO TURNO, A ..."): é ele,
+-- e não qualquer palavra da descrição, que diz o que foi votado ("PROJETO ... NOS TERMOS DO PARECER").
+objetos AS (
+    SELECT
+        *,
+        REGEXP_REPLACE(
+            COALESCE(descricao, ''),
+            '^((APROVAD|REJEITAD|MANTID|PREJUDICAD|RETIRAD)[OA]S?|VOTACAO( NOMINAL| SECRETA| SIMBOLICA)?)(,? EM [A-Z ]+?,)?(,? POR [A-Z ]+?,)?\s*(OS|AS|O|A|DOS|DAS|DO|DA|QUANTO AOS|QUANTO AS|QUANTO AO|QUANTO A)?\s+',
+            ''
+        ) AS objeto
+    FROM votacoes
+),
+
+classificadas AS (
+    SELECT
+        *,
+        CASE
+            WHEN objeto ~ '^REQUERIMENTO' AND objeto ~ 'URGENCIA' THEN 'URGENCIA'
+            WHEN objeto ~ '^REQUERIMENTO' THEN 'REQUERIMENTO PROCEDIMENTAL'
+            WHEN objeto ~ '^(PARECER|PRESSUPOSTOS)' THEN 'PARECER'
+            WHEN objeto ~ '^(DESTAQUE|EMENDA(?! A CONSTITUICAO)|EMENDAS|SUBEMENDA|ARTIGO|ART\M|INCISO|PARAGRAFO|ALINEA|DISPOSITIVO|EXPRESSAO|TEXTO\M(?![- ]BASE)|ITEM)'
+                THEN 'EMENDA/DESTAQUE'
+            WHEN objeto ~ '^(PROJETO|PROPOSTA|MEDIDA PROVISORIA|SUBSTITUTIVO|REDACAO FINAL|TEXTO[- ]BASE|MATERIA|PEC|PLV|PLP|PL\M|MPV|PDL|PDC|PRC)'
+                THEN 'MERITO'
+            WHEN objeto ~ '^(ESCOLHA|INDICACAO|MENSAGEM)' OR descricao ~ 'ESCOLHA D[OA]' THEN 'AUTORIDADE'
+            -- No Senado a descrição às vezes é a própria ementa da matéria, que começa pelo verbo.
+            WHEN descricao ~ '^\(?(ALTERA|INSTITUI|DISPOE|MODIFICA|ESTABELECE|ACRESCENTA|INCLUI|AUTORIZA|CRIA|REGULAMENTA|APROVA |DA NOVA REDACAO|REVOGA|DENOMINA|DECLARA|INSCREVE|CONCEDE|DEFINE|PROIBE|TORNA|DETERMINA)'
+                THEN 'MERITO'
+            -- Sem objeto reconhecível no início, vale a primeira pista em qualquer ponto da descrição.
+            WHEN descricao ~ 'REQUERIMENTO' AND descricao ~ 'URGENCIA' THEN 'URGENCIA'
+            WHEN descricao ~ 'REQUERIMENTO' THEN 'REQUERIMENTO PROCEDIMENTAL'
+            WHEN descricao ~ '(PARECER|PRESSUPOSTOS)' THEN 'PARECER'
+            WHEN descricao ~ '(DESTAQUE|EMENDA(?! A CONSTITUICAO)|MANTID[OA])' THEN 'EMENDA/DESTAQUE'
+            WHEN descricao ~ '(PROJETO|PROPOSTA|MEDIDA PROVISORIA|SUBSTITUTIVO|REDACAO FINAL)' THEN 'MERITO'
+            ELSE 'OUTROS'
+        END AS classe_votacao
+    FROM objetos
 )
 
 SELECT
-    *,
+    casa,
+    votacao_id_nk,
+    data_votacao,
+    sigla_orgao,
+    descricao,
+    proposicao_id_nk,
+    aprovado,
+    fl_secreta,
+    classe_votacao,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
-FROM votacoes
+FROM classificadas

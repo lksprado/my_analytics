@@ -137,6 +137,18 @@ models:
         description: Tipo da proposição padronizado em maiúsculas (ex. PL, PEC).
       - name: data_proposicao
         description: Data de apresentação da proposição.
+      - name: identificacao
+        description: "Identificação legível (sigla número/ano, ex.: PL 1234/2023)."
+      - name: ementa
+        description: Ementa da proposição; só a Câmara traz.
+      - name: situacao_atual
+        description: Situação atual de tramitação (foto da última carga, não histórico).
+      - name: regime
+        description: Regime de tramitação atual (urgência, prioridade...); só a Câmara traz.
+      - name: autoria
+        description: Autoria da proposição; só o Senado traz.
+      - name: norma_gerada
+        description: Norma gerada quando a proposição foi transformada em lei; só o Senado traz.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
     tests:
@@ -202,6 +214,11 @@ models:
         description: 1 se aprovada, 0 caso contrário.
       - name: fl_secreta
         description: 1 quando a votação foi secreta (só no Senado).
+      - name: classe_votacao
+        description: >
+          Classe da votação pelo objeto na descrição: MERITO, EMENDA/DESTAQUE, URGENCIA, REQUERIMENTO
+          PROCEDIMENTAL, PARECER, AUTORIDADE ou OUTROS. Heurística por texto; o teste
+          assert_classe_votacao_cobre_nominais exige reconhecer ao menos 85% das nominais de cada casa.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
@@ -220,12 +237,87 @@ models:
       - name: votacao_id_nk
         description: Chave da votação como vem da origem da orientação, em texto.
       - name: data_votacao
-        description: Data da votação quando a origem traz (só Senado).
+        description: Data da votação; na Câmara vem da própria votação, no Senado da orientação.
       - name: tipo_lideranca
         description: "Tipo de liderança (BANCADA ou PARTIDO); 'desconhecido' no Senado."
       - name: sigla_lideranca
         description: Sigla do partido, bloco ou liderança (GOVERNO, MAIORIA...).
       - name: orientacao_voto
         description: Orientação emitida (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO).
+      - name: partido_id_senado
+        description: >
+          Entidade partidária da liderança (id_senado de seed_partidos), resolvida pela sigla na data
+          da votação via int_partidos_siglas. Nula para Governo, blocos, federações e lideranças.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: int_partidos_siglas
+    description: >
+      Toda sigla conhecida de cada entidade partidária (sigla da Câmara, do Senado, conformada e os
+      apelidos de seed_partidos_siglas), com a vigência da entidade. Resolve sigla + data para a
+      entidade: PL e PSD foram reutilizadas por partidos diferentes, então a data decide.
+    columns:
+      - name: sigla
+        description: Sigla normalizada (maiúscula, sem acento).
+      - name: partido_id_senado
+        description: Entidade partidária (id_senado de seed_partidos).
+      - name: inicio
+        description: Início da vigência da entidade.
+      - name: fim
+        description: Fim da vigência da entidade (9999-12-31 quando ativa).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+unit_tests:
+
+  - name: int_votacoes_unificadas_classe_votacao
+    description: >
+      A classe sai do objeto da votação na descrição: requerimento (de urgência ou procedimental),
+      parecer e pressupostos, emenda e destaque (inclusive "mantido o texto" e artigo do
+      substitutivo), mérito (projeto, PEC, MP, redação final, texto-base ressalvados os destaques),
+      escolha de autoridade no Senado. No Senado a descrição às vezes é a própria ementa ("MODIFICA...",
+      "INSTITUI..."), e isso também é mérito. O que não se reconhece fica OUTROS.
+    model: int_votacoes_unificadas
+    given:
+      - input: ref('int_votacoes_camara_deduplicadas')
+        rows:
+          - {casa: CAMARA, votacao_id_nk: c1, descricao: "APROVADO O REQUERIMENTO DE URGENCIA (ART. 155 DO RICD). SIM: 316; NAO: 86; ABSTENCAO: 1; TOTAL: 403."}
+          - {casa: CAMARA, votacao_id_nk: c2, descricao: "REJEITADO O REQUERIMENTO. SIM: 7; NAO: 263; ABSTENCAO: 1; TOTAL: 271."}
+          - {casa: CAMARA, votacao_id_nk: c3, descricao: "MANTIDO O TEXTO. SIM: 235; NAO: 121; ABSTENCAO: 2; TOTAL: 358."}
+          - {casa: CAMARA, votacao_id_nk: c4, descricao: "REJEITADA A EMENDA DE PLENARIO Nº 18. SIM: 133; NAO: 204; TOTAL: 337."}
+          - {casa: CAMARA, votacao_id_nk: c5, descricao: "REJEITADO O ARTIGO 1º DO SUBSTITUTIVO. SIM: 210; NAO: 267; ABSTENCAO: 5; TOTAL: 482."}
+          - {casa: CAMARA, votacao_id_nk: c6, descricao: "APROVADA, EM SEGUNDO TURNO, A PROPOSTA DE EMENDA A CONSTITUICAO Nº 66, DE 2023, RESSALVADO O DESTAQUE. SIM: 367; NAO: 97"}
+          - {casa: CAMARA, votacao_id_nk: c7, descricao: "APROVADO O PROJETO DE LEI COMPLEMENTAR Nº 459, DE 2017. SIM: 384; NAO: 59; ABSTENCAO: 1; TOTAL: 444."}
+          - {casa: CAMARA, votacao_id_nk: c8, descricao: "APROVADA A REDACAO FINAL ASSINADA PELO RELATOR, DEP. BETO MANSUR (PRB-SP). SIM: 226; NAO: 180"}
+          - {casa: CAMARA, votacao_id_nk: c9, descricao: "APROVADO, EM APRECIACAO PRELIMINAR, O PARECER DA COMISSAO MISTA, NA PARTE EM QUE MANIFESTA OPINIAO FAVORAVEL QUANTO AO ATENDIMENTO DOS PRESSUPOSTOS"}
+          - {casa: CAMARA, votacao_id_nk: c10, descricao: "APROVADO O PROJETO DE LEI Nº 1.234, DE 2023, NOS TERMOS DO PARECER DO RELATOR. SIM: 300; NAO: 100"}
+          - {casa: CAMARA, votacao_id_nk: c11, descricao: "APROVADO"}
+      - input: ref('int_votacoes_senado_filtradas')
+        rows:
+          - {casa: SENADO, votacao_id_nk: 1, descricao: "ESCOLHA DO SR. CARLOS AUGUSTO REGO SANTOS NEVES, PARA, CUMULATIVAMENTE COM O CARGO DE EMBAIXADOR", fl_secreta: 1}
+          - {casa: SENADO, votacao_id_nk: 2, descricao: "VOTACAO NOMINAL DO REQUERIMENTO Nº 1.103, DE 2023 - SOLICITA O ENCERRAMENTO DA DISCUSSAO", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 3, descricao: "VOTACAO QUANTO AOS PRESSUPOSTOS CONSTITUCIONAIS DE RELEVANCIA, URGENCIA E ADEQUACAO FINANCEIRA", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 4, descricao: "VOTACAO NOMINAL DA EMENDA Nº 1 (SUBSTITUTIVO) AO PROJETO DE LEI COMPLEMENTAR Nº 12", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 5, descricao: "VOTACAO NOMINAL DA PROPOSTA DE EMENDA A CONSTITUICAO Nº 48, DE 2023, NOS TERMOS DO PARECER", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 6, descricao: "VOTACAO NOMINAL.", fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: 7, descricao: "MODIFICA O SISTEMA DE PREVIDENCIA SOCIAL, ESTABELECE REGRAS DE TRANSICAO", fl_secreta: 0}
+    expect:
+      rows:
+        - {votacao_id_nk: c1, classe_votacao: URGENCIA}
+        - {votacao_id_nk: c2, classe_votacao: REQUERIMENTO PROCEDIMENTAL}
+        - {votacao_id_nk: c3, classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: c4, classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: c5, classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: c6, classe_votacao: MERITO}
+        - {votacao_id_nk: c7, classe_votacao: MERITO}
+        - {votacao_id_nk: c8, classe_votacao: MERITO}
+        - {votacao_id_nk: c9, classe_votacao: PARECER}
+        - {votacao_id_nk: c10, classe_votacao: MERITO}
+        - {votacao_id_nk: c11, classe_votacao: OUTROS}
+        - {votacao_id_nk: '1', classe_votacao: AUTORIDADE}
+        - {votacao_id_nk: '2', classe_votacao: REQUERIMENTO PROCEDIMENTAL}
+        - {votacao_id_nk: '3', classe_votacao: PARECER}
+        - {votacao_id_nk: '4', classe_votacao: EMENDA/DESTAQUE}
+        - {votacao_id_nk: '5', classe_votacao: MERITO}
+        - {votacao_id_nk: '6', classe_votacao: OUTROS}
+        - {votacao_id_nk: '7', classe_votacao: MERITO}

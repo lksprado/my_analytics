@@ -41,15 +41,15 @@ proposicoes AS (
     FROM {{ ref('dim_proposicoes') }}
 ),
 
-final AS (
+medidas AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['v.casa', 'v.votacao_id_nk']) }}          AS sk_votacao,
-        v.votacao_id_nk,
         v.casa,
-        CAST(TO_CHAR(v.data_votacao, 'YYYYMMDD') AS INTEGER)                           AS sk_data,
-        COALESCE(p.sk_proposicao, '{{ var("null_key") }}')                             AS sk_proposicao,
+        v.votacao_id_nk,
+        v.data_votacao,
         v.sigla_orgao,
+        v.classe_votacao,
         v.descricao,
+        p.sk_proposicao,
         g.orientacao_voto                                                              AS orientacao_governo,
         v.aprovado                                                                     AS fl_aprovada,
         CAST(COALESCE(pl.qt_votantes, 0) > 0 AS INTEGER)                               AS fl_nominal,
@@ -67,8 +67,7 @@ final AS (
         COALESCE(pl.qt_votantes, 0)                                                    AS qt_votantes,
         COALESCE(pl.qt_presentes_sem_voto, 0)                                          AS qt_presentes_sem_voto,
         COALESCE(pl.qt_ausentes, 0)                                                    AS qt_ausentes,
-        COALESCE(pl.qt_partidos, 0)                                                    AS qt_partidos,
-        '{{ run_started_at }}'::TIMESTAMPTZ                                            AS model_run_at
+        COALESCE(pl.qt_partidos, 0)                                                    AS qt_partidos
     FROM votacoes AS v
     LEFT JOIN placar AS pl
         ON v.casa = pl.casa AND v.votacao_id_nk = pl.votacao_id_nk
@@ -76,6 +75,41 @@ final AS (
         ON v.casa = g.casa AND v.votacao_id_nk = g.votacao_id_nk
     LEFT JOIN proposicoes AS p
         ON v.casa = p.casa AND v.proposicao_id_nk = p.proposicao_id_nk
+),
+
+final AS (
+    SELECT
+        {{ dbt_utils.generate_surrogate_key(['m.casa', 'm.votacao_id_nk']) }} AS sk_votacao,
+        m.votacao_id_nk,
+        m.casa,
+        CAST(TO_CHAR(m.data_votacao, 'YYYYMMDD') AS INTEGER)                  AS sk_data,
+        COALESCE(m.sk_proposicao, '{{ var("null_key") }}')                    AS sk_proposicao,
+        COALESCE(o.sk_orgao, '{{ var("null_key") }}')                         AS sk_orgao,
+        COALESCE(t.sk_tipo_votacao, '{{ var("null_key") }}')                  AS sk_tipo_votacao,
+        m.descricao,
+        m.orientacao_governo,
+        m.fl_aprovada,
+        m.fl_nominal,
+        m.fl_secreta,
+        m.fl_governo_orientou,
+        m.fl_governo_venceu,
+        m.qt_votos_sim,
+        m.qt_votos_nao,
+        m.qt_obstrucao,
+        m.qt_abstencao,
+        m.qt_votantes,
+        m.qt_presentes_sem_voto,
+        m.qt_ausentes,
+        m.qt_partidos,
+        '{{ run_started_at }}'::TIMESTAMPTZ                                   AS model_run_at
+    FROM medidas AS m
+    LEFT JOIN {{ ref('dim_orgaos') }} AS o
+        ON m.casa = o.casa AND m.sigla_orgao = o.sigla_orgao
+    LEFT JOIN {{ ref('dim_tipo_votacao') }} AS t
+        ON
+            m.classe_votacao = t.classe_votacao
+            AND m.fl_nominal = t.fl_nominal
+            AND m.fl_secreta = t.fl_secreta
 )
 
 SELECT * FROM final

@@ -21,6 +21,15 @@ final AS (
         COALESCE(nome_completo, nome)                                         AS nome_completo,
         sexo,
         uf,
+        CASE
+            WHEN uf IN ('AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO') THEN 'NORTE'
+            WHEN uf IN ('AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE') THEN 'NORDESTE'
+            WHEN uf IN ('DF', 'GO', 'MS', 'MT') THEN 'CENTRO-OESTE'
+            WHEN uf IN ('ES', 'MG', 'RJ', 'SP') THEN 'SUDESTE'
+            WHEN uf IN ('PR', 'RS', 'SC') THEN 'SUL'
+        END                                                                   AS regiao,
+        data_nascimento,
+        escolaridade,
         '{{ run_started_at }}'::TIMESTAMPTZ                                   AS model_run_at
     FROM parlamentares
 )
@@ -38,5 +47,8 @@ UNION ALL
     ['nome_completo', 'text'],
     ['sexo', 'text'],
     ['uf', 'text'],
+    ['regiao', 'text'],
+    ['data_nascimento', 'null::date'],
+    ['escolaridade', 'text'],
     ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

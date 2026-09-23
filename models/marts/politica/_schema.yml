@@ -37,6 +37,16 @@ models:
                 values: ['MASCULINO', 'FEMININO', 'desconhecido']
       - name: uf
         description: UF de representação do mandato mais recente, nas duas casas.
+      - name: regiao
+        description: Região da UF de representação (NORTE, NORDESTE, CENTRO-OESTE, SUDESTE, SUL).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['NORTE', 'NORDESTE', 'CENTRO-OESTE', 'SUDESTE', 'SUL', 'desconhecido']
+      - name: data_nascimento
+        description: Data de nascimento; só a Câmara traz. Para faixa etária, calcular contra a data do voto.
+      - name: escolaridade
+        description: Escolaridade declarada; só a Câmara traz.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
@@ -47,9 +57,7 @@ models:
         description: Chave substituta da proposição (casa + id).
         tests:
           - not_null
-          - unique:
-              config:
-                severity: warn
+          - unique
       - name: casa
         description: Casa legislativa de origem da proposição (CAMARA ou SENADO).
       - name: proposicao_id_nk
@@ -58,6 +66,18 @@ models:
         description: Tipo da proposição padronizado em maiúsculas (ex. PL, PEC).
       - name: data_proposicao
         description: Data de apresentação da proposição.
+      - name: identificacao
+        description: "Identificação legível (sigla número/ano, ex.: PL 1234/2023)."
+      - name: ementa
+        description: Ementa da proposição; só a Câmara traz.
+      - name: situacao_atual
+        description: Situação atual de tramitação (foto da última carga, não histórico).
+      - name: regime
+        description: Regime de tramitação atual (urgência, prioridade...); só a Câmara traz.
+      - name: autoria
+        description: Autoria da proposição; só o Senado traz.
+      - name: norma_gerada
+        description: Norma gerada quando a proposição foi transformada em lei; só o Senado traz.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da apresentação da proposição.
       - name: model_run_at
@@ -125,6 +145,86 @@ models:
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
+  - name: dim_partidos
+    description: >
+      Dimensão conformada de partidos. Grão: a entidade partidária (id_senado de seed_partidos), que
+      agrupa rebrands (PR→PL, PPS→CIDADANIA, PRB→REPUBLICANOS, PMDB→MDB) e separa siglas reutilizadas
+      por partidos diferentes (PL de 1985 × PL de 2006, PSD de 1987 × PSD de 2011). É por ela que voto
+      e orientação partidária se encontram, não pela sigla.
+    columns:
+      - name: sk_partido
+        description: Chave substituta da entidade partidária.
+        tests:
+          - not_null
+          - unique
+      - name: partido_id_nk
+        description: Chave natural da entidade (id_senado de seed_partidos).
+      - name: sigla
+        description: Sigla vigente (a do rebrand mais recente), maiúscula e sem acento.
+      - name: nome
+        description: Nome vigente, maiúsculo e sem acento.
+      - name: siglas_historicas
+        description: Siglas que a entidade já usou na Câmara, separadas por vírgula.
+      - name: data_criacao
+        description: Data de criação da entidade (a mais antiga entre as siglas).
+      - name: data_extincao
+        description: Data de extinção, só quando todas as siglas da entidade foram extintas.
+      - name: fl_extinto
+        description: Verdadeiro quando a entidade foi extinta (fusão ou incorporação).
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: dim_orgaos
+    description: >
+      Dimensão dos órgãos que votam. Grão: casa + sigla do órgão. A origem só traz a sigla, então o
+      tipo é inferido por regra; a extração do Senado só tem Plenário.
+    columns:
+      - name: sk_orgao
+        description: Chave substituta do órgão (casa + sigla).
+        tests:
+          - not_null
+          - unique
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: sigla_orgao
+        description: Sigla do órgão (PLEN, CCJC, PEC00619...).
+      - name: tipo_orgao
+        description: >
+          PLENARIO, MESA DIRETORA, CPI, COMISSAO ESPECIAL (sigla com o número da proposição, ex.
+          PEC00619), COMISSAO ou OUTROS.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['PLENARIO', 'MESA DIRETORA', 'CPI', 'COMISSAO ESPECIAL', 'COMISSAO', 'OUTROS', 'desconhecido']
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: dim_tipo_votacao
+    description: >
+      Junk dimension do tipo de votação: todas as combinações de classe (tirada da descrição), grupo,
+      nominal e secreta, montadas de antemão. Serve para separar governismo e sucesso do governo em
+      votações de mérito das procedimentais.
+    columns:
+      - name: sk_tipo_votacao
+        description: Chave substituta da combinação (classe + nominal + secreta).
+        tests:
+          - not_null
+          - unique
+      - name: classe_votacao
+        description: MERITO, EMENDA/DESTAQUE, URGENCIA, REQUERIMENTO PROCEDIMENTAL, PARECER, AUTORIDADE ou OUTROS.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['MERITO', 'EMENDA/DESTAQUE', 'URGENCIA', 'REQUERIMENTO PROCEDIMENTAL', 'PARECER', 'AUTORIDADE', 'OUTROS', 'desconhecido']
+      - name: grupo_votacao
+        description: "Agrupamento da classe: MERITO (mérito e emendas), PROCEDIMENTAL (requerimentos e urgência), ADMISSIBILIDADE (parecer), AUTORIDADE ou OUTROS."
+      - name: fl_nominal
+        description: 1 quando a votação tem voto nominal registrado.
+      - name: fl_secreta
+        description: 1 quando a votação foi secreta.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
   - name: fct_votacoes
     description: >
       Fato das votações (Câmara e Senado). Grão: uma votação, com ou sem voto nominal registrado.
@@ -166,8 +266,22 @@ models:
               arguments:
                 to: ref('dim_proposicoes')
                 field: sk_proposicao
-      - name: sigla_orgao
-        description: "Dimensão degenerada: sigla do órgão que votou (PLEN, CCJC...). No Senado é sempre PLEN."
+      - name: sk_orgao
+        description: Chave do órgão que votou, join com dim_orgaos.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_orgaos')
+                field: sk_orgao
+      - name: sk_tipo_votacao
+        description: Chave do tipo de votação (classe, nominal, secreta), join com dim_tipo_votacao.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tipo_votacao')
+                field: sk_tipo_votacao
       - name: descricao
         description: "Dimensão degenerada: descrição da votação, maiúscula e sem acento."
       - name: orientacao_governo
@@ -232,6 +346,14 @@ models:
               arguments:
                 to: ref('dim_parlamentares')
                 field: sk_parlamentar
+      - name: sk_partido
+        description: Chave da entidade partidária do parlamentar no momento do voto, join com dim_partidos; null_key sem partido.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_partidos')
+                field: sk_partido
       - name: sk_data
         description: Chave da data da votação (AAAAMMDD), join com dim_calendario_legislativo.
         tests:
@@ -248,6 +370,22 @@ models:
               arguments:
                 to: ref('dim_proposicoes')
                 field: sk_proposicao
+      - name: sk_orgao
+        description: Chave do órgão que votou, herdada de fct_votacoes.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_orgaos')
+                field: sk_orgao
+      - name: sk_tipo_votacao
+        description: Chave do tipo de votação, herdada de fct_votacoes.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tipo_votacao')
+                field: sk_tipo_votacao
       - name: sk_tipo_voto
         description: Chave do tipo de registro, join com dim_tipo_voto.
         tests:
@@ -273,7 +411,7 @@ models:
       - name: orientacao_governo
         description: "Dimensão degenerada: orientação do Governo na votação, herdada de fct_votacoes."
       - name: orientacao_partido
-        description: "Dimensão degenerada: orientação da liderança do próprio partido do parlamentar na votação, inclusive LIBERADO."
+        description: "Dimensão degenerada: orientação da liderança do próprio partido na votação, inclusive LIBERADO. Casa pela entidade partidária, não pela sigla (PR orienta o PL)."
       - name: fl_governo_orientou
         description: 1 quando o Governo orientou SIM, NÃO ou OBSTRUÇÃO na votação.
       - name: fl_seguiu_governo
@@ -326,6 +464,14 @@ models:
                 severity: warn
       - name: sk_data
         description: Chave da data da votação; na orientação órfã do Senado, vem da data que a própria orientação traz.
+      - name: sk_partido
+        description: Chave da entidade partidária quando a liderança é um partido, join com dim_partidos; null_key para Governo, blocos e federações.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_partidos')
+                field: sk_partido
       - name: casa
         description: Casa legislativa (CAMARA ou SENADO).
       - name: votacao_id_nk
@@ -559,9 +705,9 @@ unit_tests:
     given:
       - input: ref('int_votacoes_unificadas')
         rows:
-          - {casa: CAMARA, votacao_id_nk: '1-1', data_votacao: '2023-05-10', sigla_orgao: PLEN, descricao: A, proposicao_id_nk: 10, aprovado: 1, fl_secreta: 0}
-          - {casa: CAMARA, votacao_id_nk: '1-2', data_votacao: '2023-05-10', sigla_orgao: CCJC, descricao: B, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0}
-          - {casa: SENADO, votacao_id_nk: '99', data_votacao: '2023-05-11', sigla_orgao: PLEN, descricao: C, proposicao_id_nk: 20, aprovado: 1, fl_secreta: 1}
+          - {casa: CAMARA, votacao_id_nk: '1-1', data_votacao: '2023-05-10', sigla_orgao: PLEN, descricao: A, proposicao_id_nk: 10, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}
+          - {casa: CAMARA, votacao_id_nk: '1-2', data_votacao: '2023-05-10', sigla_orgao: CCJC, descricao: B, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0, classe_votacao: PARECER}
+          - {casa: SENADO, votacao_id_nk: '99', data_votacao: '2023-05-11', sigla_orgao: PLEN, descricao: C, proposicao_id_nk: 20, aprovado: 1, fl_secreta: 1, classe_votacao: AUTORIDADE}
       - input: ref('int_votos_unificados')
         rows:
           - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-1', partido: PT, voto: SIM, categoria: VOTOU}
@@ -581,35 +727,50 @@ unit_tests:
       - input: ref('dim_proposicoes')
         rows:
           - {sk_proposicao: p10, casa: CAMARA, proposicao_id_nk: 10}
+      - input: ref('dim_orgaos')
+        rows:
+          - {sk_orgao: o_plen_c, casa: CAMARA, sigla_orgao: PLEN}
+          - {sk_orgao: o_ccjc, casa: CAMARA, sigla_orgao: CCJC}
+          - {sk_orgao: o_plen_s, casa: SENADO, sigla_orgao: PLEN}
+      - input: ref('dim_tipo_votacao')
+        rows:
+          - {sk_tipo_votacao: tv_merito_nominal, classe_votacao: MERITO, fl_nominal: 1, fl_secreta: 0}
+          - {sk_tipo_votacao: tv_parecer, classe_votacao: PARECER, fl_nominal: 0, fl_secreta: 0}
+          - {sk_tipo_votacao: tv_autoridade_secreta, classe_votacao: AUTORIDADE, fl_nominal: 0, fl_secreta: 1}
     expect:
       rows:
-        - {votacao_id_nk: '1-1', sk_data: 20230510, sk_proposicao: p10, orientacao_governo: SIM, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_governo_venceu: 1, qt_votos_sim: 1, qt_votos_nao: 1, qt_obstrucao: 1, qt_abstencao: 1, qt_votantes: 3, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 2}
-        - {votacao_id_nk: '1-2', sk_data: 20230510, sk_proposicao: '0', orientacao_governo: LIBERADO, fl_aprovada: 0, fl_nominal: 0, fl_secreta: 0, fl_governo_orientou: 0, fl_governo_venceu: null, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 0}
-        - {votacao_id_nk: '99', sk_data: 20230511, sk_proposicao: '0', orientacao_governo: NAO, fl_aprovada: 1, fl_nominal: 0, fl_secreta: 1, fl_governo_orientou: 1, fl_governo_venceu: 0, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 1, qt_ausentes: 1, qt_partidos: 0}
+        - {votacao_id_nk: '1-1', sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, orientacao_governo: SIM, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_governo_venceu: 1, qt_votos_sim: 1, qt_votos_nao: 1, qt_obstrucao: 1, qt_abstencao: 1, qt_votantes: 3, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 2}
+        - {votacao_id_nk: '1-2', sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_ccjc, sk_tipo_votacao: tv_parecer, orientacao_governo: LIBERADO, fl_aprovada: 0, fl_nominal: 0, fl_secreta: 0, fl_governo_orientou: 0, fl_governo_venceu: null, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 0}
+        - {votacao_id_nk: '99', sk_data: 20230511, sk_proposicao: '0', sk_orgao: o_plen_s, sk_tipo_votacao: tv_autoridade_secreta, orientacao_governo: NAO, fl_aprovada: 1, fl_nominal: 0, fl_secreta: 1, fl_governo_orientou: 1, fl_governo_venceu: 0, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 1, qt_ausentes: 1, qt_partidos: 0}
 
   - name: fct_votos_flags_de_alinhamento
     description: >
       As flags de "seguiu" só existem para voto SIM, NÃO ou OBSTRUÇÃO em votação com orientação SIM,
-      NÃO ou OBSTRUÇÃO; LIBERADO não conta como orientação. O cabeçalho empresta sk_proposicao e a
+      NÃO ou OBSTRUÇÃO; LIBERADO não conta como orientação. O partido casa com a orientação pela
+      entidade, não pela sigla (PR orienta o PL). O cabeçalho empresta sk_proposicao e a
       orientação do governo. Parlamentar fora da dimensão vai para null_key em vez de sumir.
     model: fct_votos
     given:
       - input: ref('int_votos_unificados')
         rows:
-          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-1', partido: PT, codigo_voto: SIM, voto: SIM}
-          - {casa: CAMARA, parlamentar_id_nk: 2, votacao_id_nk: '1-1', partido: PL, codigo_voto: NAO, voto: NAO}
-          - {casa: CAMARA, parlamentar_id_nk: 3, votacao_id_nk: '1-1', partido: PT, codigo_voto: ABSTENCAO, voto: ABSTENCAO}
-          - {casa: CAMARA, parlamentar_id_nk: 404, votacao_id_nk: '1-1', partido: PL, codigo_voto: OBSTRUCAO, voto: OBSTRUCAO}
-          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-2', partido: PT, codigo_voto: SIM, voto: SIM}
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-1', partido: PT, partido_id_senado: 71, codigo_voto: SIM, voto: SIM}
+          - {casa: CAMARA, parlamentar_id_nk: 2, votacao_id_nk: '1-1', partido: PL, partido_id_senado: 523, codigo_voto: NAO, voto: NAO}
+          - {casa: CAMARA, parlamentar_id_nk: 3, votacao_id_nk: '1-1', partido: PT, partido_id_senado: 71, codigo_voto: ABSTENCAO, voto: ABSTENCAO}
+          - {casa: CAMARA, parlamentar_id_nk: 404, votacao_id_nk: '1-1', partido: PL, partido_id_senado: 523, codigo_voto: OBSTRUCAO, voto: OBSTRUCAO}
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-2', partido: PT, partido_id_senado: 71, codigo_voto: SIM, voto: SIM}
       - input: ref('fct_votacoes')
         rows:
-          - {sk_votacao: v11, casa: CAMARA, votacao_id_nk: '1-1', sk_data: 20230510, sk_proposicao: p10, orientacao_governo: SIM, fl_aprovada: 1, fl_governo_orientou: 1}
-          - {sk_votacao: v12, casa: CAMARA, votacao_id_nk: '1-2', sk_data: 20230510, sk_proposicao: '0', orientacao_governo: LIBERADO, fl_aprovada: 0, fl_governo_orientou: 0}
+          - {sk_votacao: v11, casa: CAMARA, votacao_id_nk: '1-1', sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, orientacao_governo: SIM, fl_aprovada: 1, fl_governo_orientou: 1}
+          - {sk_votacao: v12, casa: CAMARA, votacao_id_nk: '1-2', sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, orientacao_governo: LIBERADO, fl_aprovada: 0, fl_governo_orientou: 0}
       - input: ref('int_orientacoes_unificadas')
         rows:
-          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PT, orientacao_voto: SIM}
-          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PL, orientacao_voto: LIBERADO}
-          - {casa: CAMARA, votacao_id_nk: '1-2', sigla_lideranca: PT, orientacao_voto: NAO}
+          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PT, partido_id_senado: 71, orientacao_voto: SIM}
+          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PR, partido_id_senado: 523, orientacao_voto: LIBERADO}
+          - {casa: CAMARA, votacao_id_nk: '1-2', sigla_lideranca: PT, partido_id_senado: 71, orientacao_voto: NAO}
+      - input: ref('dim_partidos')
+        rows:
+          - {sk_partido: pt71, partido_id_nk: 71}
+          - {sk_partido: pl523, partido_id_nk: 523}
       - input: ref('dim_parlamentares')
         rows:
           - {sk_parlamentar: d1, casa: CAMARA, deputado_id_nk: 1}
@@ -622,8 +783,8 @@ unit_tests:
           - {sk_tipo_voto: t_abs, casa: CAMARA, codigo_origem: ABSTENCAO}
     expect:
       rows:
-        - {votacao_id_nk: '1-1', sk_parlamentar: d1, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: 1, fl_partido_orientou: 1, fl_seguiu_partido: 1, fl_votou_com_resultado: 1}
-        - {votacao_id_nk: '1-1', sk_parlamentar: d2, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: t_nao, voto: NAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: 0}
-        - {votacao_id_nk: '1-1', sk_parlamentar: d3, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: t_abs, voto: ABSTENCAO, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: null, fl_votou_com_resultado: null}
-        - {votacao_id_nk: '1-1', sk_parlamentar: '0', sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: '0', voto: OBSTRUCAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: null}
-        - {votacao_id_nk: '1-2', sk_parlamentar: d1, sk_votacao: v12, sk_data: 20230510, sk_proposicao: '0', sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: LIBERADO, orientacao_partido: NAO, fl_governo_orientou: 0, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: 0, fl_votou_com_resultado: 0}
+        - {votacao_id_nk: '1-1', sk_parlamentar: d1, sk_partido: pt71, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: 1, fl_partido_orientou: 1, fl_seguiu_partido: 1, fl_votou_com_resultado: 1}
+        - {votacao_id_nk: '1-1', sk_parlamentar: d2, sk_partido: pl523, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_nao, voto: NAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: 0}
+        - {votacao_id_nk: '1-1', sk_parlamentar: d3, sk_partido: pt71, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_abs, voto: ABSTENCAO, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: null, fl_votou_com_resultado: null}
+        - {votacao_id_nk: '1-1', sk_parlamentar: '0', sk_partido: pl523, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: '0', voto: OBSTRUCAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: null}
+        - {votacao_id_nk: '1-2', sk_parlamentar: d1, sk_partido: pt71, sk_votacao: v12, sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: LIBERADO, orientacao_partido: NAO, fl_governo_orientou: 0, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: 0, fl_votou_com_resultado: 0}

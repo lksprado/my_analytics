@@ -4,17 +4,17 @@
 
 ✓ chave no próprio modelo · DD dimensão degenerada · (col) atributo do calendário materializado no agregado
 
-| Modelo                                      | dim_parlamentares | dim_calendario_legislativo      | dim_proposicoes | dim_tipo_voto | fct_votacoes | Grão                        |
-| ------------------------------------------- | ----------------- | ------------------------------- | --------------- | ------------- | ------------ | --------------------------- |
-| `fct_votacoes`                              |                   | ✓                               | ✓               |               | —            | votação                     |
-| `fct_votos`                                 | ✓                 | ✓                               | ✓ (herdada)     | ✓             | DD           | parlamentar × votação       |
-| `fct_orientacoes`                           |                   | ✓                               |                 |               | DD           | votação × liderança         |
-| `fct_governismo_legislatura`                | ✓                 | (legislatura)                   |                 |               |              | parlamentar × legislatura   |
-| `fct_governismo_trimestre`                  | ✓                 | (legislatura, ano, trimestre)   |                 |               |              | parlamentar × trimestre     |
-| `fct_radarcongresso_governismo_legislatura` | ✓                 | (legislatura)                   |                 |               |              | parlamentar × legislatura   |
-| `fct_radarcongresso_governismo_trimestre`   | ✓                 | (legislatura, ano, trimestre)   |                 |               |              | parlamentar × trimestre     |
-| `fct_ranking_politicos`                     | ✓                 |                                 |                 |               |              | parlamentar                 |
-| `fct_ranking_politicos_anual`               | ✓                 | (ano)                           |                 |               |              | parlamentar × ano           |
+| Modelo                                      | dim_parlamentares | dim_partidos | dim_calendario_legislativo    | dim_proposicoes | dim_orgaos  | dim_tipo_votacao | dim_tipo_voto | fct_votacoes | Grão                      |
+| ------------------------------------------- | ----------------- | ------------ | ----------------------------- | --------------- | ----------- | ---------------- | ------------- | ------------ | ------------------------- |
+| `fct_votacoes`                              |                   |              | ✓                             | ✓               | ✓           | ✓                |               | —            | votação                   |
+| `fct_votos`                                 | ✓                 | ✓            | ✓                             | ✓ (herdada)     | ✓ (herdada) | ✓ (herdada)      | ✓             | DD           | parlamentar × votação     |
+| `fct_orientacoes`                           |                   | ✓            | ✓                             |                 |             |                  |               | DD           | votação × liderança       |
+| `fct_governismo_legislatura`                | ✓                 |              | (legislatura)                 |                 |             |                  |               |              | parlamentar × legislatura |
+| `fct_governismo_trimestre`                  | ✓                 |              | (legislatura, ano, trimestre) |                 |             |                  |               |              | parlamentar × trimestre   |
+| `fct_radarcongresso_governismo_legislatura` | ✓                 |              | (legislatura)                 |                 |             |                  |               |              | parlamentar × legislatura |
+| `fct_radarcongresso_governismo_trimestre`   | ✓                 |              | (legislatura, ano, trimestre) |                 |             |                  |               |              | parlamentar × trimestre   |
+| `fct_ranking_politicos`                     | ✓                 |              |                               |                 |             |                  |               |              | parlamentar               |
+| `fct_ranking_politicos_anual`               | ✓                 |              | (ano)                         |                 |             |                  |               |              | parlamentar × ano         |
 
 ## Diagrama
 
@@ -24,10 +24,16 @@ erDiagram
     dim_calendario_legislativo ||--o{ fct_votos                                 : sk_data
     dim_proposicoes            ||--o{ fct_votos                                 : sk_proposicao
     dim_tipo_voto              ||--o{ fct_votos                                 : sk_tipo_voto
+    dim_partidos               ||--o{ fct_votos                                 : sk_partido
+    dim_orgaos                 ||--o{ fct_votos                                 : sk_orgao
+    dim_tipo_votacao           ||--o{ fct_votos                                 : sk_tipo_votacao
     fct_votacoes               ||--o{ fct_votos                                 : "sk_votacao (DD)"
 
     dim_calendario_legislativo ||--o{ fct_votacoes                              : sk_data
     dim_proposicoes            ||--o{ fct_votacoes                              : sk_proposicao
+    dim_orgaos                 ||--o{ fct_votacoes                              : sk_orgao
+    dim_tipo_votacao           ||--o{ fct_votacoes                              : sk_tipo_votacao
+    dim_partidos               ||--o{ fct_orientacoes                           : sk_partido
     fct_votacoes               |o--o{ fct_orientacoes                           : "sk_votacao (DD)"
     dim_calendario_legislativo ||--o{ fct_orientacoes                           : sk_data
 
@@ -42,6 +48,8 @@ erDiagram
         text sk_votacao PK
         int  sk_data FK
         text sk_proposicao FK "null_key quando ausente"
+        text sk_orgao FK
+        text sk_tipo_votacao FK
         text orientacao_governo "DD"
         int  fl_aprovada
         int  fl_nominal
@@ -52,6 +60,7 @@ erDiagram
         text sk_voto PK
         text sk_votacao "DD"
         text sk_parlamentar FK
+        text sk_partido FK
         int  sk_data FK
         text sk_proposicao FK
         text sk_tipo_voto FK
@@ -87,6 +96,16 @@ erDiagram
         text posicao
         text categoria
     }
+    dim_partidos {
+        text sk_partido PK
+        int  partido_id_nk "id_senado: entidade que agrupa rebrands"
+        text sigla
+    }
+    dim_tipo_votacao {
+        text sk_tipo_votacao PK "junk: classe × nominal × secreta"
+        text classe_votacao
+        text grupo_votacao
+    }
 ```
 
 ## Observações
@@ -103,3 +122,9 @@ erDiagram
   endpoint de orientação é outro espaço de chave. O teste de `relationships` avisa quantas.
 - `dim_calendario_legislativo` é o recorte público de `dim_datas` (mesma `data_sk`), sem as datas especiais
   da família, com legislatura, presidente e anos eleitorais.
+- `dim_partidos` tem grão de entidade (rebrands juntos, siglas reutilizadas separadas). Voto e
+  orientação se encontram por ela: PR orienta o PL, PMDB o MDB. Pela sigla, 107.511 votos ficavam
+  sem disciplina.
+- `dim_tipo_votacao` é junk dimension: a classe vem da descrição da votação por regra de texto
+  (`int_votacoes_unificadas`), e o teste `assert_classe_votacao_cobre_nominais` exige reconhecer ao
+  menos 85% das votações nominais de cada casa.

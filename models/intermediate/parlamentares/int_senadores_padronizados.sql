@@ -58,6 +58,9 @@ final AS (
         t1.nome_completo,
         t1.sexo,
         COALESCE(t1.uf, t2.uf)     AS uf,
+        -- A extração do Senado não traz nascimento nem escolaridade.
+        NULL::DATE                 AS data_nascimento,
+        NULL::TEXT                 AS escolaridade,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM senadores_completo t1
     LEFT JOIN senadores_radar AS t2 

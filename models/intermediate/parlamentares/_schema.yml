@@ -22,6 +22,10 @@ models:
         description: "Sexo expandido (MASCULINO/FEMININO)."
       - name: uf
         description: "UF de representação do mandato mais recente (roster de legislaturas ou registro do voto). Conformada com o Senado; o endpoint de detalhes só traz a UF de nascimento, que não é usada."
+      - name: data_nascimento
+        description: "Data de nascimento, do endpoint de detalhes; nula para quem só aparece no roster ou no voto."
+      - name: escolaridade
+        description: "Escolaridade declarada no endpoint de detalhes (SUPERIOR, POSGRADUACAO...)."
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
@@ -45,5 +49,9 @@ models:
         description: "Sexo conforme cadastro do Senado."
       - name: uf
         description: "UF de representação do senador."
+      - name: data_nascimento
+        description: "Sempre nula: a extração do Senado não traz nascimento."
+      - name: escolaridade
+        description: "Sempre nula: a extração do Senado não traz escolaridade."
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
