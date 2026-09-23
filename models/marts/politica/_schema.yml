@@ -235,7 +235,7 @@ models:
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso)."
 
-  - name: fct_governismo_legislatura_trimestre
+  - name: fct_governismo_trimestre
     description: "Percentual de alinhamento ao governo por parlamentar, legislatura, ano e trimestre."
     columns:
       - name: sk_parlamentar
