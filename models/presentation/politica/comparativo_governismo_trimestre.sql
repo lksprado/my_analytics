@@ -1,5 +1,4 @@
 {{ config(
-    enabled=false,
     tags=["politica"]
 ) }}
 
@@ -13,16 +12,14 @@ legislatura_corrente AS (
 -- do nosso lado: as duas fontes concordam na ausência, então a linha não informa nada.
 radar AS (
     SELECT
+        sk_parlamentar,
         casa,
-        parlamentar_id_nk,
-        id_parlamentar_radar,
-        nome_eleitoral,
+        radar_parlamentar_id_nk,
         ano,
         trimestre,
         data_trimestre,
         perc_governismo_trimestre
-    FROM {{ ref('int_radar_governismo') }}
-    WHERE perc_governismo_trimestre IS NOT NULL
+    FROM {{ ref('fct_radarcongresso_governismo_trimestre') }}
 ),
 
 oficial AS (
@@ -48,6 +45,7 @@ votos_por_sigla AS (
     INNER JOIN {{ ref('votacoes_placar') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
     WHERE t1.partido IS NOT NULL
+        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
         AND t2.legislatura = (SELECT legislatura FROM legislatura_corrente)
     GROUP BY t1.sk_parlamentar, t1.partido
 ),
@@ -70,7 +68,8 @@ comparado AS (
         t2.uf,
         t4.partido
             AS partido_predominante,
-        t1.id_parlamentar_radar,
+        t1.radar_parlamentar_id_nk
+            AS id_parlamentar_radar,
         t1.ano,
         t1.trimestre,
         t1.data_trimestre,
@@ -84,8 +83,7 @@ comparado AS (
             AS diferenca_pp
     FROM radar AS t1
     INNER JOIN {{ ref('dim_parlamentares') }} AS t2
-        ON t1.casa = t2.casa
-        AND t1.parlamentar_id_nk = COALESCE(t2.deputado_id_nk, t2.senador_id_nk)
+        ON t1.sk_parlamentar = t2.sk_parlamentar
     LEFT JOIN oficial AS t3
         ON t2.sk_parlamentar = t3.sk_parlamentar
         AND t1.ano = t3.ano

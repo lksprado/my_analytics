@@ -18,6 +18,7 @@ votos_legislatura AS (
     INNER JOIN {{ ref('votacoes_placar') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
     WHERE t1.sk_parlamentar <> '{{ var("null_key") }}'
+        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
 ),
 
 -- Participação sobre todas as votações nominais da casa na legislatura, não só as orientadas
@@ -132,7 +133,7 @@ atributos AS (
         ON t1.sk_parlamentar = t5.sk_parlamentar AND t1.legislatura = t5.legislatura
     LEFT JOIN partido_predominante AS t6
         ON t1.sk_parlamentar = t6.sk_parlamentar AND t1.legislatura = t6.legislatura
-    LEFT JOIN {{ ref('dim_parlamentares_score') }} AS t7
+    LEFT JOIN {{ ref('fct_ranking_politicos') }} AS t7
         ON t1.sk_parlamentar = t7.sk_parlamentar
         AND t1.legislatura = (SELECT legislatura FROM legislatura_corrente)
 ),

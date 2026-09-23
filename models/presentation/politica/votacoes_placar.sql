@@ -3,90 +3,52 @@
 ) }}
 
 WITH
-presidentes AS (
-    SELECT
-        presidente,
-        mandato,
-        inicio::DATE AS inicio,
-        fim::DATE    AS fim
-    FROM {{ ref('seed_executivo_presidente') }}
-),
-
-legislaturas AS (
-    SELECT
-        legislatura::INT AS legislatura,
-        inicio::DATE     AS inicio,
-        fim::DATE        AS fim
-    FROM {{ ref('seed_legislaturas') }}
-),
-
-orientacao_governo AS (
-    SELECT
-        sk_votacao,
-        orientacao_voto
-    FROM {{ ref('dim_orientacao_votacoes') }}
-    WHERE sigla_partido_bloco = 'GOVERNO'
-),
-
--- O grão é a votação com voto nominal registrado: 6.359 das 191.317 de dim_votacoes.
-placar AS (
-    SELECT
-        sk_votacao,
-        COUNT(*)                                   AS qt_votantes,
-        COUNT(*) FILTER (WHERE voto = 'SIM')       AS qt_votos_sim,
-        COUNT(*) FILTER (WHERE voto = 'NAO')       AS qt_votos_nao,
-        COUNT(*) FILTER (WHERE voto = 'OBSTRUCAO') AS qt_obstrucao,
-        COUNT(DISTINCT partido)                    AS qt_partidos
-    FROM {{ ref('fct_votos') }}
-    GROUP BY sk_votacao
-),
-
+-- O grão é a votação com voto nominal registrado, uma fração das votações de fct_votacoes.
 votacoes AS (
-    SELECT
-        t1.sk_votacao,
-        t1.votacao_id_nk,
-        t1.casa,
-        t1.data_votacao,
-        t1.aprovado,
-        t2.proposicao_id_nk,
-        t2.tipo_proposicao,
-        t2.data_proposicao
-    FROM {{ ref('dim_votacoes') }} AS t1
-    LEFT JOIN {{ ref('dim_proposicoes') }} AS t2
-        ON t1.sk_proposicao = t2.sk_proposicao
-    WHERE t1.sk_votacao <> '{{ var("null_key") }}'
+    SELECT * FROM {{ ref('fct_votacoes') }}
+    WHERE fl_nominal = 1
 ),
 
--- A seed encosta o fim de um mandato no início do seguinte, então um BETWEEN duplicaria as
--- votações de 2016-08-31 e de 2019-01-01.
-presidente_da_data AS (
-    SELECT DISTINCT ON (t1.sk_votacao)
-        t1.sk_votacao,
-        t2.presidente,
-        t2.mandato
-    FROM votacoes AS t1
-    INNER JOIN presidentes AS t2
-        ON t1.data_votacao >= t2.inicio AND t1.data_votacao <= t2.fim
-    ORDER BY t1.sk_votacao ASC, t2.inicio DESC
+calendario AS (
+    SELECT
+        data_sk,
+        data,
+        ano,
+        trimestre_do_ano,
+        legislatura,
+        presidente,
+        mandato_presidencial
+    FROM {{ ref('dim_calendario_legislativo') }}
+),
+
+proposicoes AS (
+    SELECT
+        sk_proposicao,
+        proposicao_id_nk,
+        tipo_proposicao,
+        data_proposicao
+    FROM {{ ref('dim_proposicoes') }}
 ),
 
 final AS (
     SELECT
         t1.sk_votacao,
-        t2.votacao_id_nk,
-        t2.casa,
-        t2.data_votacao,
-        EXTRACT(YEAR FROM t2.data_votacao)::INT
-            AS ano,
-        EXTRACT(QUARTER FROM t2.data_votacao)::INT
+        t1.votacao_id_nk,
+        t1.casa,
+        t2.data
+            AS data_votacao,
+        t2.ano,
+        t2.trimestre_do_ano
             AS trimestre,
-        t3.legislatura,
-        t4.presidente,
-        t4.mandato,
-        t2.tipo_proposicao,
-        t2.proposicao_id_nk,
-        t2.data_proposicao,
-        t2.aprovado,
+        t2.legislatura,
+        t2.presidente,
+        t2.mandato_presidencial
+            AS mandato,
+        t3.tipo_proposicao,
+        t3.proposicao_id_nk,
+        t3.data_proposicao,
+        t1.fl_aprovada
+            AS aprovado,
         t1.qt_votantes,
         t1.qt_votos_sim,
         t1.qt_votos_nao,
@@ -96,7 +58,8 @@ final AS (
             AS margem,
         ROUND(100.0 * t1.qt_votos_sim / NULLIF(t1.qt_votantes, 0), 2)
             AS perc_sim,
-        t5.orientacao_voto
+        -- LIBERADO não é orientação: fica nulo, como quando o governo não se manifesta.
+        CASE WHEN t1.fl_governo_orientou = 1 THEN t1.orientacao_governo END
             AS orientacao_governo,
         (t1.qt_votos_sim = 0 OR t1.qt_votos_nao = 0)::BOOLEAN
             AS flag_unanimidade,
@@ -104,15 +67,11 @@ final AS (
             AS flag_votacao_apertada,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
-    FROM placar AS t1
-    INNER JOIN votacoes AS t2
-        ON t1.sk_votacao = t2.sk_votacao
-    LEFT JOIN legislaturas AS t3
-        ON t2.data_votacao BETWEEN t3.inicio AND t3.fim
-    LEFT JOIN presidente_da_data AS t4
-        ON t1.sk_votacao = t4.sk_votacao
-    LEFT JOIN orientacao_governo AS t5
-        ON t1.sk_votacao = t5.sk_votacao
+    FROM votacoes AS t1
+    LEFT JOIN calendario AS t2
+        ON t1.sk_data = t2.data_sk
+    LEFT JOIN proposicoes AS t3
+        ON t1.sk_proposicao = t3.sk_proposicao
 )
 
 SELECT * FROM final

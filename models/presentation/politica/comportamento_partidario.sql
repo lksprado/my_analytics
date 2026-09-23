@@ -31,6 +31,7 @@ votos_partido AS (
     INNER JOIN votacoes AS t2
         ON t1.sk_votacao = t2.sk_votacao
     WHERE t1.partido IS NOT NULL
+        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
         AND t1.sk_parlamentar <> '{{ var("null_key") }}'
 ),
 

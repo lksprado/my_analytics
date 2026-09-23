@@ -10,7 +10,7 @@ senado_votos AS (
     FROM {{ ref('stg_senado_votos_senadores') }}
 ),
 
-votos_tratados AS (
+votos_filtrados AS (
     SELECT
         casa,
         senador_id_nk,
@@ -18,21 +18,9 @@ votos_tratados AS (
         sigla_partido,
         data_votacao,
         identificacao,
-        CASE
-            WHEN sigla_voto IN ('SIM', 'SIM - PRESIDENTE ART.48 INCISO XXIII') THEN 'SIM'
-            WHEN sigla_voto = 'NAO' THEN 'NAO'
-            WHEN sigla_voto = 'ABSTENCAO' THEN 'ABSTENCAO'
-            WHEN sigla_voto IN ('OBSTRUCAO', 'P-OD') THEN 'OBSTRUCAO'
-        END AS voto
+        COALESCE(sigla_voto, 'NAO INFORMADO') AS codigo_voto
     FROM senado_votos
-),
-
-votos_filtrados AS (
-    SELECT * FROM votos_tratados
-    WHERE
-        voto IS NOT NULL
-        AND voto <> 'ABSTENCAO'
-        AND votacao_id_fk IS NOT NULL
+    WHERE votacao_id_fk IS NOT NULL
 ),
 
 partidos_norm AS (
@@ -86,11 +74,12 @@ votos_com_partidos AS (
         t1.casa,
         t1.senador_id_nk,
         t1.votacao_id_fk,
+        t2.id_senado                                            AS partido_id_senado,
         t2.partido_sigla                                        AS partido,
         COALESCE(t2.partido_nome, '{{ var("null_string") }}')   AS partido_nome,
         t1.data_votacao,
         t1.identificacao,
-        t1.voto,
+        t1.codigo_voto,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM votos_filtrados t1
     LEFT JOIN partidos_senado t2

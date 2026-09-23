@@ -18,6 +18,8 @@ final AS (
         processo_id_nk,
         data_votacao,
         identificacao,
+        {{ clean_string("descricao_votacao", "upper") }} AS descricao,
+        (votacao_secreta = 'SIM')::INT                  AS fl_secreta,
         aprovado,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM senado_votacoes

@@ -30,26 +30,16 @@ ajustes AS (
     WHERE orientacao_voto IS NOT NULL
 ),
 
-correcao_lideranca AS (
-    SELECT DISTINCT
-        tipo_lideranca,
-        sigla_partido_bloco
-    FROM ajustes
-    WHERE tipo_lideranca IS NOT NULL
-),
-
 final AS (
     SELECT
-        t1.votacao_id_fk,
-        t1.casa,
-        t1.orientacao_voto,
-        t2.tipo_lideranca,
-        t1.sigla_partido_bloco,
-        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
-    FROM ajustes AS t1
-    LEFT JOIN correcao_lideranca AS t2
-        ON t1.sigla_partido_bloco = t2.sigla_partido_bloco
-    WHERE orientacao_voto NOT IN ('ABSTENCAO', 'LIBERADO')
+        votacao_id_fk,
+        casa,
+        orientacao_voto,
+        -- A origem às vezes omite o tipo; vale o que a sigla tem nas outras orientações (é único por sigla).
+        MAX(tipo_lideranca) OVER (PARTITION BY sigla_partido_bloco) AS tipo_lideranca,
+        sigla_partido_bloco,
+        '{{ run_started_at }}'::TIMESTAMPTZ                          AS model_run_at
+    FROM ajustes
 )
 
 SELECT * FROM final

@@ -40,112 +40,8 @@ models:
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
-  - name: dim_votacoes
-    description: Dimensão de sessões de votação unificada (Câmara e Senado). Alimenta joins em governismo e análises de resultado.
-    columns:
-      - name: sk_votacao
-        description: Chave substituta da votação (codigo/id + casa).
-        tests:
-          - not_null
-          - unique
-      - name: votacao_id_nk
-        description: Chave natural da votação na casa de origem (id da Câmara ou codigo_votacao do Senado).
-      - name: casa
-        description: Casa legislativa da votação (CAMARA ou SENADO).
-      - name: data_votacao
-        description: Data da sessão de votação.
-      - name: sk_proposicao
-        description: "Chave substituta da proposição objeto da votação; null_key quando a votação não declara proposição (2/3 das votações da Câmara)."
-        tests:
-          - not_null
-      - name: aprovado
-        description: 1 se aprovada, 0 caso contrário.
-      - name: legislatura
-        description: Número da legislatura (49–58) derivado da data da votação via seed_legislaturas.
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da votação.
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
-  - name: dim_orientacao_votacoes
-    description: Dimensão de orientações de voto por partido/bancada (Câmara e Senado). Alimenta análises de alinhamento governista.
-    columns:
-      - name: sk_votacao
-        description: Chave substituta da votação, join com dim_votacoes.
-        tests:
-          - not_null
-      - name: tipo_lideranca
-        description: "Tipo de liderança que emitiu a orientação (BANCADA ou PARTIDO). Nulo para o Senado."
-      - name: sigla_partido_bloco
-        description: Sigla do partido ou bloco que recebeu a orientação.
-      - name: orientacao_voto
-        description: Orientação de voto (SIM, NAO, OBSTRUCAO).
-        tests:
-          - accepted_values:
-              arguments:
-                values: ['SIM', 'NAO', 'OBSTRUCAO', 'desconhecido']
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
-  - name: dim_parlamentares_score
-    description: "Dimensão de scores do Ranking dos Políticos por parlamentar (Câmara e Senado). Grain: um registro por parlamentar."
-    columns:
-      - name: sk_parlamentar
-        description: Chave substituta do parlamentar, join com dim_parlamentares.
-        tests:
-          - not_null
-          - unique
-      - name: pontuacao_geral
-        description: Pontuação total atual no Ranking dos Políticos.
-      - name: ranking_geral
-        description: Posição no ranking geral entre todos os parlamentares.
-      - name: ranking_casa
-        description: Posição no ranking dentro da casa legislativa.
-      - name: ranking_partido
-        description: Posição no ranking dentro do partido.
-      - name: ranking_estado
-        description: Posição no ranking dentro do estado.
-      - name: ranking_casa_estado
-        description: Posição no ranking da casa dentro do estado.
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
-  - name: dim_parlamentares_score_historico
-    description: "Dimensão de scores históricos por ano do Ranking dos Políticos (Câmara e Senado). Grain: um registro por parlamentar por ano."
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - sk_parlamentar
-              - ano
-    columns:
-      - name: sk_parlamentar
-        description: Chave substituta do parlamentar, join com dim_parlamentares.
-        tests:
-          - not_null
-      - name: ano
-        description: Ano de referência do score.
-      - name: pontuacao
-        description: Pontuação final do parlamentar naquele ano.
-      - name: nota_base_votacoes
-        description: Nota base referente a votações naquele ano.
-      - name: nota_base_gastos
-        description: Nota base referente a controle de gastos naquele ano.
-      - name: nota_base_presenca
-        description: Nota base referente a presença/assiduidade naquele ano.
-      - name: nota_base_privilegios
-        description: Nota base referente à rejeição de privilégios naquele ano.
-      - name: bonus_processos
-        description: Bônus/penalidade por processos judiciais.
-      - name: bonus_producao_legislativa
-        description: Bônus por produção legislativa.
-      - name: bonus_articulacao_legislativa
-        description: Bônus por articulação legislativa.
-      - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
-
   - name: dim_proposicoes
-    description: "Dimensão de proposições unificada (Câmara e Senado) com linha dummy para chaves órfãs. Alimenta joins em governismo e dim_votacoes."
+    description: "Dimensão de proposições unificada (Câmara e Senado) com linha dummy para chaves órfãs. Alimenta fct_votacoes e, por herança, fct_votos."
     columns:
       - name: sk_proposicao
         description: Chave substituta da proposição (casa + id).
@@ -167,15 +63,324 @@ models:
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
-
-  - name: fct_votos
-    description: "Fato de votos individuais unificado (Câmara e Senado). Grain: um voto por parlamentar por votação."
+  - name: dim_tipo_voto
+    description: >
+      Dimensão do registro de voto: cada código de origem das duas casas (seed_tipos_voto) com a
+      posição normalizada e a categoria de presença. É o que permite a fct_votos guardar abstenção,
+      presidência, voto secreto, presença sem voto e ausências sem misturá-los com o placar.
     columns:
-      - name: sk_voto
-        description: Chave substituta do evento de voto (parlamentar × votação × casa).
+      - name: sk_tipo_voto
+        description: Chave substituta do tipo de voto (casa + código de origem).
         tests:
           - not_null
           - unique
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: codigo_origem
+        description: "Código do voto como vem da origem (tipovoto da Câmara, sigla_voto do Senado; 'NAO INFORMADO' quando vazio)."
+      - name: descricao
+        description: Descrição legível do código.
+      - name: posicao
+        description: "Posição normalizada (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO). Nula quando o registro não é voto: presidência, voto secreto, presença sem voto e ausências."
+      - name: categoria
+        description: Categoria do registro.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['VOTOU', 'VOTO SECRETO', 'PRESENTE SEM VOTO', 'PRESIDENCIA', 'AUSENCIA JUSTIFICADA', 'AUSENCIA NAO JUSTIFICADA', 'NAO INFORMADO', 'desconhecido']
+      - name: fl_presente
+        description: 1 quando o registro implica presença na sessão, 0 quando é ausência; nulo quando a origem não informa.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: dim_calendario_legislativo
+    description: >
+      Calendário do domínio político: o recorte público de dim_datas (mesma chave data_sk, sem as
+      datas especiais da família) acrescido de legislatura, sessão legislativa, presidente em
+      exercício e anos eleitorais. É onde o recorte temporal e institucional das votações é resolvido
+      uma vez só; as fatos ligam-se a ele por sk_data.
+    columns:
+      - name: data_sk
+        description: "Chave surrogate da data no formato AAAAMMDD como inteiro (ex.: 20260131), a mesma de dim_datas."
+        tests:
+          - not_null
+          - unique
+      - name: data
+        description: Data do dia. As demais colunas de calendário estão descritas em dim_datas e int_dates.
+      - name: legislatura
+        description: Número da legislatura (49 a 58), de seed_legislaturas. Nula fora da cobertura da seed.
+      - name: sessao_legislativa
+        description: "Sessão legislativa dentro da legislatura (1 a 4), contada de 1º/fev a 31/jan: janeiro ainda pertence à sessão do ano anterior."
+      - name: presidente
+        description: >
+          Presidente da República em exercício na data, de seed_executivo_presidente. A seed encosta o
+          fim de um mandato no início do seguinte (Dilma 2 e Temer em 2016-08-31, Temer e Bolsonaro em
+          2019-01-01); no dia da posse vale quem assume.
+      - name: mandato_presidencial
+        description: Número do mandato do presidente em exercício (1, 2 ou 3).
+      - name: fl_ano_eleicao_geral
+        description: Verdadeiro nos anos de eleição geral (presidente, governadores e Congresso), de 1994 em diante.
+      - name: fl_ano_eleicao_municipal
+        description: Verdadeiro nos anos de eleição municipal, de 1996 em diante.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_votacoes
+    description: >
+      Fato das votações (Câmara e Senado). Grão: uma votação, com ou sem voto nominal registrado.
+      É o cabeçalho de que os votos de fct_votos são as linhas; substitui a antiga dim_votacoes,
+      que era um evento com resultado tratado como dimensão. O placar vem dos votos individuais e
+      só conta como votante quem marcou SIM, NÃO ou OBSTRUÇÃO.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - votacao_id_nk
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "qt_votantes = qt_votos_sim + qt_votos_nao + qt_obstrucao"
+    columns:
+      - name: sk_votacao
+        description: Chave substituta da votação (casa + id natural).
+        tests:
+          - not_null
+          - unique
+      - name: votacao_id_nk
+        description: "Chave natural da votação na casa de origem, como texto: id da Câmara no formato da API (ex.: 2265603-43) ou codigovotacaosve do Senado."
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: sk_data
+        description: Chave da data da votação (AAAAMMDD), join com dim_calendario_legislativo.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_calendario_legislativo')
+                field: data_sk
+      - name: sk_proposicao
+        description: "Chave substituta da proposição objeto da votação; null_key quando a votação não declara proposição ou a proposição não está em dim_proposicoes."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_proposicoes')
+                field: sk_proposicao
+      - name: sigla_orgao
+        description: "Dimensão degenerada: sigla do órgão que votou (PLEN, CCJC...). No Senado é sempre PLEN."
+      - name: descricao
+        description: "Dimensão degenerada: descrição da votação, maiúscula e sem acento."
+      - name: orientacao_governo
+        description: "Dimensão degenerada: orientação da liderança do Governo, inclusive LIBERADO; nula quando não houve orientação."
+      - name: fl_aprovada
+        description: 1 se aprovada, 0 caso contrário, nula quando a origem não informa.
+      - name: fl_nominal
+        description: 1 quando a votação tem ao menos um SIM, NÃO ou OBSTRUÇÃO registrado; é o grão de votacoes_placar.
+      - name: fl_secreta
+        description: 1 quando a votação foi secreta (só existe no Senado).
+      - name: fl_governo_orientou
+        description: 1 quando o Governo orientou SIM, NÃO ou OBSTRUÇÃO; LIBERADO não conta.
+      - name: fl_governo_venceu
+        description: >
+          1 quando o resultado seguiu a orientação do Governo (SIM e aprovada, ou NÃO e rejeitada), 0
+          quando contrariou. Nula quando o Governo não orientou SIM ou NÃO ou o resultado não é
+          conhecido. A média é a taxa de sucesso do Executivo.
+      - name: qt_votos_sim
+        description: Votos SIM.
+      - name: qt_votos_nao
+        description: Votos NÃO.
+      - name: qt_obstrucao
+        description: Votos de OBSTRUÇÃO.
+      - name: qt_abstencao
+        description: Abstenções. Não entram em qt_votantes.
+      - name: qt_votantes
+        description: Parlamentares que marcaram posição (SIM, NÃO ou OBSTRUÇÃO).
+      - name: qt_presentes_sem_voto
+        description: Parlamentares presentes que não registraram voto (P-NRV do Senado).
+      - name: qt_ausentes
+        description: Parlamentares ausentes, com ou sem justificativa (só o Senado registra).
+      - name: qt_partidos
+        description: Partidos distintos entre os votantes.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_votos
+    description: >
+      Fato de registros de voto (Câmara e Senado). Grão: um parlamentar por votação, com todos os
+      registros da origem — além de SIM, NÃO e OBSTRUÇÃO, entram abstenção, presidência, voto secreto,
+      presença sem voto e ausências, classificados por dim_tipo_voto. As métricas filtram o que usam.
+      Herda do cabeçalho (fct_votacoes) as chaves de data e proposição e a orientação do Governo.
+    columns:
+      - name: sk_voto
+        description: Chave substituta do registro de voto (casa + parlamentar + votação, pelas chaves naturais).
+        tests:
+          - not_null
+          - unique
+      - name: sk_votacao
+        description: "Dimensão degenerada: chave da votação, join com fct_votacoes."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_votacoes')
+                field: sk_votacao
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, join com dim_parlamentares; null_key quando o parlamentar não está na dimensão.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_parlamentares')
+                field: sk_parlamentar
+      - name: sk_data
+        description: Chave da data da votação (AAAAMMDD), join com dim_calendario_legislativo.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_calendario_legislativo')
+                field: data_sk
+      - name: sk_proposicao
+        description: Chave da proposição objeto da votação, herdada de fct_votacoes.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_proposicoes')
+                field: sk_proposicao
+      - name: sk_tipo_voto
+        description: Chave do tipo de registro, join com dim_tipo_voto.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tipo_voto')
+                field: sk_tipo_voto
+      - name: casa
+        description: Casa legislativa do voto (CAMARA ou SENADO).
+      - name: votacao_id_nk
+        description: "Dimensão degenerada: chave natural da votação na casa de origem."
+      - name: partido
+        description: "Dimensão degenerada: sigla do partido do parlamentar no momento do voto."
+      - name: partido_nome
+        description: "Dimensão degenerada: nome do partido no momento do voto ('desconhecido' quando não há partido)."
+      - name: voto
+        description: "Posição normalizada (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO); nula quando o registro não é voto."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['SIM', 'NAO', 'OBSTRUCAO', 'ABSTENCAO', 'BRANCO']
+      - name: orientacao_governo
+        description: "Dimensão degenerada: orientação do Governo na votação, herdada de fct_votacoes."
+      - name: orientacao_partido
+        description: "Dimensão degenerada: orientação da liderança do próprio partido do parlamentar na votação, inclusive LIBERADO."
+      - name: fl_governo_orientou
+        description: 1 quando o Governo orientou SIM, NÃO ou OBSTRUÇÃO na votação.
+      - name: fl_seguiu_governo
+        description: >
+          1 se o voto coincidiu com a orientação do Governo, 0 se divergiu. Só existe para voto SIM,
+          NÃO ou OBSTRUÇÃO em votação orientada; SUM/COUNT desta coluna é o governismo.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: fl_partido_orientou
+        description: 1 quando o partido do parlamentar orientou SIM, NÃO ou OBSTRUÇÃO na votação.
+      - name: fl_seguiu_partido
+        description: >
+          1 se o voto coincidiu com a orientação do próprio partido, 0 se divergiu. Só existe para voto
+          SIM, NÃO ou OBSTRUÇÃO com orientação do partido; SUM/COUNT desta coluna é a disciplina.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: fl_votou_com_resultado
+        description: 1 se o voto SIM/NÃO ficou do lado vencedor, 0 se perdeu; nula para os demais registros.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_orientacoes
+    description: >
+      Fato sem fato das orientações de voto (Câmara e Senado). Grão: uma liderança (partido, bloco,
+      Governo, Maioria, Minoria, Oposição) por votação. LIBERADO e ABSTENCAO ficam, porque são
+      eventos. No Senado a maior parte das orientações é órfã — o codigovotacaosve do endpoint
+      orientacaoBancada é outro espaço de chave — e cai em null_key; o teste de relationships avisa
+      quantas.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - votacao_id_nk
+              - sigla_lideranca
+    columns:
+      - name: sk_votacao
+        description: Chave da votação resolvida contra fct_votacoes; null_key quando a orientação não casa com nenhuma votação.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_votacoes')
+                field: sk_votacao
+              config:
+                severity: warn
+      - name: sk_data
+        description: Chave da data da votação; na orientação órfã do Senado, vem da data que a própria orientação traz.
+      - name: casa
+        description: Casa legislativa (CAMARA ou SENADO).
+      - name: votacao_id_nk
+        description: "Dimensão degenerada: chave da votação como vem da origem da orientação."
+      - name: sigla_lideranca
+        description: Sigla do partido, bloco ou liderança que emitiu a orientação (GOVERNO, MAIORIA...).
+      - name: tipo_lideranca
+        description: "Tipo de liderança (BANCADA ou PARTIDO). 'desconhecido' no Senado."
+      - name: orientacao_voto
+        description: Orientação emitida.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['SIM', 'NAO', 'OBSTRUCAO', 'LIBERADO', 'ABSTENCAO']
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_ranking_politicos
+    description: "Snapshot atual do Ranking dos Políticos por parlamentar (Câmara e Senado): pontuação e posições. Grão: um registro por parlamentar com pontuação."
+    columns:
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_parlamentares')
+                field: sk_parlamentar
+              config:
+                severity: warn
+      - name: pontuacao_geral
+        description: Pontuação total atual no Ranking dos Políticos.
+      - name: ranking_geral
+        description: Posição no ranking geral entre todos os parlamentares.
+      - name: ranking_casa
+        description: Posição no ranking dentro da casa legislativa.
+      - name: ranking_partido
+        description: Posição no ranking dentro do partido.
+      - name: ranking_estado
+        description: Posição no ranking dentro do estado.
+      - name: ranking_casa_estado
+        description: Posição no ranking da casa dentro do estado.
+      - name: model_run_at
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_ranking_politicos_anual
+    description: "Snapshot periódico anual do Ranking dos Políticos (Câmara e Senado). Grão: um registro por parlamentar por ano."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - ano
+    columns:
       - name: sk_parlamentar
         description: Chave substituta do parlamentar, join com dim_parlamentares.
         tests:
@@ -184,68 +389,79 @@ models:
               arguments:
                 to: ref('dim_parlamentares')
                 field: sk_parlamentar
-      - name: sk_votacao
-        description: Chave substituta da votação, join com dim_votacoes.
-        tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('dim_votacoes')
-                field: sk_votacao
-      - name: sk_data
-        description: Chave substituta de data (YYYYMMDD) da votação, join com dim_datas.
-      - name: votacao_id_fk
-        description: Chave natural da votação na casa de origem (id da Câmara ou codigo_votacao do Senado), mantida para rastreabilidade.
-      - name: deputado_id_fk
-        description: Chave natural do deputado na fonte da Câmara. Nulo para votos de senadores.
-      - name: senador_id_fk
-        description: Chave natural do senador na fonte do Senado. Nulo para votos de deputados.
-      - name: casa
-        description: Casa legislativa do voto (CAMARA ou SENADO).
-      - name: partido
-        description: "Dimensão degenerada: sigla do partido do parlamentar no momento do voto."
-      - name: partido_nome
-        description: "Dimensão degenerada: nome do partido no momento do voto ('desconhecido' quando não há partido)."
-      - name: voto
-        tests:
-          - accepted_values:
-              arguments:
-                values: ['SIM', 'NAO', 'OBSTRUCAO']
-        description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO)."
+              config:
+                severity: warn
+      - name: ano
+        description: Ano de referência do score.
+      - name: pontuacao
+        description: Pontuação final do parlamentar naquele ano.
+      - name: nota_base_votacoes
+        description: Nota base referente a votações naquele ano.
+      - name: nota_base_gastos
+        description: Nota base referente a controle de gastos naquele ano.
+      - name: nota_base_presenca
+        description: Nota base referente a presença/assiduidade naquele ano.
+      - name: nota_base_privilegios
+        description: Nota base referente à rejeição de privilégios naquele ano.
+      - name: bonus_processos
+        description: Bônus/penalidade por processos judiciais.
+      - name: bonus_producao_legislativa
+        description: Bônus por produção legislativa.
+      - name: bonus_articulacao_legislativa
+        description: Bônus por articulação legislativa.
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_governismo_legislatura
-    description: "Percentual de alinhamento ao governo por parlamentar e legislatura."
+    description: >
+      Agregado de governismo por parlamentar e legislatura: somas das flags de fct_votos, sem regra
+      própria. Mesmo grão de fct_radarcongresso_governismo_legislatura, para comparar as duas fontes.
+      Cobre as duas casas; a presentation é que restringe à Câmara.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - legislatura
     columns:
       - name: sk_parlamentar
-        description: "Surrogate key do parlamentar (FK de dim_parlamentares)."
-      - name: deputado_id_fk
-        description: Chave natural do deputado na fonte da Câmara. Nulo para senadores.
-      - name: senador_id_fk
-        description: Chave natural do senador na fonte do Senado. Nulo para deputados.
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_parlamentares')
+                field: sk_parlamentar
       - name: legislatura
-        description: "Número da legislatura."
+        description: Número da legislatura, de dim_calendario_legislativo.
       - name: qt_votos_alinhados_legislatura
         description: "Quantidade de votos alinhados com a orientação do governo na legislatura."
       - name: qt_votos_legislatura
         description: "Quantidade de votações orientadas pelo governo em que o parlamentar votou na legislatura."
       - name: perc_governismo_legislatura
-        description: "Percentual de governismo na legislatura (0–100)."
+        description: "Percentual de governismo na legislatura (0–100), inteiro como o do Radar. Não somar: recalcular pelas contagens."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso)."
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
 
   - name: fct_governismo_trimestre
-    description: "Percentual de alinhamento ao governo por parlamentar, legislatura, ano e trimestre."
+    description: >
+      Agregado de governismo por parlamentar, legislatura, ano e trimestre: somas das flags de
+      fct_votos. Mesmo grão de fct_radarcongresso_governismo_trimestre.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - legislatura
+              - ano
+              - trimestre
     columns:
       - name: sk_parlamentar
-        description: "Surrogate key do parlamentar (FK de dim_parlamentares)."
-      - name: deputado_id_fk
-        description: Chave natural do deputado na fonte da Câmara. Nulo para senadores.
-      - name: senador_id_fk
-        description: Chave natural do senador na fonte do Senado. Nulo para deputados.
+        description: Chave substituta do parlamentar, join com dim_parlamentares.
+        tests:
+          - not_null
       - name: legislatura
-        description: "Número da legislatura."
+        description: Número da legislatura, de dim_calendario_legislativo.
       - name: ano
         description: "Ano da votação."
       - name: trimestre
@@ -255,31 +471,36 @@ models:
       - name: qt_votos_trimestre
         description: "Quantidade de votações orientadas pelo governo em que o parlamentar votou no trimestre."
       - name: perc_governismo_trimestre
-        description: "Percentual de governismo no trimestre (0–100)."
+        description: "Percentual de governismo no trimestre (0–100), inteiro. Não somar: recalcular pelas contagens."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso)."
+        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+  - name: fct_radarcongresso_governismo_legislatura
+    description: >
+      Governismo publicado pelo Radar Congresso no acumulado do mandato. Grão: um parlamentar por
+      legislatura. A legislatura é a do último trimestre publicado.
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns:
-              - sk_parlamentar
+              - casa
+              - radar_parlamentar_id_nk
               - legislatura
-              - ano
-              - trimestre
-
-  - name: fct_radarcongresso_governismo_legislatura
-    description: >
-      Governismo do Radar Congresso resolvido para o id oficial do parlamentar, no acumulado do
-      mandato. Grain: um registro por parlamentar (casa + radar_parlamentar_id_nk).
     columns:
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, resolvida pelo id do Radar em dim_parlamentares; null_key quando não casa.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_parlamentares')
+                field: sk_parlamentar
       - name: casa
         description: "Casa legislativa (CAMARA ou SENADO), derivada da tabela de origem."
       - name: radar_parlamentar_id_nk
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz). Join com dim_parlamentares via radar_deputado_id_fk/radar_senador_id_fk."
-      - name: deputado_id_fk
-        description: "Chave natural do deputado na fonte da Câmara, resolvida via dim_parlamentares. Nulo para senadores."
-      - name: senador_id_fk
-        description: "Chave natural do senador na fonte do Senado, resolvida via dim_parlamentares. Nulo para deputados."
+        description: "Dimensão degenerada: identificador do parlamentar no Radar Congresso (idparlamentarvoz)."
+      - name: legislatura
+        description: Legislatura do acumulado, pela data do último trimestre publicado.
       - name: qt_votos_alinhados_legislatura
         description: "Votos alinhados ao governo no acumulado do mandato."
       - name: qt_votos_legislatura
@@ -291,20 +512,118 @@ models:
 
   - name: fct_radarcongresso_governismo_trimestre
     description: >
-      Governismo do Radar Congresso resolvido para o id oficial do parlamentar, por trimestre.
-      Grain: um registro por parlamentar por trimestre.
+      Governismo publicado pelo Radar Congresso por trimestre. Grão: um parlamentar por trimestre
+      com percentual publicado.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - radar_parlamentar_id_nk
+              - ano
+              - trimestre
     columns:
+      - name: sk_parlamentar
+        description: Chave substituta do parlamentar, resolvida pelo id do Radar em dim_parlamentares; null_key quando não casa.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_parlamentares')
+                field: sk_parlamentar
       - name: casa
         description: "Casa legislativa (CAMARA ou SENADO), derivada da tabela de origem."
       - name: radar_parlamentar_id_nk
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz). Join com dim_parlamentares via radar_deputado_id_fk/radar_senador_id_fk."
-      - name: deputado_id_fk
-        description: "Chave natural do deputado na fonte da Câmara, resolvida via dim_parlamentares. Nulo para senadores."
-      - name: senador_id_fk
-        description: "Chave natural do senador na fonte do Senado, resolvida via dim_parlamentares. Nulo para deputados."
-      - name: perc_governismo_trimestre
-        description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o parlamentar não votou em votação orientada no período."
+        description: "Dimensão degenerada: identificador do parlamentar no Radar Congresso (idparlamentarvoz)."
+      - name: legislatura
+        description: Legislatura do trimestre medido.
+      - name: ano
+        description: Ano do trimestre medido.
+      - name: trimestre
+        description: Trimestre medido (1 a 4).
       - name: data_trimestre
-        description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
+        description: "Marcador do trimestre como vem do Radar: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31. ano e trimestre saem desta data menos um dia."
+      - name: perc_governismo_trimestre
+        description: "Percentual de alinhamento ao governo no trimestre, inteiro."
       - name: model_run_at
         description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+
+unit_tests:
+
+  - name: fct_votacoes_placar_e_sucesso_do_governo
+    description: >
+      Votantes são só SIM, NÃO e OBSTRUÇÃO; abstenção, presença sem voto e ausência têm contagem
+      própria. fl_nominal nasce do placar, não da casa. O governo vence quando o resultado segue a
+      orientação SIM/NÃO; LIBERADO não é orientação. Proposição sem par na dimensão vai para null_key.
+    model: fct_votacoes
+    given:
+      - input: ref('int_votacoes_unificadas')
+        rows:
+          - {casa: CAMARA, votacao_id_nk: '1-1', data_votacao: '2023-05-10', sigla_orgao: PLEN, descricao: A, proposicao_id_nk: 10, aprovado: 1, fl_secreta: 0}
+          - {casa: CAMARA, votacao_id_nk: '1-2', data_votacao: '2023-05-10', sigla_orgao: CCJC, descricao: B, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0}
+          - {casa: SENADO, votacao_id_nk: '99', data_votacao: '2023-05-11', sigla_orgao: PLEN, descricao: C, proposicao_id_nk: 20, aprovado: 1, fl_secreta: 1}
+      - input: ref('int_votos_unificados')
+        rows:
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-1', partido: PT, voto: SIM, categoria: VOTOU}
+          - {casa: CAMARA, parlamentar_id_nk: 2, votacao_id_nk: '1-1', partido: PL, voto: NAO, categoria: VOTOU}
+          - {casa: CAMARA, parlamentar_id_nk: 3, votacao_id_nk: '1-1', partido: PL, voto: OBSTRUCAO, categoria: VOTOU}
+          - {casa: CAMARA, parlamentar_id_nk: 4, votacao_id_nk: '1-1', partido: PSOL, voto: ABSTENCAO, categoria: VOTOU}
+          - {casa: CAMARA, parlamentar_id_nk: 5, votacao_id_nk: '1-1', partido: MDB, voto: null, categoria: PRESIDENCIA}
+          - {casa: SENADO, parlamentar_id_nk: 7, votacao_id_nk: '99', partido: PT, voto: null, categoria: VOTO SECRETO}
+          - {casa: SENADO, parlamentar_id_nk: 8, votacao_id_nk: '99', partido: PL, voto: null, categoria: AUSENCIA JUSTIFICADA}
+          - {casa: SENADO, parlamentar_id_nk: 9, votacao_id_nk: '99', partido: PL, voto: null, categoria: PRESENTE SEM VOTO}
+      - input: ref('int_orientacoes_unificadas')
+        rows:
+          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: GOVERNO, orientacao_voto: SIM}
+          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PT, orientacao_voto: SIM}
+          - {casa: CAMARA, votacao_id_nk: '1-2', sigla_lideranca: GOVERNO, orientacao_voto: LIBERADO}
+          - {casa: SENADO, votacao_id_nk: '99', sigla_lideranca: GOVERNO, orientacao_voto: NAO}
+      - input: ref('dim_proposicoes')
+        rows:
+          - {sk_proposicao: p10, casa: CAMARA, proposicao_id_nk: 10}
+    expect:
+      rows:
+        - {votacao_id_nk: '1-1', sk_data: 20230510, sk_proposicao: p10, orientacao_governo: SIM, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_governo_venceu: 1, qt_votos_sim: 1, qt_votos_nao: 1, qt_obstrucao: 1, qt_abstencao: 1, qt_votantes: 3, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 2}
+        - {votacao_id_nk: '1-2', sk_data: 20230510, sk_proposicao: '0', orientacao_governo: LIBERADO, fl_aprovada: 0, fl_nominal: 0, fl_secreta: 0, fl_governo_orientou: 0, fl_governo_venceu: null, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 0}
+        - {votacao_id_nk: '99', sk_data: 20230511, sk_proposicao: '0', orientacao_governo: NAO, fl_aprovada: 1, fl_nominal: 0, fl_secreta: 1, fl_governo_orientou: 1, fl_governo_venceu: 0, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 1, qt_ausentes: 1, qt_partidos: 0}
+
+  - name: fct_votos_flags_de_alinhamento
+    description: >
+      As flags de "seguiu" só existem para voto SIM, NÃO ou OBSTRUÇÃO em votação com orientação SIM,
+      NÃO ou OBSTRUÇÃO; LIBERADO não conta como orientação. O cabeçalho empresta sk_proposicao e a
+      orientação do governo. Parlamentar fora da dimensão vai para null_key em vez de sumir.
+    model: fct_votos
+    given:
+      - input: ref('int_votos_unificados')
+        rows:
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-1', partido: PT, codigo_voto: SIM, voto: SIM}
+          - {casa: CAMARA, parlamentar_id_nk: 2, votacao_id_nk: '1-1', partido: PL, codigo_voto: NAO, voto: NAO}
+          - {casa: CAMARA, parlamentar_id_nk: 3, votacao_id_nk: '1-1', partido: PT, codigo_voto: ABSTENCAO, voto: ABSTENCAO}
+          - {casa: CAMARA, parlamentar_id_nk: 404, votacao_id_nk: '1-1', partido: PL, codigo_voto: OBSTRUCAO, voto: OBSTRUCAO}
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-2', partido: PT, codigo_voto: SIM, voto: SIM}
+      - input: ref('fct_votacoes')
+        rows:
+          - {sk_votacao: v11, casa: CAMARA, votacao_id_nk: '1-1', sk_data: 20230510, sk_proposicao: p10, orientacao_governo: SIM, fl_aprovada: 1, fl_governo_orientou: 1}
+          - {sk_votacao: v12, casa: CAMARA, votacao_id_nk: '1-2', sk_data: 20230510, sk_proposicao: '0', orientacao_governo: LIBERADO, fl_aprovada: 0, fl_governo_orientou: 0}
+      - input: ref('int_orientacoes_unificadas')
+        rows:
+          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PT, orientacao_voto: SIM}
+          - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PL, orientacao_voto: LIBERADO}
+          - {casa: CAMARA, votacao_id_nk: '1-2', sigla_lideranca: PT, orientacao_voto: NAO}
+      - input: ref('dim_parlamentares')
+        rows:
+          - {sk_parlamentar: d1, casa: CAMARA, deputado_id_nk: 1}
+          - {sk_parlamentar: d2, casa: CAMARA, deputado_id_nk: 2}
+          - {sk_parlamentar: d3, casa: CAMARA, deputado_id_nk: 3}
+      - input: ref('dim_tipo_voto')
+        rows:
+          - {sk_tipo_voto: t_sim, casa: CAMARA, codigo_origem: SIM}
+          - {sk_tipo_voto: t_nao, casa: CAMARA, codigo_origem: NAO}
+          - {sk_tipo_voto: t_abs, casa: CAMARA, codigo_origem: ABSTENCAO}
+    expect:
+      rows:
+        - {votacao_id_nk: '1-1', sk_parlamentar: d1, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: 1, fl_partido_orientou: 1, fl_seguiu_partido: 1, fl_votou_com_resultado: 1}
+        - {votacao_id_nk: '1-1', sk_parlamentar: d2, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: t_nao, voto: NAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: 0}
+        - {votacao_id_nk: '1-1', sk_parlamentar: d3, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: t_abs, voto: ABSTENCAO, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: null, fl_votou_com_resultado: null}
+        - {votacao_id_nk: '1-1', sk_parlamentar: '0', sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_tipo_voto: '0', voto: OBSTRUCAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: null}
+        - {votacao_id_nk: '1-2', sk_parlamentar: d1, sk_votacao: v12, sk_data: 20230510, sk_proposicao: '0', sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: LIBERADO, orientacao_partido: NAO, fl_governo_orientou: 0, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: 0, fl_votou_com_resultado: 0}

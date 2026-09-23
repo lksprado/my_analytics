@@ -1,5 +1,4 @@
 {{ config(
-    enabled=false,
     tags=["politica"]
 ) }}
 
@@ -9,17 +8,16 @@ legislatura_corrente AS (
     FROM {{ ref('votacoes_placar') }}
 ),
 
--- As três colunas de legislatura do radar são constantes nas doze linhas trimestrais.
 radar AS (
-    SELECT DISTINCT
+    SELECT
+        sk_parlamentar,
         casa,
-        parlamentar_id_nk,
-        id_parlamentar_radar,
-        nome_eleitoral,
+        radar_parlamentar_id_nk,
         qt_votos_legislatura,
         qt_votos_alinhados_legislatura,
         perc_governismo_legislatura
-    FROM {{ ref('int_radar_governismo') }}
+    FROM {{ ref('fct_radarcongresso_governismo_legislatura') }}
+    WHERE legislatura = (SELECT legislatura FROM legislatura_corrente)
 ),
 
 -- O radar cobre 2023 T1 a 2025 T4. Sem esse recorte o comparativo mede a diferença de janela
@@ -28,7 +26,7 @@ janela_radar AS (
     SELECT DISTINCT
         ano,
         trimestre
-    FROM {{ ref('int_radar_governismo') }}
+    FROM {{ ref('fct_radarcongresso_governismo_trimestre') }}
 ),
 
 oficial_janela AS (
@@ -64,6 +62,7 @@ votos_por_sigla AS (
     INNER JOIN {{ ref('votacoes_placar') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
     WHERE t1.partido IS NOT NULL
+        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
         AND t2.legislatura = (SELECT legislatura FROM legislatura_corrente)
     GROUP BY t1.sk_parlamentar, t1.partido
 ),
@@ -86,9 +85,8 @@ comparado AS (
         t2.uf,
         t5.partido
             AS partido_predominante,
-        t1.id_parlamentar_radar,
-        t1.nome_eleitoral
-            AS nome_eleitoral_radar,
+        t1.radar_parlamentar_id_nk
+            AS id_parlamentar_radar,
         t3.qt_votos
             AS qt_votos_oficial,
         t3.qt_votos_alinhados
@@ -110,8 +108,7 @@ comparado AS (
             AS diferenca_pp
     FROM radar AS t1
     INNER JOIN {{ ref('dim_parlamentares') }} AS t2
-        ON t1.casa = t2.casa
-        AND t1.parlamentar_id_nk = COALESCE(t2.deputado_id_nk, t2.senador_id_nk)
+        ON t1.sk_parlamentar = t2.sk_parlamentar
     LEFT JOIN oficial_janela AS t3
         ON t2.sk_parlamentar = t3.sk_parlamentar
     LEFT JOIN oficial_completa AS t4

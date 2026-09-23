@@ -3,7 +3,7 @@ version: 2
 models:
 
   - name: int_parlamentares_pontuacao
-    description: "Scores agregados do Ranking dos Políticos para deputados e senadores, com ranking renomeado e UF reduzida à sigla. Uma linha por parlamentar. Alimenta dim_parlamentares_score, que é quem gera a sk_parlamentar."
+    description: "Scores agregados do Ranking dos Políticos para deputados e senadores, com ranking renomeado e UF reduzida à sigla. Uma linha por parlamentar. Alimenta fct_ranking_politicos, que é quem gera a sk_parlamentar."
     columns:
       - name: casa
         description: "Casa legislativa do parlamentar (CAMARA ou SENADO)."
@@ -54,7 +54,7 @@ models:
               - congresso_id_fk
 
   - name: int_parlamentares_pontuacao_explodida
-    description: "Scores explodidos por ano a partir do histórico semi-estruturado de int_parlamentares_pontuacao. Uma linha por parlamentar por ano. Alimenta dim_parlamentares_score_historico, que é quem gera a sk_parlamentar."
+    description: "Scores explodidos por ano a partir do histórico semi-estruturado de int_parlamentares_pontuacao. Uma linha por parlamentar por ano. Alimenta fct_ranking_politicos_anual, que é quem gera a sk_parlamentar."
     columns:
       - name: casa
         description: "Casa legislativa do parlamentar (CAMARA ou SENADO)."

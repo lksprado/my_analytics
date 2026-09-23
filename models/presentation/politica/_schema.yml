@@ -5,10 +5,10 @@ models:
     description: >
       Grão: um voto por parlamentar por votação onde o Governo emitiu orientação.
       Restrito à Câmara: no Senado só 24 votações têm orientação de GOVERNO que casa com
-      dim_votacoes, por defeito de extração do codigovotacaosve, e as 1.658 linhas resultantes
-      desapareciam em qualquer agregação. Enriquecido com nome, uf, partido, legislatura,
-      presidente, mandato, ano e trimestre — o recorte temporal e institucional vem de
-      votacoes_placar, que é onde o calendário e a seed de presidentes são resolvidos uma vez só.
+      fct_votacoes, por defeito de extração do codigovotacaosve, e as 1.658 linhas resultantes
+      desapareciam em qualquer agregação. É o recorte de fct_votos com fl_seguiu_governo
+      preenchido, enriquecido com nome e uf; tipo de proposição, legislatura, presidente, mandato,
+      ano e trimestre vêm de votacoes_placar, que os resolve em dim_calendario_legislativo.
     columns:
       - name: casa
         description: Casa legislativa do voto (CAMARA ou SENADO).
@@ -22,7 +22,7 @@ models:
         tests:
           - not_null
       - name: sk_votacao
-        description: Chave substituta da votação, join com dim_votacoes.
+        description: Chave substituta da votação, join com fct_votacoes.
         tests:
           - not_null
       - name: deputado_id_nk
@@ -151,15 +151,15 @@ models:
 
   - name: votacoes_placar
     description: >
-      Grão: uma votação com voto nominal registrado — 6.359 das 191.317 de dim_votacoes.
-      As demais são sessões sem registro individual de voto e não têm placar.
-      Cobre as duas casas, porque não depende de orientação de voto.
-      É também onde o calendário (ano, trimestre, legislatura) e o presidente em exercício
-      são resolvidos uma única vez por votação; governismo, disciplina_partidaria e
-      comportamento_partidario consomem esse enriquecimento em vez de repetir os joins.
+      Grão: uma votação com voto nominal registrado — as linhas de fct_votacoes com fl_nominal = 1,
+      6.359 das 191.317. As demais são sessões sem registro individual de voto e não têm placar.
+      Cobre as duas casas, porque não depende de orientação de voto. O calendário (ano,
+      trimestre, legislatura) e o presidente em exercício vêm de dim_calendario_legislativo;
+      governismo, disciplina_partidaria, comportamento_partidario, painel_parlamentar e
+      score_vs_governismo usam este modelo como recorte das votações nominais.
     columns:
       - name: sk_votacao
-        description: Chave substituta da votação, join com dim_votacoes.
+        description: Chave substituta da votação, join com fct_votacoes.
         tests:
           - not_null
           - unique
@@ -196,7 +196,7 @@ models:
       - name: aprovado
         description: 1 se a votação resultou em aprovação, 0 caso contrário.
       - name: qt_votantes
-        description: Total de votos nominais registrados na votação.
+        description: Parlamentares que marcaram posição (SIM, NÃO ou OBSTRUÇÃO); abstenção e ausência ficam de fora.
       - name: qt_votos_sim
         description: Votos SIM.
       - name: qt_votos_nao
@@ -221,7 +221,8 @@ models:
   - name: disciplina_partidaria
     description: >
       Grão: um voto em que o PRÓPRIO partido do parlamentar emitiu orientação.
-      Restrito à Câmara, onde a junção cobre 1.118.127 dos 1.883.614 votos (59%); no Senado
+      É o recorte de fct_votos com fl_seguiu_partido preenchido.
+      Restrito à Câmara, onde cobre 1.118.127 dos 1.883.614 votos SIM/NÃO/OBSTRUÇÃO (59%); no Senado
       cobriria 1.674 de 27.400 (6%), pelo mesmo defeito de extração que limita o governismo.
       É o complemento do governismo — mede lealdade à bancada, não ao Executivo — e permite
       separar quem segue o partido de quem segue o governo.
@@ -236,7 +237,7 @@ models:
         tests:
           - not_null
       - name: sk_votacao
-        description: Chave substituta da votação, join com dim_votacoes.
+        description: Chave substituta da votação, join com fct_votacoes.
         tests:
           - not_null
       - name: votacao_id_nk
@@ -417,7 +418,7 @@ models:
           foto do mandato corrente —, então só a linha da legislatura mais recente é
           preenchida; nas anteriores fica nula, para não sugerir série histórica inexistente.
           O mesmo vale para os cinco rankings abaixo. Nula também para quem a fonte lista sem
-          score calculado: das 1.111 linhas de dim_parlamentares_score só 534 têm pontuação, e
+          score calculado: dos 1.111 que a fonte lista, só 534 têm pontuação (fct_ranking_politicos), e
           30 dessas ausências caem na legislatura 57 com 50+ votos. Verificado: pontuacao_geral é a média
           simples das pontuações anuais de score_vs_governismo (533 das 534 linhas batem com
           arredondamento a duas casas).
@@ -511,7 +512,7 @@ models:
         description: >
           Pontuação do Ranking dos Políticos no ano, de 0 a 10. É comparável entre os quatro
           anos, ao contrário dos componentes. A média simples das quatro é exatamente o
-          pontuacao_geral de dim_parlamentares_score.
+          pontuacao_geral de fct_ranking_politicos.
       - name: nota_base_votacoes
         description: >
           Nota de votações. É o componente ENDÓGENO ao governismo — é construído sobre a
@@ -747,8 +748,6 @@ models:
         description: Sigla com que o parlamentar mais votou na legislatura corrente, apurada sobre fct_votos. Desempate alfabético.
       - name: id_parlamentar_radar
         description: Identificador do parlamentar no Radar Congresso (idparlamentarvoz).
-      - name: nome_eleitoral_radar
-        description: Nome do parlamentar conforme o Radar Congresso, preservado para conferir o de-para contra o nome oficial.
       - name: qt_votos_oficial
         description: Votos do parlamentar em votações com orientação do Governo, no cálculo próprio, restrito à janela do radar. Nulo no Senado.
       - name: qt_votos_alinhados_oficial

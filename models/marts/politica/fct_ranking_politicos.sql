@@ -17,14 +17,3 @@ SELECT
     '{{ run_started_at }}'::TIMESTAMPTZ                                 AS model_run_at
 FROM scores
 WHERE pontuacao_geral IS NOT NULL
-UNION ALL
-{{ dummy_row([
-    ['sk_parlamentar', 'sk'],
-    ['pontuacao_geral', 'null::numeric'],
-    ['ranking_geral', 'null::int'],
-    ['ranking_casa', 'null::int'],
-    ['ranking_partido', 'null::int'],
-    ['ranking_estado', 'null::int'],
-    ['ranking_casa_estado', 'null::int'],
-    ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
-]) }}

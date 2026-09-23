@@ -20,7 +20,7 @@ score AS (
         -- evita cravar 2026 no código e sobrevive à origem voltar atrás.
         MAX(nota_base_presenca) OVER (PARTITION BY ano) <= 1
             AS flag_componentes_normalizados
-    FROM {{ ref('dim_parlamentares_score_historico') }}
+    FROM {{ ref('fct_ranking_politicos_anual') }}
     WHERE sk_parlamentar <> '{{ var("null_key") }}'
         AND ano IS NOT NULL
 ),
@@ -67,6 +67,7 @@ votos_ano AS (
     INNER JOIN {{ ref('votacoes_placar') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
     WHERE t1.sk_parlamentar <> '{{ var("null_key") }}'
+        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
 ),
 
 votos_por_sigla AS (
