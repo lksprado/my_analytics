@@ -33,6 +33,8 @@ models:
         description: Data em que a votação ocorreu.
       - name: sigla_orgao
         description: Sigla do órgão que realizou a votação (ex. PLEN, CSPCCO).
+      - name: descricao
+        description: Descrição da votação (texto da Câmara, maiúsculo e sem acento), com o resultado e às vezes o placar.
       - name: proposicao_id_fk
         description: "Chave estrangeira da proposição objeto da votação na API da Câmara."
       - name: aprovado

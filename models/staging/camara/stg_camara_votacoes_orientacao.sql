@@ -9,7 +9,7 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        {{ clean_integer("SPLIT_PART(url_votos, '/', 7)") }}         AS votacao_id_fk,
+        SPLIT_PART(url_votos, '/', 7)                 AS votacao_id_fk,
         {{ clean_string("orientacaovoto", "upper") }} AS orientacao_voto,
         codtipolideranca                              AS codigo_tipo_lideranca,
         codpartidobloco::INT                          AS codigo_partido_bloco,

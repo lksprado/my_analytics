@@ -14,7 +14,7 @@ unioned AS (
     UNION ALL
     SELECT
         casa,
-        votacao_id_fk,
+        votacao_id_fk::TEXT,
         '{{ var('null_string') }}',
         partido,
         orientacao_voto

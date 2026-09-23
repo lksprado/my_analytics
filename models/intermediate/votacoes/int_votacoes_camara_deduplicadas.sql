@@ -14,7 +14,11 @@ camara_votacoes AS (
 dedup AS (
     SELECT
         *,
-        ROW_NUMBER() OVER (PARTITION BY votacao_id_nk) AS rn
+        -- Sobram só duplicatas exatas da origem; a ordem apenas torna a escolha estável.
+        ROW_NUMBER() OVER (
+            PARTITION BY votacao_id_nk
+            ORDER BY datahora_votacao DESC NULLS LAST, loaded_at_utc DESC
+        ) AS rn
     FROM camara_votacoes
 ),
 
@@ -24,6 +28,7 @@ final AS (
         votacao_id_nk,
         data_votacao,
         sigla_orgao,
+        descricao,
         proposicao_id_fk,
         aprovado,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at

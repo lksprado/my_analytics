@@ -50,7 +50,7 @@ models:
     description: "Modelo staging com as sessões de votação da Câmara."
     columns:
       - name: votacao_id_nk
-        description: "Chave natural da votação."
+        description: "Chave natural da votação, como texto no formato da API (ex.: 2265603-43). Tirar o hífen faz ids distintos colidirem (13595-12 e 135951-2)."
       - name: data_votacao
         description: "Data da votação."
       - name: datahora_votacao
@@ -74,7 +74,7 @@ models:
     description: "Modelo staging com a orientação de cada partido/liderança por votação."
     columns:
       - name: votacao_id_fk
-        description: "Chave estrangeira da votação à qual a orientação se refere."
+        description: "Chave estrangeira da votação à qual a orientação se refere, no mesmo formato texto de stg_camara_votacoes.votacao_id_nk."
       - name: orientacao_voto
         description: "Orientação de voto dada pelo líder (SIM, NÃO, LIBERADO, OBSTRUÇÃO)."
       - name: codigo_tipo_lideranca
@@ -102,7 +102,7 @@ models:
       - name: legislatura
         description: "Número da legislatura na qual o voto foi registrado."
       - name: votacao_id_fk
-        description: "Chave estrangeira da votação à qual o voto se refere."
+        description: "Chave estrangeira da votação à qual o voto se refere, no mesmo formato texto de stg_camara_votacoes.votacao_id_nk."
       - name: partido_id_fk
         description: "Chave estrangeira do partido na API da Câmara."
       - name: loaded_at_utc

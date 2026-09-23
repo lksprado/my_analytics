@@ -23,7 +23,7 @@ votos_senadores AS (
         t2.sk_parlamentar,
         0                  AS deputado_id_NK,
         t1.senador_id_nk,
-        t1.votacao_id_fk,
+        t1.votacao_id_fk::TEXT,
         t1.partido,
         t1.partido_nome,
         t1.voto
@@ -52,7 +52,7 @@ final AS (
         '{{ run_started_at }}'::TIMESTAMPTZ                                            AS model_run_at
     FROM votos_unidos t1 
     INNER JOIN {{ ref('dim_votacoes') }} t2
-    ON t1.votacao_id_fk = t2.votacao_id_nk
+    ON t1.casa = t2.casa AND t1.votacao_id_fk = t2.votacao_id_nk
     WHERE t1.sk_parlamentar IS NOT NULL 
 )
 SELECT * FROM final

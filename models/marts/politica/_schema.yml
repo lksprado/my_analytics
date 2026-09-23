@@ -61,7 +61,7 @@ models:
       - name: aprovado
         description: 1 se aprovada, 0 caso contrário.
       - name: legislatura
-        description: Número da legislatura (51–58) derivado da data da votação via seed_legislaturas.
+        description: Número da legislatura (49–58) derivado da data da votação via seed_legislaturas.
       - name: sk_data
         description: Chave substituta de data (YYYYMMDD) da votação.
       - name: model_run_at

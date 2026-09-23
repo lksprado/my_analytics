@@ -14,7 +14,7 @@ votacoes AS (
     UNION ALL
     SELECT
         casa,
-        votacao_id_nk,
+        votacao_id_nk::TEXT,
         data_votacao,
         processo_id_nk,
         aprovado
@@ -60,7 +60,7 @@ SELECT * FROM final
 UNION ALL
 {{ dummy_row([
     ['sk_votacao', 'sk'],
-    ['votacao_id_nk', 'null::BIGINT'],
+    ['votacao_id_nk', 'null::TEXT'],
     ['casa', 'text'],
     ['data_votacao', 'null::date'],
     ['sk_proposicao', 'sk'],
