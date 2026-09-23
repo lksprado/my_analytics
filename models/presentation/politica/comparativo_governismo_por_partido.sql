@@ -11,11 +11,12 @@ comparativo AS (
 final AS (
     SELECT
         casa,
+        sk_partido,
         partido_predominante
             AS partido,
         COUNT(*)
             AS qt_parlamentares,
-        COUNT(*) FILTER (WHERE fonte_disponivel = 'ambas')
+        COUNT(*) FILTER (WHERE fonte_disponivel = 'AMBAS')
             AS qt_parlamentares_ambas_fontes,
         ROUND(AVG(perc_governismo_oficial), 2)
             AS perc_governismo_oficial_medio,
@@ -25,12 +26,12 @@ final AS (
             AS diferenca_pp_media,
         ROUND(AVG(diferenca_abs_pp), 2)
             AS erro_absoluto_medio,
-        COUNT(*) FILTER (WHERE flag_divergencia_relevante)
+        COUNT(*) FILTER (WHERE fl_divergencia_relevante = 1)
             AS qt_divergencias_acima_5pp,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
     FROM comparativo
-    GROUP BY casa, partido_predominante
+    GROUP BY casa, sk_partido, partido_predominante
 )
 
 SELECT * FROM final

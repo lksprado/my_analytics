@@ -28,20 +28,37 @@ historico AS (
     GROUP BY id_senado
 ),
 
-final AS (
+entidades AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['a.id_senado']) }} AS sk_partido,
-        a.id_senado                                             AS partido_id_nk,
-        {{ clean_string("a.sigla", "upper") }}                  AS sigla,
-        {{ clean_string("a.nome", "upper") }}                   AS nome,
+        a.id_senado,
+        {{ clean_string("a.sigla", "upper") }} AS sigla,
+        {{ clean_string("a.nome", "upper") }}  AS nome,
         h.siglas_historicas,
         h.data_criacao,
-        h.data_extincao,
-        h.data_extincao IS NOT NULL                             AS fl_extinto,
-        '{{ run_started_at }}'::TIMESTAMPTZ                     AS model_run_at
+        h.data_extincao
     FROM atual AS a
     INNER JOIN historico AS h
         ON a.id_senado = h.id_senado
+),
+
+final AS (
+    SELECT
+        {{ dbt_utils.generate_surrogate_key(['id_senado']) }} AS sk_partido,
+        id_senado                                             AS partido_id_nk,
+        sigla,
+        nome,
+        siglas_historicas,
+        data_criacao,
+        data_extincao,
+        data_extincao IS NOT NULL                             AS fl_extinto,
+        -- Sigla reutilizada: a entidade extinta leva o período no rótulo.
+        CASE
+            WHEN data_extincao IS NOT NULL AND COUNT(*) OVER (PARTITION BY sigla) > 1
+                THEN sigla || ' (' || EXTRACT(YEAR FROM data_criacao) || '-' || EXTRACT(YEAR FROM data_extincao) || ')'
+            ELSE sigla
+        END                                                   AS rotulo,
+        '{{ run_started_at }}'::TIMESTAMPTZ                   AS model_run_at
+    FROM entidades
 )
 
 SELECT * FROM final
@@ -55,5 +72,6 @@ UNION ALL
     ['data_criacao', 'null::date'],
     ['data_extincao', 'null::date'],
     ['fl_extinto', 'null::boolean'],
+    ['rotulo', 'text'],
     ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

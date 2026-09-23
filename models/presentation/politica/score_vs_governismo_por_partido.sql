@@ -14,6 +14,7 @@ qualificados AS (
 final AS (
     SELECT
         casa,
+        sk_partido,
         partido_predominante
             AS partido,
         ano,
@@ -39,12 +40,12 @@ final AS (
             / NULLIF(SUM(qt_votos_disciplina), 0), 2
         )
             AS perc_disciplina_ponderado,
-        BOOL_AND(flag_componentes_normalizados)
-            AS flag_componentes_normalizados,
+        MIN(fl_componentes_normalizados)
+            AS fl_componentes_normalizados,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
     FROM qualificados
-    GROUP BY casa, partido_predominante, ano
+    GROUP BY casa, sk_partido, partido_predominante, ano
 )
 
 SELECT * FROM final

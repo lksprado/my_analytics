@@ -16,77 +16,64 @@ score AS (
         bonus_producao_legislativa,
         bonus_articulacao_legislativa,
         -- Escala detectada pelo teto do ano: em 2026 a origem passou a normalizar em 0-1.
-        MAX(nota_base_presenca) OVER (PARTITION BY ano) <= 1
-            AS flag_componentes_normalizados
+        (MAX(nota_base_presenca) OVER (PARTITION BY ano) <= 1)::INT
+            AS fl_componentes_normalizados
     FROM {{ ref('fct_ranking_politicos_anual') }}
     WHERE sk_parlamentar <> '{{ var("null_key") }}'
         AND ano IS NOT NULL
 ),
 
-governismo AS (
-    SELECT
-        sk_parlamentar,
-        ano,
-        COUNT(*)
-            AS qt_votos_governismo,
-        COUNT(*) FILTER (WHERE voto_alinhado = 1)
-            AS qt_votos_alinhados_governo,
-        ROUND(
-            100.0 * COUNT(*) FILTER (WHERE voto_alinhado = 1)::NUMERIC
-            / NULLIF(COUNT(*), 0), 2
-        )
-            AS perc_governismo
-    FROM {{ ref('governismo') }}
-    GROUP BY sk_parlamentar, ano
-),
-
-disciplina AS (
-    SELECT
-        sk_parlamentar,
-        ano,
-        COUNT(*)
-            AS qt_votos_disciplina,
-        ROUND(
-            100.0 * COUNT(*) FILTER (WHERE voto_segue_partido = 1)::NUMERIC
-            / NULLIF(COUNT(*), 0), 2
-        )
-            AS perc_disciplina
-    FROM {{ ref('disciplina_partidaria') }}
-    GROUP BY sk_parlamentar, ano
-),
-
 votos_ano AS (
     SELECT
-        t1.sk_parlamentar,
-        t1.partido,
-        t2.ano,
-        t2.legislatura
-    FROM {{ ref('fct_votos') }} AS t1
-    INNER JOIN {{ ref('votacoes_placar') }} AS t2
-        ON t1.sk_votacao = t2.sk_votacao
-    WHERE t1.sk_parlamentar <> '{{ var("null_key") }}'
-        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
+        sk_parlamentar,
+        sk_partido,
+        partido_rotulo,
+        ano,
+        legislatura,
+        fl_seguiu_governo,
+        fl_seguiu_partido
+    FROM {{ ref('votos_parlamentares') }}
 ),
 
-votos_por_sigla AS (
+metricas AS (
     SELECT
         sk_parlamentar,
         ano,
-        partido,
-        COUNT(*) AS qt_votos
+        NULLIF(COUNT(fl_seguiu_governo), 0)
+            AS qt_votos_governismo,
+        SUM(fl_seguiu_governo)
+            AS qt_votos_alinhados_governo,
+        ROUND(100.0 * SUM(fl_seguiu_governo) / NULLIF(COUNT(fl_seguiu_governo), 0), 2)
+            AS perc_governismo,
+        NULLIF(COUNT(fl_seguiu_partido), 0)
+            AS qt_votos_disciplina,
+        ROUND(100.0 * SUM(fl_seguiu_partido) / NULLIF(COUNT(fl_seguiu_partido), 0), 2)
+            AS perc_disciplina
     FROM votos_ano
-    WHERE partido IS NOT NULL
-    GROUP BY sk_parlamentar, ano, partido
+    GROUP BY sk_parlamentar, ano
 ),
 
--- Quem trocou de partido no meio do ano fica com a sigla majoritária; desempate alfabético.
+votos_por_partido AS (
+    SELECT
+        sk_parlamentar,
+        ano,
+        sk_partido,
+        partido_rotulo,
+        COUNT(*) AS qt_votos
+    FROM votos_ano
+    WHERE sk_partido <> '{{ var("null_key") }}'
+    GROUP BY sk_parlamentar, ano, sk_partido, partido_rotulo
+),
+
+-- Quem trocou de partido no meio do ano fica com o majoritário; desempate alfabético.
 partido_predominante AS (
     SELECT DISTINCT ON (sk_parlamentar, ano)
         sk_parlamentar,
         ano,
-        partido
-    FROM votos_por_sigla
-    ORDER BY sk_parlamentar ASC, ano ASC, qt_votos DESC, partido ASC
+        sk_partido,
+        partido_rotulo
+    FROM votos_por_partido
+    ORDER BY sk_parlamentar ASC, ano ASC, qt_votos DESC, partido_rotulo ASC
 ),
 
 votos_por_legislatura AS (
@@ -118,7 +105,9 @@ base AS (
         t2.casa,
         t2.nome,
         t2.uf,
-        t5.partido
+        t2.regiao,
+        t5.sk_partido,
+        t5.partido_rotulo
             AS partido_predominante,
         t6.legislatura,
         t1.pontuacao,
@@ -129,19 +118,17 @@ base AS (
         t1.bonus_processos,
         t1.bonus_producao_legislativa,
         t1.bonus_articulacao_legislativa,
-        t1.flag_componentes_normalizados,
+        t1.fl_componentes_normalizados,
         t3.qt_votos_governismo,
         t3.qt_votos_alinhados_governo,
         t3.perc_governismo,
-        t4.qt_votos_disciplina,
-        t4.perc_disciplina
+        t3.qt_votos_disciplina,
+        t3.perc_disciplina
     FROM score AS t1
     LEFT JOIN {{ ref('dim_parlamentares') }} AS t2
         ON t1.sk_parlamentar = t2.sk_parlamentar
-    LEFT JOIN governismo AS t3
+    LEFT JOIN metricas AS t3
         ON t1.sk_parlamentar = t3.sk_parlamentar AND t1.ano = t3.ano
-    LEFT JOIN disciplina AS t4
-        ON t1.sk_parlamentar = t4.sk_parlamentar AND t1.ano = t4.ano
     LEFT JOIN partido_predominante AS t5
         ON t1.sk_parlamentar = t5.sk_parlamentar AND t1.ano = t5.ano
     LEFT JOIN legislatura_predominante AS t6
@@ -191,6 +178,8 @@ final AS (
         t1.casa,
         t1.nome,
         t1.uf,
+        t1.regiao,
+        t1.sk_partido,
         t1.partido_predominante,
         t1.ano,
         t1.legislatura,
@@ -203,7 +192,7 @@ final AS (
         t1.bonus_processos,
         t1.bonus_producao_legislativa,
         t1.bonus_articulacao_legislativa,
-        t1.flag_componentes_normalizados,
+        t1.fl_componentes_normalizados,
 
         t1.qt_votos_governismo,
         t1.qt_votos_alinhados_governo,
@@ -220,10 +209,10 @@ final AS (
         CASE
             WHEN t2.sk_parlamentar IS NULL THEN NULL
             WHEN t1.perc_governismo >= t2.mediana_governismo
-                AND t1.pontuacao >= t2.mediana_pontuacao THEN 'governista bem avaliado'
-            WHEN t1.perc_governismo >= t2.mediana_governismo THEN 'governista mal avaliado'
-            WHEN t1.pontuacao >= t2.mediana_pontuacao THEN 'oposicao bem avaliada'
-            ELSE 'oposicao mal avaliada'
+                AND t1.pontuacao >= t2.mediana_pontuacao THEN 'GOVERNISTA BEM AVALIADO'
+            WHEN t1.perc_governismo >= t2.mediana_governismo THEN 'GOVERNISTA MAL AVALIADO'
+            WHEN t1.pontuacao >= t2.mediana_pontuacao THEN 'OPOSICAO BEM AVALIADA'
+            ELSE 'OPOSICAO MAL AVALIADA'
         END
             AS quadrante,
         '{{ run_started_at }}'::TIMESTAMPTZ

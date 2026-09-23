@@ -25,6 +25,8 @@ proposicoes AS (
         sk_proposicao,
         proposicao_id_nk,
         tipo_proposicao,
+        identificacao,
+        ementa,
         data_proposicao
     FROM {{ ref('dim_proposicoes') }}
 ),
@@ -43,11 +45,20 @@ final AS (
         t2.presidente,
         t2.mandato_presidencial
             AS mandato,
+        t4.sigla_orgao,
+        t4.tipo_orgao,
+        t5.classe_votacao,
+        t5.grupo_votacao,
+        t1.descricao,
         t3.tipo_proposicao,
         t3.proposicao_id_nk,
+        t3.identificacao
+            AS identificacao_proposicao,
+        t3.ementa,
         t3.data_proposicao,
-        t1.fl_aprovada
-            AS aprovado,
+        t1.fl_aprovada,
+        CASE t1.fl_aprovada WHEN 1 THEN 'APROVADA' WHEN 0 THEN 'REJEITADA' END
+            AS resultado,
         t1.qt_votantes,
         t1.qt_votos_sim,
         t1.qt_votos_nao,
@@ -60,10 +71,19 @@ final AS (
         -- LIBERADO não é orientação: fica nulo, como quando o governo não se manifesta.
         CASE WHEN t1.fl_governo_orientou = 1 THEN t1.orientacao_governo END
             AS orientacao_governo,
-        (t1.qt_votos_sim = 0 OR t1.qt_votos_nao = 0)::BOOLEAN
-            AS flag_unanimidade,
-        (ROUND(100.0 * t1.qt_votos_sim / NULLIF(t1.qt_votantes, 0), 2) BETWEEN 45 AND 55)::BOOLEAN
-            AS flag_votacao_apertada,
+        t1.fl_governo_orientou,
+        t1.fl_governo_venceu,
+        CASE
+            WHEN t1.fl_governo_venceu = 1 THEN 'VENCEU'
+            WHEN t1.fl_governo_venceu = 0 THEN 'PERDEU'
+            WHEN t1.fl_governo_orientou = 1 THEN 'OBSTRUCAO'
+            ELSE 'SEM ORIENTACAO'
+        END
+            AS resultado_governo,
+        (t1.qt_votos_sim = 0 OR t1.qt_votos_nao = 0)::INT
+            AS fl_unanimidade,
+        (ROUND(100.0 * t1.qt_votos_sim / NULLIF(t1.qt_votantes, 0), 2) BETWEEN 45 AND 55)::INT
+            AS fl_votacao_apertada,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
     FROM votacoes AS t1
@@ -71,6 +91,10 @@ final AS (
         ON t1.sk_data = t2.data_sk
     LEFT JOIN proposicoes AS t3
         ON t1.sk_proposicao = t3.sk_proposicao
+    LEFT JOIN {{ ref('dim_orgaos') }} AS t4
+        ON t1.sk_orgao = t4.sk_orgao
+    LEFT JOIN {{ ref('dim_tipo_votacao') }} AS t5
+        ON t1.sk_tipo_votacao = t5.sk_tipo_votacao
 )
 
 SELECT * FROM final

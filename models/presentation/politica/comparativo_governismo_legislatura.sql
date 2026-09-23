@@ -33,45 +33,46 @@ oficial_janela AS (
         t1.sk_parlamentar,
         COUNT(*)
             AS qt_votos,
-        COUNT(*) FILTER (WHERE t1.voto_alinhado = 1)
+        COUNT(*) FILTER (WHERE t1.fl_seguiu_governo = 1)
             AS qt_votos_alinhados
-    FROM {{ ref('governismo') }} AS t1
+    FROM {{ ref('votos_parlamentares') }} AS t1
     INNER JOIN janela_radar AS t2
         ON t1.ano = t2.ano AND t1.trimestre = t2.trimestre
     WHERE t1.legislatura = (SELECT legislatura FROM legislatura_corrente)
+        AND t1.fl_seguiu_governo IS NOT NULL
     GROUP BY t1.sk_parlamentar
 ),
 
 oficial_completa AS (
     SELECT
         sk_parlamentar,
-        ROUND(100.0 * COUNT(*) FILTER (WHERE voto_alinhado = 1) / NULLIF(COUNT(*), 0), 2)
+        ROUND(100.0 * COUNT(*) FILTER (WHERE fl_seguiu_governo = 1) / NULLIF(COUNT(*), 0), 2)
             AS perc_governismo
-    FROM {{ ref('governismo') }}
+    FROM {{ ref('votos_parlamentares') }}
     WHERE legislatura = (SELECT legislatura FROM legislatura_corrente)
+        AND fl_seguiu_governo IS NOT NULL
     GROUP BY sk_parlamentar
 ),
 
-votos_por_sigla AS (
+votos_por_partido AS (
     SELECT
-        t1.sk_parlamentar,
-        t1.partido,
+        sk_parlamentar,
+        sk_partido,
+        partido_rotulo,
         COUNT(*) AS qt_votos
-    FROM {{ ref('fct_votos') }} AS t1
-    INNER JOIN {{ ref('votacoes_placar') }} AS t2
-        ON t1.sk_votacao = t2.sk_votacao
-    WHERE t1.partido IS NOT NULL
-        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
-        AND t2.legislatura = (SELECT legislatura FROM legislatura_corrente)
-    GROUP BY t1.sk_parlamentar, t1.partido
+    FROM {{ ref('votos_parlamentares') }}
+    WHERE sk_partido <> '{{ var("null_key") }}'
+        AND legislatura = (SELECT legislatura FROM legislatura_corrente)
+    GROUP BY sk_parlamentar, sk_partido, partido_rotulo
 ),
 
 partido_predominante AS (
     SELECT DISTINCT ON (sk_parlamentar)
         sk_parlamentar,
-        partido
-    FROM votos_por_sigla
-    ORDER BY sk_parlamentar ASC, qt_votos DESC, partido ASC
+        sk_partido,
+        partido_rotulo
+    FROM votos_por_partido
+    ORDER BY sk_parlamentar ASC, qt_votos DESC, partido_rotulo ASC
 ),
 
 comparado AS (
@@ -82,7 +83,8 @@ comparado AS (
         t2.senador_id_nk,
         t2.nome,
         t2.uf,
-        t5.partido
+        t5.sk_partido,
+        t5.partido_rotulo
             AS partido_predominante,
         t1.radar_parlamentar_id_nk
             AS id_parlamentar_radar,
@@ -121,11 +123,11 @@ final AS (
         t1.*,
         ABS(t1.diferenca_pp)
             AS diferenca_abs_pp,
-        ABS(t1.diferenca_pp) > 5
-            AS flag_divergencia_relevante,
+        (ABS(t1.diferenca_pp) > 5)::INT
+            AS fl_divergencia_relevante,
         CASE
-            WHEN t1.perc_governismo_oficial IS NULL THEN 'so_radar'
-            ELSE 'ambas'
+            WHEN t1.perc_governismo_oficial IS NULL THEN 'SO RADAR'
+            ELSE 'AMBAS'
         END
             AS fonte_disponivel,
         '{{ run_started_at }}'::TIMESTAMPTZ

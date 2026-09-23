@@ -14,7 +14,7 @@ final AS (
         trimestre,
         COUNT(*)
             AS qt_parlamentares,
-        COUNT(*) FILTER (WHERE fonte_disponivel = 'ambas')
+        COUNT(*) FILTER (WHERE fonte_disponivel = 'AMBAS')
             AS qt_parlamentares_ambas_fontes,
         ROUND(AVG(perc_governismo_oficial), 2)
             AS perc_governismo_oficial_medio,

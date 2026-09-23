@@ -28,33 +28,33 @@ oficial AS (
         trimestre,
         COUNT(*)
             AS qt_votos,
-        ROUND(100.0 * COUNT(*) FILTER (WHERE voto_alinhado = 1) / NULLIF(COUNT(*), 0), 2)
+        ROUND(100.0 * COUNT(*) FILTER (WHERE fl_seguiu_governo = 1) / NULLIF(COUNT(*), 0), 2)
             AS perc_governismo
-    FROM {{ ref('governismo') }}
+    FROM {{ ref('votos_parlamentares') }}
     WHERE legislatura = (SELECT legislatura FROM legislatura_corrente)
+        AND fl_seguiu_governo IS NOT NULL
     GROUP BY sk_parlamentar, ano, trimestre
 ),
 
-votos_por_sigla AS (
+votos_por_partido AS (
     SELECT
-        t1.sk_parlamentar,
-        t1.partido,
+        sk_parlamentar,
+        sk_partido,
+        partido_rotulo,
         COUNT(*) AS qt_votos
-    FROM {{ ref('fct_votos') }} AS t1
-    INNER JOIN {{ ref('votacoes_placar') }} AS t2
-        ON t1.sk_votacao = t2.sk_votacao
-    WHERE t1.partido IS NOT NULL
-        AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
-        AND t2.legislatura = (SELECT legislatura FROM legislatura_corrente)
-    GROUP BY t1.sk_parlamentar, t1.partido
+    FROM {{ ref('votos_parlamentares') }}
+    WHERE sk_partido <> '{{ var("null_key") }}'
+        AND legislatura = (SELECT legislatura FROM legislatura_corrente)
+    GROUP BY sk_parlamentar, sk_partido, partido_rotulo
 ),
 
 partido_predominante AS (
     SELECT DISTINCT ON (sk_parlamentar)
         sk_parlamentar,
-        partido
-    FROM votos_por_sigla
-    ORDER BY sk_parlamentar ASC, qt_votos DESC, partido ASC
+        sk_partido,
+        partido_rotulo
+    FROM votos_por_partido
+    ORDER BY sk_parlamentar ASC, qt_votos DESC, partido_rotulo ASC
 ),
 
 comparado AS (
@@ -65,7 +65,8 @@ comparado AS (
         t2.senador_id_nk,
         t2.nome,
         t2.uf,
-        t4.partido
+        t4.sk_partido,
+        t4.partido_rotulo
             AS partido_predominante,
         t1.radar_parlamentar_id_nk
             AS id_parlamentar_radar,
@@ -97,8 +98,8 @@ final AS (
         ABS(t1.diferenca_pp)
             AS diferenca_abs_pp,
         CASE
-            WHEN t1.perc_governismo_oficial IS NULL THEN 'so_radar'
-            ELSE 'ambas'
+            WHEN t1.perc_governismo_oficial IS NULL THEN 'SO RADAR'
+            ELSE 'AMBAS'
         END
             AS fonte_disponivel,
         '{{ run_started_at }}'::TIMESTAMPTZ

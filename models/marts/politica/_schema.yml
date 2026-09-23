@@ -147,6 +147,10 @@ models:
         description: "Id da entidade partidária."
       - name: sigla
         description: "Sigla atual do partido."
+      - name: rotulo
+        description: "Nome de exibição do partido; siglas reutilizadas levam o período (ex.: PL (1985-2006))."
+        tests:
+          - unique
       - name: nome
         description: "Nome atual do partido."
       - name: siglas_historicas
