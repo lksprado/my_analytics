@@ -3,3 +3,5 @@ packages:
     version: 1.4.1
   - package: godatadriven/dbt_date
     version: 0.10.1
+  - package: "Matts52/dbt_orphan"
+    version: [">=0.1.0"]

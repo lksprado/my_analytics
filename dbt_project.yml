@@ -56,3 +56,6 @@ seeds:
         data_vencimento: date
     seed_investimentos_faltantes_jessica: *investimentos_faltantes
     seed_investimentos_faltantes_deusa: *investimentos_faltantes
+
+on-run-end:
+- "{{ dbt_orphan.cleanup_orphans(schemas=['snapshots', 'seeds', 'staging', 'intermediate', 'marts',  'presentation'], dry_run=false) }}"
