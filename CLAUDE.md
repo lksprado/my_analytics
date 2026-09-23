@@ -22,7 +22,8 @@ sqfluff fix
 
 ## Comments
 
-In Brazilian Portuguese. Comment only if it says something the code can't. Keep it concise.
+In Brazilian Portuguese. Comment only a non-obvious *why* (business rule, performance workaround) in one line.
+Never narrate what the SQL does, never put profiling numbers, row counts or refactor history in code.
 
 ## Architecture
 
@@ -48,8 +49,14 @@ with `dummy_row()`, add `['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ
 
 ### Schema/YAML files
 
-Naming convention is `_schema.yml` (leading underscore);
-Do not write code and keep the columns description consistent if it is repeated in multiple models;
+Naming convention is `_schema.yml` (leading underscore). Descriptions are succinct:
+
+- Column: what the value **means**, one short sentence; add domain/unit when useful
+  (`"Casa legislativa (CAMARA, SENADO)."`). No calculation logic, joins, source lineage, counts, coverage
+  percentages or history.
+- Model: grain and purpose in at most two sentences.
+- Repeated columns use the same text in every model (`model_run_at: "Início do dbt run que materializou o modelo."`).
+- No code in descriptions. Profiling and validation evidence go in the commit message or PR, not in YAML.
 
 ## Dependencies
 

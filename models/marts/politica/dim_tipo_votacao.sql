@@ -2,8 +2,6 @@
     tags=["politica"]
 ) }}
 
-{#- Junk dimension: todas as combinações de classe, nominal e secreta, montadas de antemão. -#}
-
 WITH
 classes (classe_votacao, grupo_votacao) AS (
     VALUES

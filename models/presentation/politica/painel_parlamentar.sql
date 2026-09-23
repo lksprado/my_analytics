@@ -21,8 +21,7 @@ votos_legislatura AS (
         AND t1.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
 ),
 
--- Participação sobre todas as votações nominais da casa na legislatura, não só as orientadas
--- pelo Governo: é o denominador que mede ausência.
+-- Denominador: todas as votações nominais da casa, não só as orientadas.
 participacao AS (
     SELECT
         sk_parlamentar,
@@ -80,8 +79,7 @@ disciplina AS (
     GROUP BY sk_parlamentar, legislatura
 ),
 
--- O Ranking dos Políticos não tem recorte por legislatura: a pontuação é a foto do mandato
--- corrente. Repeti-la nas legislaturas antigas sugeriria uma série histórica que não existe.
+-- O Ranking é foto do mandato corrente: só entra na legislatura atual.
 legislatura_corrente AS (
     SELECT MAX(legislatura) AS legislatura
     FROM {{ ref('votacoes_placar') }}
@@ -138,9 +136,7 @@ atributos AS (
         AND t1.legislatura = (SELECT legislatura FROM legislatura_corrente)
 ),
 
--- Os dois percentis saem da mesma população para que o gap signifique alguma coisa: quem tem
--- pontuação e pelo menos 50 votos orientados na legislatura. Como pontuacao_geral só existe
--- para a legislatura corrente, as quatro colunas ficam nulas nas anteriores.
+-- Percentis na mesma população: com pontuação e ao menos 50 votos orientados.
 elegiveis AS (
     SELECT *
     FROM atributos

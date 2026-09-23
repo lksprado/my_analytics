@@ -20,8 +20,7 @@ radar AS (
     WHERE legislatura = (SELECT legislatura FROM legislatura_corrente)
 ),
 
--- O radar cobre 2023 T1 a 2025 T4. Sem esse recorte o comparativo mede a diferença de janela
--- em vez da de método: o erro absoluto médio sobe de 0,62 pp para 1,09 pp só por conta de 2026.
+-- Recorte à janela do radar (2023 T1 a 2025 T4): compara método, não janela.
 janela_radar AS (
     SELECT DISTINCT
         ano,

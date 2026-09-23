@@ -28,8 +28,7 @@ votacoes AS (
     FROM {{ ref('int_votacoes_senado_filtradas') }}
 ),
 
--- O objeto é o que sobra depois do verbo e do artigo ("APROVADO, EM SEGUNDO TURNO, A ..."): é ele,
--- e não qualquer palavra da descrição, que diz o que foi votado ("PROJETO ... NOS TERMOS DO PARECER").
+-- O objeto logo após o verbo diz o que foi votado; o resto da descrição engana.
 objetos AS (
     SELECT
         *,

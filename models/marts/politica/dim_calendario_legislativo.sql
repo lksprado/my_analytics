@@ -2,7 +2,7 @@
     tags=["politica"]
 ) }}
 
-{#- Recorte público de dim_datas: as datas especiais da família não entram no domínio publicável. -#}
+{#- Sem as datas especiais da família: domínio publicável. -#}
 
 WITH
 calendario AS (

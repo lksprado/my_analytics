@@ -3,10 +3,10 @@ version: 2
 models:
 
   - name: int_parlamentares_pontuacao
-    description: "Scores agregados do Ranking dos Políticos para deputados e senadores, com ranking renomeado e UF reduzida à sigla. Uma linha por parlamentar. Alimenta fct_ranking_politicos, que é quem gera a sk_parlamentar."
+    description: "Pontuação atual no Ranking dos Políticos. Grão: um parlamentar."
     columns:
       - name: casa
-        description: "Casa legislativa do parlamentar (CAMARA ou SENADO)."
+        description: "Casa legislativa (CAMARA, SENADO)."
         tests:
           - not_null
           - accepted_values:
@@ -15,11 +15,11 @@ models:
       - name: ranking_id_nk
         description: "Chave natural do parlamentar no Ranking dos Políticos."
       - name: congresso_id_fk
-        description: "FK do parlamentar na API da sua casa de origem. Com casa, forma a chave que a marts usa para gerar a sk_parlamentar."
+        description: "Id do parlamentar na casa."
         tests:
           - not_null
       - name: nome
-        description: "Nome completo padronizado."
+        description: "Nome parlamentar."
       - name: nome_civil
         description: "Nome civil padronizado."
       - name: partido
@@ -29,9 +29,9 @@ models:
       - name: slug
         description: "Slug no Ranking dos Políticos."
       - name: uf
-        description: "UF de representação, reduzida à sigla pela macro uf_sigla."
+        description: "UF de representação."
       - name: composicao_pontuacao_anos
-        description: "Histórico anual de pontuação em formato semi-estruturado. Explodido em int_parlamentares_pontuacao_explodida."
+        description: "Histórico anual de pontuação (JSON)."
       - name: pontuacao_geral
         description: "Pontuação total atual no Ranking dos Políticos."
       - name: ranking_geral
@@ -45,7 +45,7 @@ models:
       - name: ranking_casa_estado
         description: "Posição no ranking da casa por estado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -54,10 +54,10 @@ models:
               - congresso_id_fk
 
   - name: int_parlamentares_pontuacao_explodida
-    description: "Scores explodidos por ano a partir do histórico semi-estruturado de int_parlamentares_pontuacao. Uma linha por parlamentar por ano. Alimenta fct_ranking_politicos_anual, que é quem gera a sk_parlamentar."
+    description: "Pontuação anual no Ranking dos Políticos. Grão: parlamentar × ano."
     columns:
       - name: casa
-        description: "Casa legislativa do parlamentar (CAMARA ou SENADO)."
+        description: "Casa legislativa (CAMARA, SENADO)."
         tests:
           - not_null
           - accepted_values:
@@ -66,11 +66,11 @@ models:
       - name: ranking_id_nk
         description: "Chave natural do parlamentar no Ranking dos Políticos."
       - name: congresso_id_fk
-        description: "FK do parlamentar na API da sua casa de origem. Com casa, forma a chave que a marts usa para gerar a sk_parlamentar."
+        description: "Id do parlamentar na casa."
         tests:
           - not_null
       - name: nome
-        description: "Nome completo padronizado."
+        description: "Nome parlamentar."
       - name: nome_civil
         description: "Nome civil padronizado."
       - name: partido
@@ -78,7 +78,7 @@ models:
       - name: situacao
         description: "Situação do mandato."
       - name: uf
-        description: "UF de representação, reduzida à sigla pela macro uf_sigla."
+        description: "UF de representação."
       - name: slug
         description: "Slug no Ranking dos Políticos."
       - name: pontuacao_geral
@@ -114,7 +114,7 @@ models:
       - name: pontuacao
         description: "Pontuação final do parlamentar naquele ano."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

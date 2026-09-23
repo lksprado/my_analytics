@@ -15,9 +15,7 @@ score AS (
         bonus_processos,
         bonus_producao_legislativa,
         bonus_articulacao_legislativa,
-        -- Em 2026 a origem passou a entregar gastos, presença e privilégios normalizados em
-        -- 0-1, e só nesse ano os bônus vêm preenchidos. Detectar pelo teto do próprio ano
-        -- evita cravar 2026 no código e sobrevive à origem voltar atrás.
+        -- Escala detectada pelo teto do ano: em 2026 a origem passou a normalizar em 0-1.
         MAX(nota_base_presenca) OVER (PARTITION BY ano) <= 1
             AS flag_componentes_normalizados
     FROM {{ ref('fct_ranking_politicos_anual') }}
@@ -101,7 +99,7 @@ votos_por_legislatura AS (
     GROUP BY sk_parlamentar, ano, legislatura
 ),
 
--- O ano de virada de legislatura tem votos dos dois lados; vale a de maior volume.
+-- No ano de virada de legislatura vale a de maior volume.
 legislatura_predominante AS (
     SELECT DISTINCT ON (sk_parlamentar, ano)
         sk_parlamentar,
@@ -150,9 +148,7 @@ base AS (
         ON t1.sk_parlamentar = t6.sk_parlamentar AND t1.ano = t6.ano
 ),
 
--- Os dois percentis saem da mesma população para que o gap signifique alguma coisa. O corte
--- de 30 votos tira quem tem governismo estatisticamente vazio: 16 a 17 parlamentares por ano,
--- e 47 em 2026, que é ano parcial.
+-- Percentis na mesma população; o corte de 30 votos tira governismo sem base.
 elegiveis AS (
     SELECT *
     FROM base

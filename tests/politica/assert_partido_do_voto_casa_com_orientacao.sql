@@ -1,7 +1,6 @@
 {{ config(tags=["politica"]) }}
 
--- Sigla igual na mesma votação exige entidade igual: divergência aponta id trocado em seed_partidos
--- (os dois PSD já estiveram com os id_camara invertidos).
+-- Sigla igual na mesma votação exige entidade igual (pega id trocado em seed_partidos).
 SELECT
     v.casa,
     v.votacao_id_nk,

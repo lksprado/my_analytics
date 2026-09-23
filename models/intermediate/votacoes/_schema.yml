@@ -3,32 +3,32 @@ version: 2
 models:
 
   - name: int_votos_camara_normalizados
-    description: "Registros de voto de deputados no grão de um por parlamentar por votação, com todos os códigos da origem (a posição sai de seed_tipos_voto em int_votos_unificados) e o partido do momento do voto."
+    description: "Registros de voto dos deputados. Grão: deputado × votação."
     columns:
       - name: casa
-        description: Casa legislativa (CAMARA).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: deputado_id_nk
-        description: Chave natural do deputado na API da Câmara.
+        description: "Id do deputado na Câmara."
       - name: partido_id_fk
         description: "Chave estrangeira do partido na API da Câmara."
       - name: partido_id_senado
-        description: "Entidade partidária (id_senado de seed_partidos), que agrupa rebrands e separa siglas reutilizadas."
+        description: "Id da entidade partidária."
       - name: votacao_id_fk
         description: Chave natural da votação, texto no formato da API.
       - name: partido
-        description: "Sigla do partido vigente no momento do voto (ponto-no-tempo, da seed seed_partidos via partido_id_fk)."
+        description: "Sigla do partido no momento do voto."
       - name: partido_nome
-        description: "Nome do partido resolvido por partido_id_fk = seed_partidos.id_camara."
+        description: "Nome do partido no momento do voto."
       - name: codigo_voto
-        description: "Tipo de voto como vem da origem (SIM, NAO, OBSTRUCAO, ABSTENCAO, ARTIGO 17...); 'NAO INFORMADO' quando vazio."
+        description: "Código do voto na origem."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_votacoes_camara_deduplicadas
-    description: "Sessões de votação da Câmara no grão de uma linha por votação. Alimenta int_votacoes_unificadas."
+    description: "Votações da Câmara. Grão: uma votação."
     columns:
       - name: casa
-        description: Casa legislativa (CAMARA).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na API da Câmara.
       - name: data_votacao
@@ -36,59 +36,59 @@ models:
       - name: sigla_orgao
         description: Sigla do órgão que realizou a votação (ex. PLEN, CSPCCO).
       - name: descricao
-        description: Descrição da votação (texto da Câmara, maiúsculo e sem acento), com o resultado e às vezes o placar.
+        description: "Descrição da votação."
       - name: proposicao_id_fk
-        description: "Chave estrangeira da proposição objeto da votação na API da Câmara."
+        description: "Id da proposição votada na Câmara."
       - name: aprovado
         description: Booleano indicando se a proposição foi aprovada.
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_camara_corrigidas
-    description: "Orientações de voto por partido/liderança por sessão de votação da Câmara, inclusive LIBERADO. Alimenta int_orientacoes_unificadas."
+    description: "Orientações das lideranças da Câmara. Grão: liderança × votação."
     columns:
       - name: votacao_id_fk
         description: Chave natural da votação à qual a orientação se refere.
       - name: casa
-        description: Casa legislativa (CAMARA).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: orientacao_voto
-        description: Orientação de voto dada pelo líder (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO).
+        description: "Orientação da liderança (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO)."
       - name: tipo_lideranca
         description: Tipo de liderança que deu a orientação (BANCADA ou PARTIDO).
       - name: sigla_partido_bloco
-        description: Sigla do partido ou bloco que recebeu a orientação (normalizada).
+        description: "Sigla do partido ou bloco orientado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_votos_senado_normalizados
-    description: "Registros de voto de senadores no grão de um por parlamentar por votação, com todos os códigos da origem (inclusive voto secreto, presença sem voto e ausências) e o partido do momento do voto."
+    description: "Registros de voto dos senadores. Grão: senador × votação."
     columns:
       - name: casa
-        description: Casa legislativa (SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: senador_id_nk
-        description: Chave natural do senador na API do Senado.
+        description: "Id do senador no Senado."
       - name: votacao_id_fk
         description: Chave natural da votação na API do Senado.
       - name: partido_id_senado
-        description: "Entidade partidária (id_senado de seed_partidos), que agrupa rebrands e separa siglas reutilizadas."
+        description: "Id da entidade partidária."
       - name: partido
-        description: "Sigla do partido vigente no momento do voto (ponto-no-tempo, normalizada)."
+        description: "Sigla do partido no momento do voto."
       - name: partido_nome
-        description: "Nome do partido resolvido por sigla normalizada + período de vigência na seed seed_partidos; 'desconhecido' quando não há partido (ex. SEM REGISTRO)."
+        description: "Nome do partido no momento do voto."
       - name: data_votacao
         description: Data da sessão de votação.
       - name: identificacao
         description: Descrição ou identificação da matéria votada.
       - name: codigo_voto
-        description: "Sigla do voto como vem da origem (SIM, NAO, VOTOU, P-NRV, AP, NCOM...); 'NAO INFORMADO' quando vazio."
+        description: "Código do voto na origem."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_votacoes_senado_filtradas
-    description: "Sessões de votação do Senado no grão de uma linha por votação. Alimenta int_votacoes_unificadas."
+    description: "Votações do Senado. Grão: uma votação."
     columns:
       - name: casa
-        description: Casa legislativa (SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na API do Senado.
       - name: processo_id_nk
@@ -104,20 +104,17 @@ models:
       - name: aprovado
         description: 1 se aprovado, 0 caso contrário.
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_senado_filtradas
-    description: "Orientações de voto por partido/bancada por sessão de votação do Senado, inclusive LIBERADO, com a votação resolvida pela matéria no dia. Alimenta int_orientacoes_unificadas."
+    description: "Orientações das lideranças do Senado. Grão: liderança × votação."
     columns:
       - name: casa
-        description: Casa legislativa (SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_fk
-        description: >
-          Votação resolvida (codigo_sessao_votacao) pela matéria no dia — data, sigla e número —, com
-          desempate pelo placar SIM/NÃO dos votos. Nula quando não há candidata, há empate, o placar
-          diverge ou outra orientação já caiu na mesma votação.
+        description: "Chave da votação orientada."
       - name: votacao_origem_id
-        description: Código da votação no endpoint de orientação (codigovotacaosve), outro espaço de chave que o das votações.
+        description: "Chave da votação na fonte de orientações."
       - name: data_votacao
         description: Data da votação orientada.
       - name: numero_materia
@@ -129,13 +126,13 @@ models:
       - name: orientacao_voto
         description: Orientação de voto (SIM, NAO, OBSTRUCAO, LIBERADO).
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_proposicoes_unificadas
-    description: "Proposições unificadas (UNION de Câmara e Senado) com tipo padronizado, no grão de uma linha por (casa, proposição). dim_proposicoes gera as chaves substitutas."
+    description: "Proposições da Câmara e do Senado. Grão: proposição × casa."
     columns:
       - name: casa
-        description: Casa legislativa de origem da proposição (CAMARA ou SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: proposicao_id_nk
         description: Chave natural da proposição na casa de origem.
       - name: tipo_proposicao
@@ -143,19 +140,19 @@ models:
       - name: data_proposicao
         description: Data de apresentação da proposição.
       - name: identificacao
-        description: "Identificação legível (sigla número/ano, ex.: PL 1234/2023)."
+        description: "Identificação da proposição (ex.: PL 1234/2023)."
       - name: ementa
         description: Ementa da proposição; só a Câmara traz.
       - name: situacao_atual
-        description: Situação atual de tramitação (foto da última carga, não histórico).
+        description: "Situação atual de tramitação."
       - name: regime
-        description: Regime de tramitação atual (urgência, prioridade...); só a Câmara traz.
+        description: "Regime de tramitação atual (só Câmara)."
       - name: autoria
         description: Autoria da proposição; só o Senado traz.
       - name: norma_gerada
-        description: Norma gerada quando a proposição foi transformada em lei; só o Senado traz.
+        description: "Norma gerada pela proposição (só Senado)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -164,7 +161,7 @@ models:
               - proposicao_id_nk
 
   - name: int_votos_unificados
-    description: "Registros de voto das duas casas no grão de um por parlamentar por votação, com a posição e a categoria de seed_tipos_voto. Alimenta o placar de fct_votacoes e as linhas de fct_votos."
+    description: "Registros de voto das duas casas. Grão: parlamentar × votação."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -174,13 +171,13 @@ models:
               - votacao_id_nk
     columns:
       - name: casa
-        description: Casa legislativa (CAMARA ou SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: parlamentar_id_nk
-        description: Chave natural do parlamentar na casa (deputado_id_nk ou senador_id_nk).
+        description: "Id do parlamentar na casa."
       - name: votacao_id_nk
         description: Chave natural da votação na casa, como texto.
       - name: partido_id_senado
-        description: "Entidade partidária (id_senado de seed_partidos)."
+        description: "Id da entidade partidária."
       - name: partido
         description: Sigla do partido no momento do voto.
       - name: partido_nome
@@ -188,14 +185,14 @@ models:
       - name: codigo_voto
         description: Código do voto como vem da origem.
       - name: voto
-        description: "Posição normalizada (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO); nula quando o registro não é voto."
+        description: "Posição do voto (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO); nula quando não é voto."
       - name: categoria
-        description: Categoria do registro em seed_tipos_voto (VOTOU, VOTO SECRETO, PRESENTE SEM VOTO, PRESIDENCIA, AUSENCIA...).
+        description: "Categoria do registro de voto."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_votacoes_unificadas
-    description: "Votações das duas casas no grão de uma por votação, com órgão, descrição e sigilo. fct_votacoes gera as chaves e o placar."
+    description: "Votações das duas casas. Grão: uma votação."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -204,31 +201,28 @@ models:
               - votacao_id_nk
     columns:
       - name: casa
-        description: Casa legislativa (CAMARA ou SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na casa, como texto.
       - name: data_votacao
         description: Data da votação.
       - name: sigla_orgao
-        description: Sigla do órgão que votou; a extração do Senado só tem Plenário (PLEN).
+        description: "Sigla do órgão que votou."
       - name: descricao
         description: Descrição da votação, maiúscula e sem acento.
       - name: proposicao_id_nk
-        description: Chave natural da proposição objeto (proposição da Câmara ou processo do Senado); nula quando não declarada.
+        description: "Id da proposição votada na casa."
       - name: aprovado
         description: 1 se aprovada, 0 caso contrário.
       - name: fl_secreta
         description: 1 quando a votação foi secreta (só no Senado).
       - name: classe_votacao
-        description: >
-          Classe da votação pelo objeto na descrição: MERITO, EMENDA/DESTAQUE, URGENCIA, REQUERIMENTO
-          PROCEDIMENTAL, PARECER, AUTORIDADE ou OUTROS. Heurística por texto; o teste
-          assert_classe_votacao_cobre_nominais exige reconhecer ao menos 85% das nominais de cada casa.
+        description: "Classe da votação (MERITO, EMENDA/DESTAQUE, URGENCIA, REQUERIMENTO PROCEDIMENTAL, PARECER, AUTORIDADE, OUTROS)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_unificadas
-    description: "Orientações de voto das lideranças das duas casas no grão de uma por liderança por votação, inclusive LIBERADO. Alimenta fct_orientacoes e as flags de alinhamento de fct_votos."
+    description: "Orientações das lideranças das duas casas. Grão: liderança × votação."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -247,42 +241,37 @@ models:
             where: "votacao_id_nk IS NOT NULL AND partido_id_senado IS NOT NULL"
     columns:
       - name: casa
-        description: Casa legislativa (CAMARA ou SENADO).
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
-        description: Chave da votação na casa, em texto; no Senado é a votação resolvida pela matéria, nula quando a orientação ficou sem par.
+        description: "Chave natural da votação na casa."
       - name: votacao_origem_id
-        description: Chave da votação como vem da origem da orientação (na Câmara, a mesma de votacao_id_nk).
+        description: "Chave da votação na fonte de orientações."
       - name: data_votacao
-        description: Data da votação; na Câmara vem da própria votação, no Senado da orientação.
+        description: "Data da votação."
       - name: tipo_lideranca
-        description: "Tipo de liderança (BANCADA ou PARTIDO); 'desconhecido' no Senado."
+        description: "Tipo de liderança (BANCADA, PARTIDO)."
       - name: sigla_lideranca
         description: Sigla do partido, bloco ou liderança (GOVERNO, MAIORIA...).
       - name: orientacao_voto
-        description: Orientação emitida (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO).
+        description: "Orientação da liderança (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO)."
       - name: partido_id_senado
-        description: >
-          Entidade partidária da liderança (id_senado de seed_partidos), resolvida pela sigla na data
-          da votação via int_partidos_siglas. Nula para Governo, blocos, federações e lideranças.
+        description: "Id da entidade partidária que orientou."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_partidos_siglas
-    description: >
-      Toda sigla conhecida de cada entidade partidária (sigla da Câmara, do Senado, conformada e os
-      apelidos de seed_partidos_siglas), com a vigência da entidade. Resolve sigla + data para a
-      entidade: PL e PSD foram reutilizadas por partidos diferentes, então a data decide.
+    description: "Siglas partidárias com vigência. Grão: sigla × entidade partidária."
     columns:
       - name: sigla
         description: Sigla normalizada (maiúscula, sem acento).
       - name: partido_id_senado
-        description: Entidade partidária (id_senado de seed_partidos).
+        description: "Id da entidade partidária."
       - name: inicio
         description: Início da vigência da entidade.
       - name: fim
         description: Fim da vigência da entidade (9999-12-31 quando ativa).
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
 unit_tests:
 

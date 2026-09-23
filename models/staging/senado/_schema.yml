@@ -3,7 +3,7 @@ version: 2
 models:
 
   - name: stg_senado_senadores
-    description: "Senadores atuais com atributos de identificação e mandato. Renaming e limpeza adicionais ocorrem em int_senadores_padronizados."
+    description: "Senadores em exercício. Grão: um senador."
     columns:
       - name: senador_id_nk
         description: "Chave natural do senador na API do Senado."
@@ -44,11 +44,11 @@ models:
       - name: mandato_segundalegislaturadomandato_numerolegislatura
         description: "Número da segunda legislatura coberta pelo mandato."
       - name: mandato_descricaoparticipacao
-        description: "Descrição da condição de participação no mandato (TITULAR, SUPLENTE)."
+        description: "Condição no mandato (TITULAR, SUPLENTE)."
       - name: mandato_suplentes_suplente
         description: "Dados do(s) suplente(s) do senador em formato semi-estruturado."
       - name: mandato_exercicios_exercicio
-        description: "Exercícios do mandato (períodos de exercício) em formato semi-estruturado."
+        description: "Períodos de exercício do mandato (JSON)."
       - name: identificacaoparlamentar_bloco_datacriacao
         description: "Data de criação do bloco parlamentar."
       - name: mandato_primeiralegislaturadomandato_datainicio
@@ -60,18 +60,18 @@ models:
       - name: mandato_segundalegislaturadomandato_datafim
         description: "Data de fim da segunda legislatura do mandato."
       - name: mandato_titular_descricaoparticipacao
-        description: "Descrição da participação do titular (nulo se o próprio senador é titular)."
+        description: "Participação do titular do mandato; nula se o senador é titular."
       - name: mandato_titular_codigoparlamentar
-        description: "Código do titular do mandato (nulo se o próprio senador é titular)."
+        description: "Código do titular do mandato; nulo se o senador é titular."
       - name: mandato_titular_nomeparlamentar
-        description: "Nome do titular do mandato (nulo se o próprio senador é titular)."
+        description: "Nome do titular do mandato; nulo se o senador é titular."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_legislaturas
-    description: "Todos os senadores das legislaturas 50 a 58, com dados de identificação e mandato em formato semi-estruturado."
+    description: "Senadores por legislatura. Grão: senador × legislatura."
     columns:
       - name: senador_id_nk
         description: "Chave natural do senador na API do Senado."
@@ -84,7 +84,7 @@ models:
       - name: forma_tratamento
         description: "Forma de tratamento do senador (upper)."
       - name: mandatos_mandato
-        description: "Dados dos mandatos em formato JSON/semi-estruturado. Processado em int_senadores_padronizados."
+        description: "Mandatos do senador (JSON)."
       - name: email
         description: "E-mail institucional do senador."
       - name: sigla_partido
@@ -96,10 +96,10 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_processo
-    description: "Processos legislativos do Senado, usados como dimensão de proposição em int_proposicoes_unificadas."
+    description: "Processos legislativos do Senado. Grão: um processo."
     columns:
       - name: processo_id_nk
         description: "Chave natural do processo legislativo na API do Senado."
@@ -116,7 +116,7 @@ models:
       - name: data_situacao_atual
         description: "Data da situação atual do processo."
       - name: sigla_tipo
-        description: "Sigla do tipo do processo, derivada da identificação (apenas letras). Junta com seed_senado_tipos_projetos.sigla."
+        description: "Sigla do tipo do processo."
       - name: identificacao
         description: "Identificação textual do processo (ex: PL 123/2024)."
       - name: norma_gerada
@@ -134,27 +134,27 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_status
-    description: "Status e tramitação das proposições legislativas do Senado. Sobrepõe-se parcialmente a stg_senado_processo, com vocabulário próprio para casa e ente."
+    description: "Status de tramitação das proposições do Senado. Grão: uma proposição."
     columns:
       - name: proposicao_id_nk
-        description: "Chave natural da proposição na API do Senado (mesma origem de processo_id_nk em stg_senado_processo)."
+        description: "Id da proposição no Senado."
       - name: codigo_materia
         description: "Código da matéria associada à proposição."
       - name: identificacao
         description: "Identificação textual da proposição (ex: PL 123/2024)."
       - name: sigla_proposicao
-        description: "Sigla do tipo de proposição, extraída do primeiro token da identificação."
+        description: "Sigla do tipo de proposição."
       - name: apelido
         description: "Apelido pelo qual a proposição é conhecida (upper)."
       - name: codigo_casa
         description: "Código da casa identificadora (SF, CN)."
       - name: casa
-        description: "Nome da casa identificadora derivado de codigo_casa (Senado Federal ou Congresso Nacional)."
+        description: "Casa identificadora (Senado Federal, Congresso Nacional)."
       - name: codigo_ente
-        description: "Código do ente vinculado à proposição. Junta com stg_senado_tipos_entes."
+        description: "Código do ente vinculado à proposição."
       - name: ementa
         description: "Ementa da proposição (upper)."
       - name: tipo_proposicao
@@ -168,7 +168,7 @@ models:
       - name: data_deliberacao
         description: "Data da deliberação da proposição."
       - name: codigo_deliberacao
-        description: "Sigla do tipo de deliberação. Junta com stg_senado_tipos_decisao."
+        description: "Código do tipo de deliberação."
       - name: link_documento
         description: "URL do documento da proposição."
       - name: objetivo
@@ -180,11 +180,11 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
 
   - name: stg_senado_votacoes
-    description: "Todas as votações do Senado desde 2001, com resultado e totais de votos por sessão."
+    description: "Votações do Senado. Grão: uma votação."
     columns:
       - name: codigo_materia
         description: "Código da matéria votada."
@@ -193,9 +193,9 @@ models:
       - name: codigo_sessao_legislativa
         description: "Código da sessão legislativa."
       - name: votacao_id_nk
-        description: "Chave natural da votação: codigosessaovotacao, que existe desde 2001. Único nas votações."
+        description: "Id da sessão de votação no Senado."
       - name: votacao_sve_id
-        description: "codigovotacaosve, a chave do sistema eletrônico de votação; só existe a partir de 2019 e fica para rastreabilidade."
+        description: "Id da votação no sistema eletrônico do Senado (desde 2019)."
       - name: processo_id_nk
         description: "Chave natural do processo legislativo associado à votação."
       - name: identificacao
@@ -219,18 +219,18 @@ models:
       - name: data_votacao
         description: "Data da sessão de votação."
       - name: resultado_votacao
-        description: "Resultado da votação (APROVADO, REPROVADO, PREJUDICADO, EMPATE). A Câmara só distingue APROVADO/REPROVADO."
+        description: "Resultado da votação (APROVADO, REPROVADO, PREJUDICADO, EMPATE)."
       - name: votacao_secreta
         description: "Indica se a votação foi secreta (SIM/NAO)."
       - name: aprovado
-        description: "1 se a votação foi aprovada, 0 caso contrário, nulo se o resultado não foi informado. Coluna conformada com stg_camara_votacoes."
+        description: "1 quando a votação foi aprovada."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_votos_senadores
-    description: "Votos individuais de cada senador em cada matéria, derivado do endpoint de votações do Senado."
+    description: "Votos dos senadores. Grão: senador × votação."
     columns:
       - name: codigo_materia
         description: "Código da matéria votada."
@@ -239,9 +239,9 @@ models:
       - name: codigo_sessao_legislativa
         description: "Código da sessão legislativa."
       - name: votacao_id_fk
-        description: "Chave estrangeira da votação à qual o voto se refere (codigosessaovotacao, igual a stg_senado_votacoes.votacao_id_nk)."
+        description: "Id da votação."
       - name: votacao_sve_id
-        description: "codigovotacaosve da votação; só existe a partir de 2019."
+        description: "Id da votação no sistema eletrônico do Senado (desde 2019)."
       - name: data_votacao
         description: "Data da sessão de votação."
       - name: processo_id_nk
@@ -267,13 +267,13 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_votos_orientacao
-    description: "Orientação de votos das bancadas e partidos no Senado por votação."
+    description: "Orientações das lideranças do Senado. Grão: liderança × votação."
     columns:
       - name: votacao_id_fk
-        description: "codigovotacaosve do endpoint de orientação: outro espaço de chave que o das votações; a votação é resolvida em int_orientacoes_senado_filtradas."
+        description: "Id da votação no sistema eletrônico do Senado."
       - name: sigla_tipo_materia
         description: "Sigla do tipo de matéria votada."
       - name: numero_materia
@@ -293,10 +293,10 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_tipos_decisao
-    description: "Modelo staging auxiliar com o descritivo dos tipos de deliberações de proposições"
+    description: "Tipos de deliberação do Senado."
     columns:
       - name: codigo_deliberacao
         description: "Código identificador do tipo de deliberação"
@@ -305,10 +305,10 @@ models:
       - name: tipo_deliberacao
         description: "Categoria do tipo de deliberação"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_tipos_entes
-    description: "Modelo staging auxiliar com o descritivo dos tipos de entes vinculados às proposições"
+    description: "Tipos de ente vinculado às proposições do Senado."
     columns:
       - name: codigo_ente
         description: "Código identificador do ente"
@@ -322,10 +322,10 @@ models:
       - name: codigo_casa
         description: "Código da casa legislativa à qual o ente pertence"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_tipos_projetos
-    description: "Modelo staging auxiliar com siglas e descrições dos tipos de proposições legislativas"
+    description: "Tipos de proposição do Senado."
     columns:
       - name: sigla_proposicao
         description: "Sigla do tipo de proposição (ex: PL, PEC, MPV)"
@@ -334,6 +334,6 @@ models:
       - name: data_inicio
         description: "Data de início de vigência do tipo de proposição"
       - name: data_fim
-        description: "Data de encerramento de vigência do tipo de proposição (nulo se ainda ativo)"
+        description: "Fim de vigência do tipo; nulo se ativo."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

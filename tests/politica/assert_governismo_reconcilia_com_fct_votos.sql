@@ -1,6 +1,6 @@
 {{ config(tags=["politica"]) }}
 
--- As agregadas de governismo são só somas das flags de fct_votos: qualquer diferença é regra duplicada.
+-- As agregadas de governismo são somas das flags de fct_votos.
 WITH
 atomico AS (
     SELECT

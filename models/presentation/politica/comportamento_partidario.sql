@@ -35,8 +35,7 @@ votos_partido AS (
         AND t1.sk_parlamentar <> '{{ var("null_key") }}'
 ),
 
--- Rice clássico ignora obstrução: mede a divisão da bancada entre os dois polos. Votação com
--- um só votante da sigla daria Rice 1 sem informação nenhuma, daí o corte em 2 mais abaixo.
+-- Rice ignora obstrução; votação com um só votante da sigla fica de fora (daria Rice 1).
 rice_por_votacao AS (
     SELECT
         casa,
@@ -83,7 +82,7 @@ bancada AS (
     GROUP BY casa, partido, ano, trimestre, legislatura, presidente, mandato
 ),
 
--- Espinha do modelo: cobre as duas casas, porque coesão não depende de orientação de voto.
+-- Coesão não depende de orientação: cobre as duas casas.
 coesao AS (
     SELECT
         casa,

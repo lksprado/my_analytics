@@ -8,8 +8,7 @@ legislatura_corrente AS (
     FROM {{ ref('votacoes_placar') }}
 ),
 
--- Os 578 trimestres sem percentual no radar são trimestres em que o parlamentar também não vota
--- do nosso lado: as duas fontes concordam na ausência, então a linha não informa nada.
+-- Trimestre sem percentual no radar também não tem voto nosso: a linha não informa nada.
 radar AS (
     SELECT
         sk_parlamentar,

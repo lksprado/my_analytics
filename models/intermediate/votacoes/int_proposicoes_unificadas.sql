@@ -58,8 +58,7 @@ final AS (
     FROM proposicoes
 ),
 
--- A origem repete (casa, id) com linhas parciais (sem data) e corrompidas no CSV
--- (tipo 'desconhecido'): vence a data mais recente e, no empate, o tipo válido.
+-- A origem repete (casa, id) com linhas parciais: vence a data mais recente e o tipo válido.
 deduplicada AS (
     SELECT
         *,

@@ -47,8 +47,7 @@ deputados_votos AS (
     ORDER BY deputado_id_nk, legislatura DESC
 ),
 
--- O endpoint de detalhes só traz a UF de nascimento; a UF conformada com o Senado é a de
--- representação, que só existe no roster de legislaturas e no registro do voto.
+-- UF de representação vem do roster e do voto; o endpoint de detalhes só tem a de nascimento.
 uf_mandatos AS (
     SELECT
         deputado_id_fk    AS parlamentar_id_nk,

@@ -7,7 +7,6 @@ votos AS (
     SELECT * FROM {{ ref('int_votos_unificados') }}
 ),
 
--- O voto herda do cabeçalho as chaves dimensionais e a orientação do governo.
 votacoes AS (
     SELECT
         sk_votacao,
@@ -23,7 +22,7 @@ votacoes AS (
     FROM {{ ref('fct_votacoes') }}
 ),
 
--- O partido casa com a orientação pela entidade, não pela sigla: PR orienta o PL, PMDB o MDB.
+-- Casa pela entidade partidária, não pela sigla (PR orienta o PL).
 orientacoes_partido AS (
     SELECT
         casa,
@@ -95,8 +94,7 @@ final AS (
         ON v.casa = vt.casa AND v.votacao_id_nk = vt.votacao_id_nk
     LEFT JOIN orientacoes_partido AS o
         ON v.casa = o.casa AND v.votacao_id_nk = o.votacao_id_nk AND v.partido_id_senado = o.partido_id_senado
-    -- Um lookup por casa, cada um por uma coluna só: juntar por (casa, COALESCE(ids)) faz o
-    -- planner casar só pela casa e comparar cada voto com todos os parlamentares dela.
+    -- Join por coluna única: com (casa, COALESCE(ids)) o planner compara cada voto com a casa inteira.
     LEFT JOIN parlamentares AS pd
         ON v.casa = 'CAMARA' AND v.parlamentar_id_nk = pd.deputado_id_nk
     LEFT JOIN parlamentares AS ps

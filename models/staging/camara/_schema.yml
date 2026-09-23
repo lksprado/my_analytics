@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_camara_deputados
-    description: "Atributos de deputados da legislatura atual, historicializado SCD2"
+    description: "Deputados da legislatura atual (SCD2)."
     columns:
       - name: deputado_id_nk
         description: "Chave natural do deputado na API da Câmara."
@@ -25,12 +25,12 @@ models:
       - name: escolaridade
         description: "Grau de escolaridade informado."
       - name: email
-        description: "E-mail institucional — COALESCE de ultimostatus_email e ultimostatus_gabinete_email."
+        description: "E-mail institucional."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_legislaturas
-    description: "Modelo staging com o mapeamento de deputados por legislatura. Roster histórico usado para complementar deputados ausentes do endpoint de detalhes em int_deputados_padronizados."
+    description: "Deputados por legislatura. Grão: deputado × legislatura."
     columns:
       - name: legislatura_id_nk
         description: "Chave natural da legislatura."
@@ -45,12 +45,12 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
   - name: stg_camara_votacoes
-    description: "Modelo staging com as sessões de votação da Câmara."
+    description: "Votações da Câmara. Grão: uma votação."
     columns:
       - name: votacao_id_nk
-        description: "Chave natural da votação, como texto no formato da API (ex.: 2265603-43). Tirar o hífen faz ids distintos colidirem (13595-12 e 135951-2)."
+        description: "Id da votação na Câmara (ex.: 2265603-43)."
       - name: data_votacao
         description: "Data da votação."
       - name: datahora_votacao
@@ -62,21 +62,21 @@ models:
       - name: descricao
         description: "Descrição da votação."
       - name: proposicao_id_fk
-        description: "Chave estrangeira da proposição objeto da votação na API da Câmara."
+        description: "Id da proposição votada."
       - name: aprovado
-        description: "1 se a votação foi aprovada, 0 caso contrário, nulo se o resultado não foi informado."
+        description: "1 quando a votação foi aprovada."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_votacoes_orientacao
-    description: "Modelo staging com a orientação de cada partido/liderança por votação."
+    description: "Orientações das lideranças da Câmara. Grão: liderança × votação."
     columns:
       - name: votacao_id_fk
-        description: "Chave estrangeira da votação à qual a orientação se refere, no mesmo formato texto de stg_camara_votacoes.votacao_id_nk."
+        description: "Id da votação orientada."
       - name: orientacao_voto
-        description: "Orientação de voto dada pelo líder (SIM, NÃO, LIBERADO, OBSTRUÇÃO)."
+        description: "Orientação da liderança (SIM, NÃO, LIBERADO, OBSTRUÇÃO)."
       - name: codigo_tipo_lideranca
         description: "Código do tipo de liderança que deu a orientação."
       - name: codigo_partido_bloco
@@ -86,32 +86,32 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_votos_deputados
-    description: "Modelo staging com o voto individual de cada deputado por votação."
+    description: "Votos dos deputados. Grão: deputado × votação."
     columns:
       - name: deputado_id_nk
         description: "Chave natural do deputado na API da Câmara."
       - name: nome
-        description: "Nome eleitoral do deputado conforme registrado no voto. Usado como roster de fallback em int_deputados_padronizados."
+        description: "Nome eleitoral do deputado no voto."
       - name: uf
-        description: "Sigla da UF do deputado conforme registrada no voto. Usada como roster de fallback em int_deputados_padronizados."
+        description: "UF do deputado no voto."
       - name: voto
-        description: "Tipo do voto registrado (SIM, NÃO, ABSTENCAO, OBSTRUÇÃO, ARTIGO17)."
+        description: "Voto registrado (SIM, NÃO, ABSTENCAO, OBSTRUÇÃO, ARTIGO17)."
       - name: legislatura
         description: "Número da legislatura na qual o voto foi registrado."
       - name: votacao_id_fk
-        description: "Chave estrangeira da votação à qual o voto se refere, no mesmo formato texto de stg_camara_votacoes.votacao_id_nk."
+        description: "Id da votação."
       - name: partido_id_fk
         description: "Chave estrangeira do partido na API da Câmara."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_proposicao_tema
-    description: "Modelo staging com os temas de uma proposição."
+    description: "Temas das proposições da Câmara. Grão: proposição × tema."
     columns:
       - name: proposicao_id_nk
         description: "Chave natural da proposição na API da Câmara."
@@ -124,17 +124,17 @@ models:
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_proposicao
-    description: "Modelo staging com as proposições da Câmara."
+    description: "Proposições da Câmara. Grão: uma proposição."
     columns:
       - name: proposicao_id_nk
         description: "Chave natural da proposição na API da Câmara."
       - name: sigla_tipo
         description: "Sigla do tipo de proposição (ex: PL, PEC, MPV)."
       - name: codigo_tipo
-        description: "Código numérico do tipo de proposição. Junta com seed_camara_tipos_proposicao.cod."
+        description: "Código do tipo de proposição."
       - name: numero
         description: "Número da proposição no ano de apresentação."
       - name: ano
@@ -150,24 +150,24 @@ models:
       - name: status_sequencia
         description: "Número sequencial do status de tramitação."
       - name: status_sigla_orgao
-        description: "Sigla do órgão responsável pelo status atual de tramitação (ex: PLEN, CCJC)."
+        description: "Sigla do órgão do status atual (ex.: PLEN, CCJC)."
       - name: status_regime
-        description: "Regime de tramitação do status atual (ex: URGENCIA, PRIORIDADE)."
+        description: "Regime de tramitação atual (ex.: URGENCIA, PRIORIDADE)."
       - name: status_descricao_tramitacao
-        description: "Descrição do tipo de tramitação do status atual (ex: DESPACHO, APRESENTAÇÃO)."
+        description: "Tipo de tramitação do status atual."
       - name: status_codigo_tipo_tramitacao
         description: "Código numérico do tipo de tramitação do status atual."
       - name: status_descricao_situacao
-        description: "Descrição da situação atual da proposição (ex: TRAMITANDO, ARQUIVADA)."
+        description: "Situação atual da proposição (ex.: TRAMITANDO, ARQUIVADA)."
       - name: status_codigo_situacao
         description: "Código numérico da situação atual da proposição."
       - name: status_despacho
         description: "Texto do despacho do status atual de tramitação."
       - name: status_ambito
-        description: "Âmbito de tramitação do status atual (ex: Regimental, Apreciação Conclusiva)."
+        description: "Âmbito de tramitação do status atual."
       - name: status_apreciacao
         description: "Forma de apreciação exigida no status atual da proposição."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

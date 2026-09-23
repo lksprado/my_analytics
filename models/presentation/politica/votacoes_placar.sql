@@ -3,7 +3,6 @@
 ) }}
 
 WITH
--- O grão é a votação com voto nominal registrado, uma fração das votações de fct_votacoes.
 votacoes AS (
     SELECT * FROM {{ ref('fct_votacoes') }}
     WHERE fl_nominal = 1

@@ -2,12 +2,12 @@ version: 2
 
 models:
   - name: stg_ranking_deputados
-    description: "Dados brutos do Ranking dos Políticos para deputados federais, com ID do Congresso extraído da URL e nomes padronizados."
+    description: "Ranking dos Políticos de deputados. Grão: um deputado."
     columns:
       - name: ranking_id_nk
         description: "Chave natural do deputado no site Ranking dos Políticos."
       - name: congresso_id_fk
-        description: "FK do deputado na API da Câmara, extraído via regex da URL da foto."
+        description: "Id do deputado na Câmara."
       - name: nome
         description: "Nome completo padronizado (upper)."
       - name: nome_eleitoral
@@ -29,7 +29,7 @@ models:
       - name: composicao_pontuacao_pontuacao
         description: "Pontuação total atual no Ranking dos Políticos."
       - name: composicao_pontuacao_anos
-        description: "Histórico anual de pontuações em formato JSON (array de objetos por ano). Usado em int_deputados_pontuacao_explodida."
+        description: "Histórico anual de pontuação (JSON)."
       - name: composicao_pontuacao_ranking_geral
         description: "Posição no ranking geral."
       - name: composicao_pontuacao_ranking_geral_variacao
@@ -51,10 +51,10 @@ models:
       - name: composicao_pontuacao_ranking_casa_estado_variacao
         description: "Variação da posição no ranking da casa por estado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_ranking_senadores
-    description: "Dados brutos do Ranking dos Políticos para senadores, com ID do Congresso extraído da URL e nomes padronizados. Sem nome_eleitoral (campo não existe na fonte do Senado)."
+    description: "Ranking dos Políticos de senadores. Grão: um senador."
     columns:
       - name: ranking_id_nk
         description: "Chave natural do senador no site Ranking dos Políticos."
@@ -62,7 +62,7 @@ models:
           - not_null
           - unique
       - name: congresso_id_fk
-        description: "FK do senador na API do Senado, extraído via regex da URL da foto."
+        description: "Id do senador no Senado."
         tests:
           - not_null
       - name: nome
@@ -84,7 +84,7 @@ models:
       - name: composicao_pontuacao_pontuacao
         description: "Pontuação total atual no Ranking dos Políticos."
       - name: composicao_pontuacao_anos
-        description: "Histórico anual de pontuações em formato JSON (array de objetos por ano). Usado em int_senadores_pontuacao_explodida."
+        description: "Histórico anual de pontuação (JSON)."
       - name: composicao_pontuacao_ranking_geral
         description: "Posição no ranking geral."
       - name: composicao_pontuacao_ranking_geral_variacao
@@ -106,4 +106,4 @@ models:
       - name: composicao_pontuacao_ranking_casa_estado_variacao
         description: "Variação da posição no ranking da casa por estado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

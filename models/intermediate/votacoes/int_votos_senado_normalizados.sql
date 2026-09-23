@@ -68,7 +68,7 @@ partidos_senado AS (
     JOIN partidos_vigencia v USING (id_senado)
 ),
 
--- Siglas são reutilizadas (PL 25 vs 523, PSD 89 vs 557): desambigua pela vigência.
+-- Siglas reutilizadas (PL, PSD): desambigua pela vigência.
 votos_com_partidos AS (
     SELECT
         t1.casa,

@@ -1,6 +1,6 @@
 {{ config(tags=["politica"]) }}
 
--- Todo código de voto da origem precisa estar em seed_tipos_voto; código novo cairia no membro desconhecido.
+-- Todo código de voto da origem precisa estar em seed_tipos_voto.
 WITH codigos AS (
     SELECT DISTINCT
         'CAMARA'                        AS casa,

@@ -16,7 +16,7 @@ final AS (
         {{ dbt_utils.generate_surrogate_key(['casa', 'sigla_orgao']) }} AS sk_orgao,
         casa,
         sigla_orgao,
-        -- A origem só traz a sigla; comissão especial leva o número da proposição no nome.
+        -- Comissão especial leva o número da proposição na sigla.
         CASE
             WHEN sigla_orgao = 'PLEN' THEN 'PLENARIO'
             WHEN sigla_orgao = 'MESA' THEN 'MESA DIRETORA'

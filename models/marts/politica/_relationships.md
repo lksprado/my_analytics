@@ -47,7 +47,7 @@ erDiagram
     fct_votacoes {
         text sk_votacao PK
         int  sk_data FK
-        text sk_proposicao FK "null_key quando ausente"
+        text sk_proposicao FK
         text sk_orgao FK
         text sk_tipo_votacao FK
         text orientacao_governo "DD"
@@ -70,7 +70,7 @@ erDiagram
         int  fl_seguiu_partido
     }
     fct_orientacoes {
-        text sk_votacao "DD, null_key quando órfã"
+        text sk_votacao "DD"
         int  sk_data FK
         text sigla_lideranca
         text orientacao_voto
@@ -98,7 +98,7 @@ erDiagram
     }
     dim_partidos {
         text sk_partido PK
-        int  partido_id_nk "id_senado: entidade que agrupa rebrands"
+        int  partido_id_nk
         text sigla
     }
     dim_tipo_votacao {
@@ -110,25 +110,10 @@ erDiagram
 
 ## Observações
 
-- `fct_votacoes` é o cabeçalho e `fct_votos` são as linhas (padrão header/line de Kimball). O voto herda
-  do cabeçalho `sk_data` e `sk_proposicao`, então nenhum corte de voto precisa passar por
-  `fct_votacoes`; `sk_votacao` fica nas duas como dimensão degenerada, para drill-across.
-- `fct_votos` guarda todos os registros da origem (abstenção, presidência, voto secreto, presença sem
-  voto e ausências). As métricas filtram: governismo e disciplina pelas flags `fl_seguiu_*`, placar e
-  bancada por `voto IN ('SIM', 'NAO', 'OBSTRUCAO')`.
-- `fct_governismo_*` são somas de `fct_votos.fl_seguiu_governo` e têm o mesmo grão das fatos do Radar,
-  para comparar as duas fontes lado a lado.
-- No Senado a orientação vem do endpoint `orientacaoBancada`, cujo `codigovotacaosve` é outro espaço de
-  chave: a votação é resolvida pela matéria no dia, com desempate pelo placar SIM/NÃO dos votos.
-  Casam 384 das 487 votações orientadas; o resto cai em `sk_votacao = null_key`, e o teste de
-  `relationships` avisa quantas linhas.
-- A chave natural das votações do Senado é `codigosessaovotacao`, que existe desde 2001;
-  `codigovotacaosve` só existe a partir de 2019 e fica como `votacao_sve_id`.
-- `dim_calendario_legislativo` é o recorte público de `dim_datas` (mesma `data_sk`), sem as datas especiais
-  da família, com legislatura, presidente e anos eleitorais.
-- `dim_partidos` tem grão de entidade (rebrands juntos, siglas reutilizadas separadas). Voto e
-  orientação se encontram por ela: PR orienta o PL, PMDB o MDB. Pela sigla, 107.511 votos ficavam
-  sem disciplina.
-- `dim_tipo_votacao` é junk dimension: a classe vem da descrição da votação por regra de texto
-  (`int_votacoes_unificadas`), e o teste `assert_classe_votacao_cobre_nominais` exige reconhecer ao
-  menos 85% das votações nominais de cada casa.
+- `fct_votacoes` é o cabeçalho e `fct_votos` as linhas (header/line). O voto herda as chaves do cabeçalho;
+  `sk_votacao` fica nas duas como dimensão degenerada.
+- `fct_votos` guarda todos os registros da origem; as métricas filtram pelas flags `fl_seguiu_*` ou por `voto`.
+- `fct_governismo_*` são somas de `fct_votos.fl_seguiu_governo`, no mesmo grão das fatos do Radar.
+- No Senado a orientação tem outra chave; a votação é resolvida pela matéria no dia e a não resolvida vai
+  para `null_key`.
+- Voto e orientação se encontram pela entidade de `dim_partidos`, não pela sigla.

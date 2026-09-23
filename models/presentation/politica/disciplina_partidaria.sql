@@ -36,9 +36,7 @@ final AS (
     FROM votos AS t1
     LEFT JOIN {{ ref('dim_parlamentares') }} AS t2
         ON t1.sk_parlamentar = t2.sk_parlamentar
-    -- O recorte temporal e institucional vem pronto de votacoes_placar, que só tem as votações
-    -- nominais: juntar fct_votacoes, calendário e proposições inteiros estoura a memória
-    -- compartilhada do Postgres quando vários modelos rodam em paralelo.
+    -- Contexto via votacoes_placar: juntar as tabelas inteiras estoura a memória compartilhada do Postgres.
     LEFT JOIN {{ ref('votacoes_placar') }} AS t3
         ON t1.sk_votacao = t3.sk_votacao
 )

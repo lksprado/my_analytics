@@ -3,55 +3,55 @@ version: 2
 models:
 
   - name: int_deputados_padronizados
-    description: "Deputados normalizados com renaming de colunas, código de sexo expandido e UF de representação. Combina o endpoint de detalhes (prioridade), o roster de legislaturas e, como último fallback, os deputados que aparecem apenas nos votos — garantindo que todo votante exista em dim_parlamentares. Alimenta dim_parlamentares."
+    description: "Deputados. Grão: um deputado."
     columns:
       - name: casa
-        description: "Casa legislativa (constante 'CAMARA')."
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: parlamentar_id_nk
-        description: "Chave natural do parlamentar na sua casa de origem (id do deputado na API da Câmara). Com casa, forma a chave que dim_parlamentares usa para gerar a sk_parlamentar."
+        description: "Id do deputado na Câmara."
         tests:
           - not_null
           - unique
       - name: radar_parlamentar_id_fk
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa."
+        description: "Id do parlamentar no Radar Congresso."
       - name: nome
-        description: "Nome eleitoral do deputado."
+        description: "Nome parlamentar."
       - name: nome_completo
         description: "Nome civil completo."
       - name: sexo
         description: "Sexo expandido (MASCULINO/FEMININO)."
       - name: uf
-        description: "UF de representação do mandato mais recente (roster de legislaturas ou registro do voto). Conformada com o Senado; o endpoint de detalhes só traz a UF de nascimento, que não é usada."
+        description: "UF de representação no mandato mais recente."
       - name: data_nascimento
-        description: "Data de nascimento, do endpoint de detalhes; nula para quem só aparece no roster ou no voto."
+        description: "Data de nascimento."
       - name: escolaridade
-        description: "Escolaridade declarada no endpoint de detalhes (SUPERIOR, POSGRADUACAO...)."
+        description: "Escolaridade."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_senadores_padronizados
-    description: "Senadores normalizados combinando endpoint de senadores atuais (prioridade) com histórico de legislaturas. Alimenta dim_parlamentares."
+    description: "Senadores. Grão: um senador."
     columns:
       - name: casa
-        description: "Casa legislativa (constante 'SENADO')."
+        description: "Casa legislativa (CAMARA, SENADO)."
       - name: parlamentar_id_nk
-        description: "Chave natural do parlamentar na sua casa de origem (código do senador na API do Senado). Com casa, forma a chave que dim_parlamentares usa para gerar a sk_parlamentar."
+        description: "Id do senador no Senado."
         tests:
           - not_null
           - unique
       - name: radar_parlamentar_id_fk
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa."
+        description: "Id do parlamentar no Radar Congresso."
       - name: nome
-        description: "Nome parlamentar do senador."
+        description: "Nome parlamentar."
       - name: nome_completo
         description: "Nome completo do senador."
       - name: sexo
         description: "Sexo conforme cadastro do Senado."
       - name: uf
-        description: "UF de representação do senador."
+        description: "UF de representação."
       - name: data_nascimento
         description: "Sempre nula: a extração do Senado não traz nascimento."
       - name: escolaridade
         description: "Sempre nula: a extração do Senado não traz escolaridade."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

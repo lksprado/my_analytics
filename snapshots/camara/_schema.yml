@@ -2,7 +2,7 @@ version: 2
 
 snapshots:
   - name: snap_camara_deputados
-    description: "Atributos de deputados da legislatura atual, historicializado SCD2"
+    description: "Deputados da legislatura atual (SCD2)."
     columns:
       - name: deputado_id_nk
         description: "Chave natural do deputado na API da Câmara."
@@ -25,8 +25,8 @@ snapshots:
       - name: escolaridade
         description: "Grau de escolaridade informado."
       - name: email
-        description: "E-mail institucional — COALESCE de ultimostatus_email e ultimostatus_gabinete_email."
+        description: "E-mail institucional."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

@@ -2,64 +2,55 @@ version: 2
 
 models:
   - name: stg_radarcongresso_governismo_deputados
-    description: >
-      Governismo de deputados publicado pelo Radar Congresso. Grão: deputado × trimestre, mas as
-      três colunas de legislatura são o acumulado do mandato repetido nas doze linhas do
-      parlamentar — só perc_governismo_trimestre varia entre elas.
+    description: "Governismo de deputados publicado pelo Radar Congresso. Grão: deputado × trimestre."
     columns:
       - name: radar_parlamentar_id_nk
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa. Join com stg_radarcongresso_parlamentares."
+        description: "Id do parlamentar no Radar Congresso."
         tests:
           - not_null
       - name: qt_votos_alinhados_legislatura
         description: "Votos do deputado alinhados ao governo no acumulado do mandato."
       - name: qt_votos_legislatura
-        description: "Denominador do cálculo: total de votos do deputado em votações com orientação do governo, no acumulado do mandato. A fonte chama essa coluna de n."
+        description: "Votos em votações orientadas pelo Governo no mandato."
       - name: perc_governismo_legislatura
-        description: "Percentual de alinhamento ao governo no acumulado do mandato, inteiro. Igual a ROUND(100 * qt_votos_alinhados_legislatura / qt_votos_legislatura) em 100% das linhas."
+        description: "Percentual de governismo no mandato (0–100)."
       - name: data_trimestre
-        description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
+        description: "Data de referência do trimestre no Radar."
       - name: perc_governismo_trimestre
-        description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o deputado não votou em votação orientada no período."
+        description: "Percentual de governismo no trimestre (0–100)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_radarcongresso_governismo_senadores
-    description: >
-      Governismo de senadores publicado pelo Radar Congresso, mesma estrutura do modelo de
-      deputados. É a única medida de governismo de senador no warehouse: o cálculo próprio não
-      cobre o Senado, por defeito de extração da orientação de bancada.
+    description: "Governismo de senadores publicado pelo Radar Congresso. Grão: senador × trimestre."
     columns:
       - name: radar_parlamentar_id_nk
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz), não o id oficial da casa. Join com stg_radarcongresso_parlamentares."
+        description: "Id do parlamentar no Radar Congresso."
         tests:
           - not_null
       - name: qt_votos_alinhados_legislatura
         description: "Votos do senador alinhados ao governo no acumulado do mandato."
       - name: qt_votos_legislatura
-        description: "Denominador do cálculo: total de votos do senador em votações com orientação do governo, no acumulado do mandato. A fonte chama essa coluna de n."
+        description: "Votos em votações orientadas pelo Governo no mandato."
       - name: perc_governismo_legislatura
-        description: "Percentual de alinhamento ao governo no acumulado do mandato, inteiro. Igual a ROUND(100 * qt_votos_alinhados_legislatura / qt_votos_legislatura) em 100% das linhas."
+        description: "Percentual de governismo no mandato (0–100)."
       - name: data_trimestre
-        description: "Marcador do trimestre de referência: o dia seguinte ao fim do trimestre medido, exceto o primeiro, que vem como 2023-03-31."
+        description: "Data de referência do trimestre no Radar."
       - name: perc_governismo_trimestre
-        description: "Percentual de alinhamento ao governo no trimestre, inteiro. Nulo quando o senador não votou em votação orientada no período."
+        description: "Percentual de governismo no trimestre (0–100)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_radarcongresso_parlamentares
-    description: >
-      De-para entre o id do Radar Congresso e o id oficial da Câmara ou do Senado. Cobre só quem
-      estava em exercício na extração: 513 deputados e 81 senadores, todos casando com
-      dim_parlamentares.
+    description: "De-para entre o id do Radar Congresso e o id da casa. Grão: um parlamentar."
     columns:
       - name: radar_parlamentar_id_nk
-        description: "Identificador do parlamentar no Radar Congresso (idparlamentarvoz). Chave das tabelas de governismo."
+        description: "Id do parlamentar no Radar Congresso."
         tests:
           - not_null
           - unique
       - name: parlamentar_id_fk
-        description: "Identificador do parlamentar na API oficial da Câmara ou do Senado. O id do radar é este número prefixado por 1 na Câmara e por 2 no Senado."
+        description: "Id do parlamentar na casa."
         tests:
           - not_null
           - unique
@@ -76,8 +67,8 @@ models:
               arguments:
                 values: ['CAMARA', 'SENADO']
       - name: partido_dict
-        description: "Dicionário Python serializado com id e sigla do partido, como vem da fonte. Não parseado: o partido usado no domínio sai de fct_votos."
+        description: "Partido do parlamentar como vem da fonte (texto serializado)."
       - name: nome_completo
         description: "Nome completo do parlamentar"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

@@ -7,7 +7,6 @@ votacoes AS (
     SELECT * FROM {{ ref('int_votacoes_unificadas') }}
 ),
 
--- Votante é quem marcou posição (SIM, NÃO ou OBSTRUÇÃO); abstenção, presença e ausência têm contagem própria.
 placar AS (
     SELECT
         casa,
@@ -55,7 +54,7 @@ medidas AS (
         CAST(COALESCE(pl.qt_votantes, 0) > 0 AS INTEGER)                               AS fl_nominal,
         v.fl_secreta,
         COALESCE(CAST(g.orientacao_voto IN ('SIM', 'NAO', 'OBSTRUCAO') AS INTEGER), 0) AS fl_governo_orientou,
-        -- Só SIM e NÃO dizem qual resultado o governo queria; obstrução e liberação ficam nulas.
+        -- Obstrução e liberação não indicam o resultado desejado.
         CASE g.orientacao_voto
             WHEN 'SIM' THEN v.aprovado
             WHEN 'NAO' THEN 1 - v.aprovado

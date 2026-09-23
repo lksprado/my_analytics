@@ -3,8 +3,7 @@
 ) }}
 
 WITH
--- Só os qualificados do modelo individual: quem não tem percentil também não tem governismo
--- confiável, e entraria nas médias da bancada puxando o resultado sem base.
+-- Só os qualificados: sem percentil, o governismo não tem base.
 qualificados AS (
     SELECT *
     FROM {{ ref('score_vs_governismo') }}

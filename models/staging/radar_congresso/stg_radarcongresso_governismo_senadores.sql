@@ -8,8 +8,7 @@ WITH source AS (
     FROM {{ ref('snap_radarcongresso_governismo_senadores') }}
 ),
 
--- afavor, n e total são o acumulado do mandato repetido em todas as linhas trimestrais do
--- parlamentar: n é o denominador, não os votos contra, e ROUND(100 * afavor / n) = total.
+-- afavor, n e total são o acumulado do mandato; n é o denominador, não votos contra.
 renamed AS (
     SELECT
         id::INT                             AS radar_parlamentar_id_nk,

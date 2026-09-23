@@ -35,7 +35,7 @@ final AS (
         votacao_id_fk,
         casa,
         orientacao_voto,
-        -- A origem às vezes omite o tipo; vale o que a sigla tem nas outras orientações (é único por sigla).
+        -- A origem às vezes omite o tipo; vale o da sigla nas outras orientações.
         MAX(tipo_lideranca) OVER (PARTITION BY sigla_partido_bloco) AS tipo_lideranca,
         sigla_partido_bloco,
         '{{ run_started_at }}'::TIMESTAMPTZ                          AS model_run_at

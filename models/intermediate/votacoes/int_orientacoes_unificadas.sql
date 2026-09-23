@@ -40,8 +40,7 @@ com_data AS (
         ON o.casa = v.casa AND o.votacao_id_nk = v.votacao_id_nk
 ),
 
--- A sigla vale para a entidade vigente na data; nas transições (fusão, rebrand) a origem ainda
--- usa a sigla antiga por alguns dias, e fica a entidade mais próxima no tempo.
+-- Na troca de sigla a origem ainda usa a antiga por dias: fica a entidade mais próxima.
 com_partido AS (
     SELECT DISTINCT ON (o.casa, o.votacao_origem_id, o.sigla_lideranca)
         o.*,

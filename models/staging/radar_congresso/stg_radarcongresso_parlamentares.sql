@@ -8,8 +8,7 @@ WITH source AS (
     FROM {{ ref('snap_radarcongresso_parlamentares') }}
 ),
 
--- idparlamentarvoz é a chave usada nas tabelas de governismo; idparlamentar é o id oficial da
--- Câmara ou do Senado, com o prefixo 1 para deputado e 2 para senador.
+-- idparlamentarvoz é o id oficial da casa prefixado por 1 (Câmara) ou 2 (Senado).
 renamed AS (
     SELECT
         idparlamentarvoz::INT                        AS radar_parlamentar_id_nk,
