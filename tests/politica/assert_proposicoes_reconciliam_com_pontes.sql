@@ -9,7 +9,9 @@ votacoes AS (
 ),
 
 temas AS (
-    SELECT COUNT(*) AS qt
+    SELECT
+        COUNT(*)                                        AS qt,
+        COUNT(*) FILTER (WHERE origem_tema = 'PROPRIO') AS qt_proprios
     FROM {{ ref('bridge_proposicoes_temas') }}
 ),
 
@@ -27,15 +29,15 @@ proposicoes_temas AS (
 
 SELECT
     p.qt_votacoes,
-    v.qt  AS qt_votacoes_ponte,
+    v.qt          AS qt_votacoes_ponte,
     p.qt_temas,
-    t.qt  AS qt_temas_ponte,
-    pt.qt AS qt_linhas_proposicoes_temas
+    t.qt_proprios AS qt_temas_proprios_ponte,
+    pt.qt         AS qt_linhas_proposicoes_temas
 FROM proposicoes AS p
 CROSS JOIN votacoes AS v
 CROSS JOIN temas AS t
 CROSS JOIN proposicoes_temas AS pt
 WHERE
     p.qt_votacoes <> v.qt
-    OR p.qt_temas <> t.qt
+    OR p.qt_temas <> t.qt_proprios
     OR pt.qt <> t.qt

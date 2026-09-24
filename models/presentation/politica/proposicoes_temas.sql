@@ -10,6 +10,7 @@ final AS (
         t.codigo_tema,
         t.tema,
         b.relevancia,
+        b.origem_tema,
         p.casa,
         p.tipo_proposicao,
         p.identificacao,

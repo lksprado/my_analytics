@@ -190,11 +190,15 @@ models:
 
   - name: stg_camara_proposicao_tema
     description: "Temas das proposições da Câmara. Grão: proposição × tema."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [proposicao_id_nk, codigo_tema]
     columns:
       - name: proposicao_id_nk
         description: "Chave natural da proposição na API da Câmara."
         meta:
-          source_column: "url_temas"
+          source_column: "url_temas, uriproposicao"
       - name: tema
         description: "Nome do tema."
         meta:
@@ -207,6 +211,10 @@ models:
         description: "Não identificado. Tudo zero."
         meta:
           source_column: "relevancia"
+      - name: origem
+        description: "Fonte do registro (API, ARQUIVO)."
+        meta:
+          source_column: "constante"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
         meta:
@@ -221,6 +229,9 @@ models:
         description: "Chave natural da proposição na API da Câmara."
         meta:
           source_column: "id"
+        data_tests:
+          - unique
+          - not_null
       - name: sigla_tipo
         description: "Sigla do tipo de proposição (ex: PL, PEC, MPV)."
         meta:
@@ -252,39 +263,39 @@ models:
       - name: data_status
         description: "Data e hora do status de tramitação mais recente da proposição."
         meta:
-          source_column: "statusproposicao_datahora"
+          source_column: "statusproposicao_datahora, ultimostatus_data"
       - name: status_sequencia
         description: "Número sequencial do status de tramitação."
         meta:
-          source_column: "statusproposicao_sequencia"
+          source_column: "statusproposicao_sequencia, ultimostatus_sequencia"
       - name: status_sigla_orgao
         description: "Sigla do órgão do status atual (ex.: PLEN, CCJC)."
         meta:
-          source_column: "statusproposicao_siglaorgao"
+          source_column: "statusproposicao_siglaorgao, ultimostatus_siglaorgao"
       - name: status_regime
         description: "Regime de tramitação atual (ex.: URGENCIA, PRIORIDADE)."
         meta:
-          source_column: "statusproposicao_regime"
+          source_column: "statusproposicao_regime, ultimostatus_regime"
       - name: status_descricao_tramitacao
         description: "Tipo de tramitação do status atual."
         meta:
-          source_column: "statusproposicao_descricaotramitacao"
+          source_column: "statusproposicao_descricaotramitacao, ultimostatus_descricaotramitacao"
       - name: status_codigo_tipo_tramitacao
         description: "Código numérico do tipo de tramitação do status atual."
         meta:
-          source_column: "statusproposicao_codtipotramitacao"
+          source_column: "statusproposicao_codtipotramitacao, ultimostatus_idtipotramitacao"
       - name: status_descricao_situacao
         description: "Situação atual da proposição (ex.: TRAMITANDO, ARQUIVADA)."
         meta:
-          source_column: "statusproposicao_descricaosituacao"
+          source_column: "statusproposicao_descricaosituacao, ultimostatus_descricaosituacao"
       - name: status_codigo_situacao
         description: "Código numérico da situação atual da proposição."
         meta:
-          source_column: "statusproposicao_codsituacao"
+          source_column: "statusproposicao_codsituacao, ultimostatus_idsituacao"
       - name: status_despacho
         description: "Texto do despacho do status atual de tramitação."
         meta:
-          source_column: "statusproposicao_despacho"
+          source_column: "statusproposicao_despacho, ultimostatus_despacho"
       - name: status_ambito
         description: "Âmbito de tramitação do status atual."
         meta:
@@ -292,7 +303,27 @@ models:
       - name: status_apreciacao
         description: "Forma de apreciação exigida no status atual da proposição."
         meta:
-          source_column: "statusproposicao_apreciacao"
+          source_column: "statusproposicao_apreciacao, ultimostatus_apreciacao"
+      - name: relator_id_fk
+        description: "Chave natural do último relator da proposição."
+        meta:
+          source_column: "statusproposicao_uriultimorelator, ultimostatus_urirelator"
+      - name: proposicao_principal_id_fk
+        description: "Chave natural da proposição principal."
+        meta:
+          source_column: "uripropprincipal"
+      - name: proposicao_anterior_id_fk
+        description: "Chave natural da proposição anterior."
+        meta:
+          source_column: "uripropanterior"
+      - name: proposicao_posterior_id_fk
+        description: "Chave natural da proposição posterior."
+        meta:
+          source_column: "uripropposterior"
+      - name: origem
+        description: "Fonte do registro (API, ARQUIVO)."
+        meta:
+          source_column: "constante"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
         meta:

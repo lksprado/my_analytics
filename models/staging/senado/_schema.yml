@@ -173,6 +173,9 @@ models:
         description: "Chave natural do processo legislativo na API do Senado."
         meta:
           source_column: "id"
+        data_tests:
+          - unique
+          - not_null
       - name: tramitando
         description: "Indica se o processo está em tramitação."
         meta:
@@ -227,6 +230,10 @@ models:
         description: "Tipo de documento do processo (upper)."
         meta:
           source_column: "tipodocumento"
+      - name: origem
+        description: "Fonte do registro (API, ARQUIVO)."
+        meta:
+          source_column: "constante"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
         meta:

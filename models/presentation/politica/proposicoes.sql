@@ -31,6 +31,7 @@ temas AS (
     FROM {{ ref('bridge_proposicoes_temas') }} AS b
     INNER JOIN {{ ref('dim_tema') }} AS t
         ON b.sk_tema = t.sk_tema
+    WHERE b.origem_tema = 'PROPRIO'
     GROUP BY b.sk_proposicao
 ),
 

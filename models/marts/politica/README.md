@@ -23,7 +23,7 @@ Modelo dimensional das votações, proposições, consultas públicas e indicado
 | Modelo                            | Representa                                                     | Grão                                   |
 | --------------------------------- | -------------------------------------------------------------- | -------------------------------------- |
 | `bridge_votacoes_proposicoes`     | Proposições de cada votação, com o tipo da relação             | votação × proposição × tipo            |
-| `bridge_proposicoes_temas`        | Temas de cada proposição, sem peso                             | proposição × tema                      |
+| `bridge_proposicoes_temas`        | Temas de cada proposição, próprios ou herdados, sem peso       | proposição × tema                      |
 | `bridge_proposicoes_relacionadas` | Proposições principal, anterior e posterior (Câmara)           | proposição × relacionada × tipo        |
 | `bridge_bancadas_partidos`        | Composição das federações e blocos, com vigência               | bancada × partido × início             |
 
@@ -126,6 +126,8 @@ Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indic
 | Consulta pública: vale a última extração; empate não tem resultado | `consultas_publicas` |
 | Deliberação do Senado → APROVADA, REJEITADA ou OUTRO, pré-preenchida por palavra-chave | `seed_senado_deliberacoes_resultado` |
 | Proposição: o status diário do Senado vale antes do processo; a Câmara vence pela data mais recente e tipo válido | `int_proposicoes_unificadas` |
+| API e arquivo anual trazem as mesmas proposições: vence o status mais recente; no empate, a API (Câmara) ou a última carga (Senado). Vínculos entre proposições vêm da fonte que os preenche | `stg_camara_proposicao`, `stg_senado_processo` |
+| Proposição sem tema próprio herda os temas da principal, um nível só | `bridge_proposicoes_temas` |
 
 ## Lacunas de fonte
 
@@ -134,12 +136,10 @@ O que o PRD pede e o dado extraído não permite. Tudo está fora deste reposit�
 | Extração | Destrava |
 | --- | --- |
 | Câmara `/votacoes/{id}` (objetos possíveis e proposições afetadas) | Vínculo votação × proposição para as nominais sem objeto (86%); tipos AFETADA e POSSIVEL_OBJETO na ponte |
-| Câmara `/proposicoes/{id}/temas` das proposições votadas nominalmente | Análise por tema das votações (hoje cobre 1 das 821) |
 | Câmara `/proposicoes/{id}/autores`; Senado autoria e relatoria com código de parlamentar | Grão proposição × parlamentar × papel |
 | Câmara `/proposicoes/{id}/tramitacoes`; Senado movimentações | Tramitação, tempo até a conclusão e etapas |
-| Senado `processo` das matérias do e-Cidadania | Cobertura da aderência à consulta pública (hoje 9 matérias) |
+| Deliberação do Senado para as matérias do e-Cidadania em tramitação | Cobertura da aderência à consulta pública (hoje 25 matérias; 2.419 sem deliberação) |
 | Câmara `/deputados/{id}/historico` | Exercício real no lugar do período observado |
 | Câmara `/orgaos` | Nome e tipo oficial do órgão |
-| Câmara `/proposicoes` por ano | Universo de proposições apresentadas, não só as votadas |
 | Chave de pessoa entre as casas (CPF) | Mudança de Casa |
 | e-Cidadania: ideias legislativas, apoios e eventos | Demais formas de participação popular |

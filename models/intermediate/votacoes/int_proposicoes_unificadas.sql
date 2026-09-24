@@ -5,22 +5,22 @@
 WITH
 camara_proposicoes AS (
     SELECT
-        'CAMARA'                                           AS casa,
-        proposicao_id_nk                                   AS id,
-        {{ clean_string ("t2.nome","upper") }}             AS tipo_proposicao,
-        data_apresentacao                                  AS data_proposicao,
-        t1.sigla_tipo || ' ' || t1.numero || '/' || t1.ano AS identificacao,
+        'CAMARA'                                                         AS casa,
+        proposicao_id_nk                                                 AS id,
+        {{ clean_string ("t2.nome","upper") }}                           AS tipo_proposicao,
+        data_apresentacao                                                AS data_proposicao,
+        t1.sigla_tipo || ' ' || t1.numero || COALESCE('/' || t1.ano, '') AS identificacao,
         t1.ementa,
-        t1.status_descricao_situacao                       AS situacao_atual,
-        t1.data_status                                     AS data_situacao_atual,
-        NULL::INT                                          AS fl_tramitando,
-        NULLIF(t1.status_regime, '.')                      AS regime,
-        NULL                                               AS autoria,
-        NULL                                               AS norma_gerada,
-        t1.relator_id_fk                                   AS relator_atual_id_nk,
-        NULL                                               AS codigo_deliberacao,
-        NULL::DATE                                         AS data_deliberacao,
-        1                                                  AS prioridade
+        t1.status_descricao_situacao                                     AS situacao_atual,
+        t1.data_status                                                   AS data_situacao_atual,
+        NULL::INT                                                        AS fl_tramitando,
+        NULLIF(t1.status_regime, '.')                                    AS regime,
+        NULL                                                             AS autoria,
+        NULL                                                             AS norma_gerada,
+        t1.relator_id_fk                                                 AS relator_atual_id_nk,
+        NULL                                                             AS codigo_deliberacao,
+        NULL::DATE                                                       AS data_deliberacao,
+        1                                                                AS prioridade
     FROM {{ ref('stg_camara_proposicao') }} AS t1
     LEFT JOIN {{ ref('seed_camara_tipos_proposicao') }} AS t2
         ON t1.codigo_tipo = t2.cod

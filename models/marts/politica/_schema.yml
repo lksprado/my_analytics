@@ -67,9 +67,9 @@ models:
         primary_key:
           - "sk_proposicao"
         foreign_keys: []
-        source: "raw_camara.raw_camara_proposicao, raw_senado.raw_senado_processo, raw_senado.raw_senado_status"
+        source: "raw_camara.raw_camara_proposicao, raw_camara.arquivo_proposicoes, raw_senado.raw_senado_processo, raw_senado.processos, raw_senado.raw_senado_status"
         refresh_frequency: "Câmara semanal; Senado mensal, status diário"
-        historical_coverage: "proposições votadas (Câmara apresentadas desde 1987; Senado desde 1989) e matérias acompanhadas no Senado"
+        historical_coverage: "todas as proposições da Câmara (1934 em diante) e processos do Senado (1946 em diante)"
     columns:
       - name: sk_proposicao
         description: "Chave da proposição."
@@ -123,9 +123,9 @@ models:
         primary_key:
           - "sk_tema"
         foreign_keys: []
-        source: "raw_camara.raw_camara_proposicao_tema"
+        source: "raw_camara.raw_camara_proposicao_tema, raw_camara.arquivo_proposicoes_temas"
         refresh_frequency: "semanal (segundas)"
-        historical_coverage: "temas da Câmara das proposições extraídas"
+        historical_coverage: "temas da Câmara de 1945 em diante"
     columns:
       - name: sk_tema
         description: "Chave do tema."
@@ -142,7 +142,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: bridge_proposicoes_temas
-    description: "Temas de cada proposição, sem peso: a proposição conta em cada tema. Grão: proposição × tema."
+    description: "Temas de cada proposição, próprios ou herdados da principal, sem peso. Grão: proposição × tema."
     config:
       meta:
         grain: "proposição × tema"
@@ -152,9 +152,9 @@ models:
         foreign_keys:
           - "sk_proposicao -> dim_proposicoes"
           - "sk_tema -> dim_tema"
-        source: "raw_camara.raw_camara_proposicao_tema"
+        source: "raw_camara.raw_camara_proposicao_tema, raw_camara.arquivo_proposicoes_temas"
         refresh_frequency: "semanal (segundas)"
-        historical_coverage: "proposições da Câmara com tema extraído"
+        historical_coverage: "proposições da Câmara de 1945 em diante"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -180,6 +180,13 @@ models:
                 field: sk_tema
       - name: relevancia
         description: "Relevância do tema para a proposição, segundo a Câmara."
+      - name: origem_tema
+        description: "Origem do tema (PROPRIO, HERDADO da proposição principal)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PROPRIO', 'HERDADO']
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -243,9 +250,9 @@ models:
         foreign_keys:
           - "sk_proposicao -> dim_proposicoes"
           - "sk_proposicao_relacionada -> dim_proposicoes"
-        source: "raw_camara.raw_camara_proposicao"
+        source: "raw_camara.raw_camara_proposicao, raw_camara.arquivo_proposicoes"
         refresh_frequency: "semanal (segundas)"
-        historical_coverage: "proposições da Câmara extraídas"
+        historical_coverage: "proposições da Câmara de 1934 em diante"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

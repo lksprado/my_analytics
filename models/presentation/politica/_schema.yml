@@ -284,9 +284,9 @@ models:
           - "sk_proposicao"
         foreign_keys:
           - "sk_proposicao -> dim_proposicoes"
-        source: "raw_camara.raw_camara_proposicao, raw_senado.raw_senado_processo, raw_senado.raw_senado_status, raw_camara.raw_camara_proposicao_tema"
+        source: "raw_camara.raw_camara_proposicao, raw_camara.arquivo_proposicoes, raw_senado.raw_senado_processo, raw_senado.processos, raw_senado.raw_senado_status, raw_camara.raw_camara_proposicao_tema, raw_camara.arquivo_proposicoes_temas"
         refresh_frequency: "Câmara semanal; Senado mensal, status diário"
-        historical_coverage: "proposições votadas (Câmara apresentadas desde 1987; Senado desde 1989) e matérias acompanhadas no Senado"
+        historical_coverage: "todas as proposições da Câmara (1934 em diante) e processos do Senado (1946 em diante)"
     tests:
       - dbt_utils.expression_is_true:
           arguments:
@@ -338,7 +338,7 @@ models:
       - name: qt_temas
         description: "Temas da proposição."
       - name: temas
-        description: "Temas da proposição, para exibição (use proposicoes_temas para agregar)."
+        description: "Temas próprios da proposição, para exibição (use proposicoes_temas para agregar)."
       - name: qt_proposicoes_relacionadas
         description: "Proposições relacionadas (principal, anterior, posterior)."
       - name: model_run_at
@@ -355,9 +355,9 @@ models:
         foreign_keys:
           - "sk_proposicao -> dim_proposicoes"
           - "sk_tema -> dim_tema"
-        source: "raw_camara.raw_camara_proposicao, raw_camara.raw_camara_proposicao_tema"
+        source: "raw_camara.raw_camara_proposicao, raw_camara.arquivo_proposicoes, raw_camara.raw_camara_proposicao_tema, raw_camara.arquivo_proposicoes_temas"
         refresh_frequency: "semanal (segundas)"
-        historical_coverage: "proposições da Câmara com tema extraído"
+        historical_coverage: "temas da Câmara de 1945 em diante"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -379,6 +379,8 @@ models:
         description: "Nome do tema."
       - name: relevancia
         description: "Relevância do tema para a proposição, segundo a Câmara."
+      - name: origem_tema
+        description: "Origem do tema (PROPRIO, HERDADO da proposição principal)."
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
       - name: tipo_proposicao
@@ -1307,7 +1309,7 @@ models:
           - "identificacao"
         foreign_keys:
           - "sk_proposicao -> dim_proposicoes"
-        source: "raw_ecidadania.raw_ecidadania_paginas, raw_ecidadania.raw_ecidadania_mais_votados, raw_senado.raw_senado_status, raw_senado.raw_senado_processo, seed seed_senado_deliberacoes_resultado"
+        source: "raw_ecidadania.raw_ecidadania_paginas, raw_ecidadania.raw_ecidadania_mais_votados, raw_senado.raw_senado_status, raw_senado.raw_senado_processo, raw_senado.processos, seed seed_senado_deliberacoes_resultado"
         refresh_frequency: "mensal (dia 20), com os mais votados diários"
         historical_coverage: "extrações desde 11/2025"
     tests:
