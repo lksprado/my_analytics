@@ -46,7 +46,7 @@ final AS (
         c.ano,
         c.trimestre_do_ano                                  AS trimestre,
         r.data_trimestre,
-        r.perc_governismo_trimestre,
+        r.perc_governismo_trimestre                         AS governismo_pct_radar,
         '{{ run_started_at }}'::TIMESTAMPTZ                 AS model_run_at
     FROM governismo_radar AS r
     LEFT JOIN parlamentares AS p

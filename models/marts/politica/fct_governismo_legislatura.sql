@@ -20,9 +20,9 @@ final AS (
     SELECT
         sk_parlamentar,
         legislatura,
-        SUM(fl_seguiu_governo)                                                        AS qt_votos_alinhados_legislatura,
-        COUNT(*)                                                                      AS qt_votos_legislatura,
-        ROUND(100.0 * SUM(fl_seguiu_governo) / NULLIF(COUNT(*), 0), 0)::NUMERIC(3, 0) AS perc_governismo_legislatura
+        SUM(fl_seguiu_governo)                                                        AS qt_votos_alinhados_governo,
+        COUNT(*)                                                                      AS qt_votos_governismo,
+        ROUND(100.0 * SUM(fl_seguiu_governo) / NULLIF(COUNT(*), 0), 0)::NUMERIC(3, 0) AS governismo_pct_modelo
     FROM votos_orientados
     GROUP BY sk_parlamentar, legislatura
 )

@@ -11,6 +11,7 @@ votos AS (
         partido_id_senado,
         partido,
         partido_nome,
+        uf,
         codigo_voto
     FROM {{ ref('int_votos_camara_normalizados') }}
     UNION ALL
@@ -21,6 +22,7 @@ votos AS (
         partido_id_senado,
         partido,
         partido_nome,
+        uf,
         codigo_voto
     FROM {{ ref('int_votos_senado_normalizados') }}
 )
@@ -32,6 +34,7 @@ SELECT
     v.partido_id_senado,
     v.partido,
     v.partido_nome,
+    v.uf,
     v.codigo_voto,
     t.posicao                           AS voto,
     t.categoria,

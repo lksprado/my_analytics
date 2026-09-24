@@ -3,9 +3,9 @@
 -- Parlamentar com UF conhecida precisa ter região.
 SELECT
     sk_parlamentar,
-    uf
+    uf_mandato_recente
 FROM {{ ref('dim_parlamentares') }}
 WHERE
-    uf IS NOT NULL
-    AND uf <> '{{ var("null_string") }}'
+    uf_mandato_recente IS NOT NULL
+    AND uf_mandato_recente <> '{{ var("null_string") }}'
     AND regiao IS NULL

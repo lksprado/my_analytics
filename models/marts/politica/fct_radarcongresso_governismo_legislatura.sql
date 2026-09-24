@@ -56,9 +56,9 @@ final AS (
         a.casa,
         a.radar_parlamentar_id_nk,
         c.legislatura,
-        a.qt_votos_alinhados_legislatura,
-        a.qt_votos_legislatura,
-        a.perc_governismo_legislatura,
+        a.qt_votos_alinhados_legislatura                    AS qt_votos_alinhados_radar,
+        a.qt_votos_legislatura                              AS qt_votos_radar,
+        a.perc_governismo_legislatura                       AS governismo_pct_radar,
         '{{ run_started_at }}'::TIMESTAMPTZ                 AS model_run_at
     FROM acumulado AS a
     LEFT JOIN parlamentares AS p

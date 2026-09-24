@@ -57,6 +57,14 @@ Naming convention is `_schema.yml` (leading underscore). Descriptions are succin
 - Model: grain and purpose in at most two sentences.
 - Repeated columns use the same text in every model (`model_run_at: "Início do dbt run que materializou o modelo."`).
 - No code in descriptions. Profiling and validation evidence go in the commit message or PR, not in YAML.
+- Marts and presentation models declare `config.meta` with `grain`, `primary_key`, `foreign_keys`, `source`,
+  `refresh_frequency` and `historical_coverage`; staging columns declare `meta.source_column`.
+
+### Domínio política
+
+`models/presentation/politica/PRD.md` is the authority. Do not invent business rules: metric definitions live in
+`models/presentation/politica/METRICAS.md`, and any rule the PRD does not define goes to the "Regras derivadas" table
+in `models/marts/politica/README.md`. Model metrics and external metrics keep distinct names (`_modelo`, `_radar`).
 
 ## Dependencies
 

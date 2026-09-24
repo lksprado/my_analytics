@@ -7,6 +7,7 @@ votacoes AS (
     SELECT
         casa,
         votacao_id_nk,
+        sessao_id,
         data_votacao,
         sigla_orgao,
         descricao,
@@ -15,12 +16,13 @@ votacoes AS (
         0                AS fl_secreta
     FROM {{ ref('int_votacoes_camara_deduplicadas') }}
     UNION ALL
-    -- A extração do Senado só traz votações do Plenário.
+    -- Sem colegiado informado, a votação do Senado é do Plenário.
     SELECT
         casa,
         votacao_id_nk::TEXT,
+        sessao_id,
         data_votacao,
-        'PLEN',
+        COALESCE(sigla_colegiado, 'PLEN') AS sigla_orgao,
         descricao,
         processo_id_nk,
         aprovado,
@@ -69,6 +71,7 @@ classificadas AS (
 SELECT
     casa,
     votacao_id_nk,
+    sessao_id,
     data_votacao,
     sigla_orgao,
     descricao,

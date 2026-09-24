@@ -3,23 +3,46 @@
 ) }}
 
 WITH
-votos AS (
+registros AS (
     SELECT
         sk_voto,
         sk_votacao,
         sk_parlamentar,
         sk_partido,
+        sk_bancada,
+        sk_tipo_voto,
+        uf,
         partido,
         voto,
-        orientacao_governo,
         orientacao_partido,
+        orientacao_bancada,
         fl_seguiu_governo,
         fl_seguiu_partido,
-        fl_votou_com_resultado
+        fl_seguiu_bancada,
+        fl_votou_com_resultado,
+        0 AS fl_ausencia_inferida
     FROM {{ ref('fct_votos') }}
-    WHERE
-        voto IN ('SIM', 'NAO', 'OBSTRUCAO')
-        AND sk_parlamentar <> '{{ var("null_key") }}'
+    WHERE sk_parlamentar <> '{{ var("null_key") }}'
+    UNION ALL
+    SELECT
+        sk_presenca             AS sk_voto,
+        sk_votacao,
+        sk_parlamentar,
+        sk_partido,
+        '{{ var("null_key") }}' AS sk_bancada,
+        sk_tipo_voto,
+        uf,
+        NULL                    AS partido,
+        NULL                    AS voto,
+        NULL                    AS orientacao_partido,
+        NULL                    AS orientacao_bancada,
+        NULL::INT               AS fl_seguiu_governo,
+        NULL::INT               AS fl_seguiu_partido,
+        NULL::INT               AS fl_seguiu_bancada,
+        NULL::INT               AS fl_votou_com_resultado,
+        1                       AS fl_ausencia_inferida
+    FROM {{ ref('fct_presencas_plenario') }}
+    WHERE fl_ausencia_inferida = 1
 ),
 
 final AS (
@@ -28,6 +51,7 @@ final AS (
         t1.sk_votacao,
         t1.sk_parlamentar,
         t1.sk_partido,
+        t1.sk_bancada,
         t2.votacao_id_nk,
         t2.casa,
         t2.data_votacao,
@@ -44,21 +68,28 @@ final AS (
         t2.fl_aprovada,
         t3.nome,
         t3.sexo,
-        t3.uf,
-        t3.regiao,
+        t1.uf,
+        t5.regiao,
         DATE_PART('year', AGE(t2.data_votacao, t3.data_nascimento))::INT
             AS idade,
         t1.partido,
         t4.rotulo
             AS partido_rotulo,
+        t7.sigla_bancada
+            AS bancada,
+        t7.tipo_bancada,
         t1.voto,
-        -- LIBERADO não é orientação: fica nulo, como quando a liderança não se manifesta.
-        CASE WHEN t1.fl_seguiu_governo IS NOT NULL THEN t1.orientacao_governo END
-            AS orientacao_governo,
-        CASE WHEN t1.fl_seguiu_partido IS NOT NULL THEN t1.orientacao_partido END
-            AS orientacao_partido,
+        CASE WHEN t1.fl_ausencia_inferida = 1 THEN 'AUSENCIA INFERIDA' ELSE t6.categoria END
+            AS categoria,
+        CASE WHEN t1.fl_ausencia_inferida = 1 THEN 0 ELSE t6.fl_presente END
+            AS fl_presente,
+        t1.fl_ausencia_inferida,
+        t2.orientacao_governo,
+        t1.orientacao_partido,
+        t1.orientacao_bancada,
         t1.fl_seguiu_governo,
         t1.fl_seguiu_partido,
+        t1.fl_seguiu_bancada,
         t1.fl_votou_com_resultado,
         CASE
             WHEN t1.fl_seguiu_governo IS NULL OR t1.fl_seguiu_partido IS NULL THEN NULL
@@ -70,14 +101,20 @@ final AS (
             AS alinhamento,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
-    FROM votos AS t1
-    -- Contexto via votacoes_placar: juntar as tabelas inteiras estoura a memória compartilhada do Postgres.
-    INNER JOIN {{ ref('votacoes_placar') }} AS t2
+    FROM registros AS t1
+    -- Contexto via votacoes: juntar as tabelas inteiras estoura a memória compartilhada do Postgres.
+    INNER JOIN {{ ref('votacoes') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
     LEFT JOIN {{ ref('dim_parlamentares') }} AS t3
         ON t1.sk_parlamentar = t3.sk_parlamentar
     LEFT JOIN {{ ref('dim_partidos') }} AS t4
         ON t1.sk_partido = t4.sk_partido
+    LEFT JOIN {{ ref('dim_uf') }} AS t5
+        ON t1.uf = t5.uf
+    LEFT JOIN {{ ref('dim_tipo_voto') }} AS t6
+        ON t1.sk_tipo_voto = t6.sk_tipo_voto
+    LEFT JOIN {{ ref('dim_bancada') }} AS t7
+        ON t1.sk_bancada = t7.sk_bancada
 )
 
 SELECT * FROM final

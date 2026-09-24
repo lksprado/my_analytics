@@ -1,0 +1,28 @@
+uf,nome_uf,regiao
+AC,Acre,NORTE
+AL,Alagoas,NORDESTE
+AM,Amazonas,NORTE
+AP,Amapá,NORTE
+BA,Bahia,NORDESTE
+CE,Ceará,NORDESTE
+DF,Distrito Federal,CENTRO-OESTE
+ES,Espírito Santo,SUDESTE
+GO,Goiás,CENTRO-OESTE
+MA,Maranhão,NORDESTE
+MG,Minas Gerais,SUDESTE
+MS,Mato Grosso do Sul,CENTRO-OESTE
+MT,Mato Grosso,CENTRO-OESTE
+PA,Pará,NORTE
+PB,Paraíba,NORDESTE
+PE,Pernambuco,NORDESTE
+PI,Piauí,NORDESTE
+PR,Paraná,SUL
+RJ,Rio de Janeiro,SUDESTE
+RN,Rio Grande do Norte,NORDESTE
+RO,Rondônia,NORTE
+RR,Roraima,NORTE
+RS,Rio Grande do Sul,SUL
+SC,Santa Catarina,SUL
+SE,Sergipe,NORDESTE
+SP,São Paulo,SUDESTE
+TO,Tocantins,NORTE

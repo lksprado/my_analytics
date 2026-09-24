@@ -3,7 +3,9 @@
 ) }}
 
 WITH source AS (
-    SELECT * FROM {{ source('ranking', 'raw_ranking_deputados') }}
+    SELECT * FROM {{ ref('snap_ranking_politicos_deputados') }}
+    WHERE dbt_valid_to IS NULL
+        AND COALESCE(dbt_is_deleted, 'False') <> 'True'
 ),
 
 renamed AS (
