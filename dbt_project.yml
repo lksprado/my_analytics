@@ -58,4 +58,4 @@ seeds:
     seed_investimentos_faltantes_deusa: *investimentos_faltantes
 
 on-run-end:
-- "{{ dbt_orphan.cleanup_orphans(schemas=['snapshots', 'seeds', 'staging', 'intermediate', 'marts',  'presentation'], dry_run=false) }}"
+- "{{ cleanup_orphans_camadas(dry_run=false) }}"
