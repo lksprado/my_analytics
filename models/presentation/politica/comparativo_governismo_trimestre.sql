@@ -64,7 +64,7 @@ comparado AS (
         t2.deputado_id_nk,
         t2.senador_id_nk,
         t2.nome,
-        t2.uf,
+        t2.uf_mandato_recente AS uf,
         t4.sk_partido,
         t4.partido_rotulo
             AS partido_predominante,

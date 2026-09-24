@@ -35,8 +35,8 @@ models:
           - accepted_values:
               arguments:
                 values: ['MASCULINO', 'FEMININO', 'desconhecido']
-      - name: uf
-        description: "UF de representação no mandato mais recente."
+      - name: uf_mandato_recente
+        description: "UF de representação no mandato mais recente; para votos, use a UF do voto."
       - name: regiao
         description: "Região da UF de representação."
         tests:
@@ -110,8 +110,125 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: dim_casa
+    description: "Casas legislativas. Grão: uma casa."
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+        tests:
+          - not_null
+          - unique
+      - name: nome_casa
+        description: "Nome oficial da casa."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: dim_uf
+    description: "Unidades da federação. Grão: uma UF."
+    columns:
+      - name: uf
+        description: "Sigla da UF."
+        tests:
+          - not_null
+          - unique
+      - name: nome_uf
+        description: "Nome da UF."
+      - name: regiao
+        description: "Região da UF."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['NORTE', 'NORDESTE', 'CENTRO-OESTE', 'SUDESTE', 'SUL', 'desconhecido']
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: dim_legislatura
+    description: "Legislaturas. Grão: uma legislatura."
+    columns:
+      - name: legislatura
+        description: "Número da legislatura."
+        tests:
+          - not_null
+          - unique
+      - name: inicio
+        description: "Primeiro dia da legislatura."
+        tests:
+          - not_null
+      - name: fim
+        description: "Último dia da legislatura."
+        tests:
+          - not_null
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: dim_sessao_legislativa
+    description: "Sessões legislativas (ano legislativo). Grão: legislatura × sessão."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - legislatura
+              - sessao_legislativa
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "inicio <= fim"
+    columns:
+      - name: sk_sessao_legislativa
+        description: "Chave da sessão legislativa."
+        tests:
+          - not_null
+          - unique
+      - name: legislatura
+        description: "Número da legislatura."
+      - name: sessao_legislativa
+        description: "Sessão legislativa dentro da legislatura (1 a 4)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+      - name: inicio
+        description: "Primeiro dia da sessão legislativa."
+      - name: fim
+        description: "Último dia da sessão legislativa."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: dim_governo
+    description: "Governos do Executivo federal. Grão: presidente × mandato."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - presidente
+              - mandato
+    columns:
+      - name: sk_governo
+        description: "Chave do governo."
+        tests:
+          - not_null
+          - unique
+      - name: presidente
+        description: "Presidente da República."
+      - name: mandato
+        description: "Número do mandato do presidente."
+      - name: governo
+        description: "Rótulo do governo (presidente e mandato)."
+        tests:
+          - unique
+      - name: inicio
+        description: "Primeiro dia do governo."
+      - name: fim
+        description: "Último dia do governo."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: dim_calendario_legislativo
     description: "Calendário do domínio político. Grão: um dia."
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "EXTRACT(ISODOW FROM inicio_semana) = 1 AND data - inicio_semana BETWEEN 0 AND 6"
     columns:
       - name: data_sk
         description: "Chave da data (AAAAMMDD)."
@@ -120,14 +237,32 @@ models:
           - unique
       - name: data
         description: "Data."
+      - name: inicio_semana
+        description: "Segunda-feira da semana ISO da data."
+        tests:
+          - not_null
       - name: legislatura
         description: "Número da legislatura."
       - name: sessao_legislativa
         description: "Sessão legislativa dentro da legislatura (1 a 4)."
+      - name: sk_sessao_legislativa
+        description: "Chave da sessão legislativa."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_sessao_legislativa')
+                field: sk_sessao_legislativa
       - name: presidente
         description: "Presidente da República em exercício."
       - name: mandato_presidencial
         description: "Número do mandato do presidente em exercício."
+      - name: sk_governo
+        description: "Chave do governo em exercício."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_governo')
+                field: sk_governo
       - name: fl_ano_eleicao_geral
         description: "Ano de eleição geral."
       - name: fl_ano_eleicao_municipal
@@ -390,6 +525,13 @@ models:
                 field: sk_tipo_voto
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
+      - name: uf
+        description: "UF de representação do parlamentar no momento do voto."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_uf')
+                field: uf
       - name: votacao_id_nk
         description: "Chave natural da votação na casa."
       - name: partido
@@ -801,3 +943,20 @@ unit_tests:
         - {votacao_id_nk: '1-1', sk_parlamentar: d3, sk_partido: pt71, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_abs, voto: ABSTENCAO, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: null, fl_votou_com_resultado: null}
         - {votacao_id_nk: '1-1', sk_parlamentar: '0', sk_partido: pl523, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: '0', voto: OBSTRUCAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: null}
         - {votacao_id_nk: '1-2', sk_parlamentar: d1, sk_partido: pt71, sk_votacao: v12, sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: LIBERADO, orientacao_partido: NAO, fl_governo_orientou: 0, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: 0, fl_votou_com_resultado: 0}
+
+seeds:
+
+  - name: seed_ufs
+    description: "UFs com nome e região."
+    columns:
+      - name: uf
+        description: "Sigla da UF."
+        tests:
+          - not_null
+          - unique
+      - name: nome_uf
+        description: "Nome da UF."
+      - name: regiao
+        description: "Região da UF."
+        tests:
+          - not_null

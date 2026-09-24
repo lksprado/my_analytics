@@ -20,18 +20,14 @@ final AS (
         nome,
         COALESCE(nome_completo, nome)                                         AS nome_completo,
         sexo,
-        uf,
-        CASE
-            WHEN uf IN ('AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO') THEN 'NORTE'
-            WHEN uf IN ('AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE') THEN 'NORDESTE'
-            WHEN uf IN ('DF', 'GO', 'MS', 'MT') THEN 'CENTRO-OESTE'
-            WHEN uf IN ('ES', 'MG', 'RJ', 'SP') THEN 'SUDESTE'
-            WHEN uf IN ('PR', 'RS', 'SC') THEN 'SUL'
-        END                                                                   AS regiao,
+        p.uf                                                                  AS uf_mandato_recente,
+        u.regiao,
         data_nascimento,
         escolaridade,
         '{{ run_started_at }}'::TIMESTAMPTZ                                   AS model_run_at
-    FROM parlamentares
+    FROM parlamentares AS p
+    LEFT JOIN {{ ref('dim_uf') }} AS u
+        ON p.uf = u.uf
 )
 
 SELECT * FROM final
@@ -46,7 +42,7 @@ UNION ALL
     ['nome', 'text'],
     ['nome_completo', 'text'],
     ['sexo', 'text'],
-    ['uf', 'text'],
+    ['uf_mandato_recente', 'text'],
     ['regiao', 'text'],
     ['data_nascimento', 'null::date'],
     ['escolaridade', 'text'],

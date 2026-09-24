@@ -172,9 +172,9 @@ models:
       - name: sexo
         description: "Sexo (MASCULINO, FEMININO)."
       - name: uf
-        description: "UF de representação."
+        description: "UF de representação no momento do voto."
       - name: regiao
-        description: "Região da UF de representação."
+        description: "Região da UF do voto."
       - name: idade
         description: "Idade do parlamentar na data da votação (só Câmara)."
       - name: partido
@@ -312,7 +312,7 @@ models:
       - name: sexo
         description: "Sexo (MASCULINO, FEMININO)."
       - name: uf
-        description: "UF de representação."
+        description: "UF de representação no mandato mais recente."
       - name: regiao
         description: "Região da UF de representação."
       - name: sk_partido
@@ -406,7 +406,7 @@ models:
       - name: nome
         description: "Nome parlamentar."
       - name: uf
-        description: "UF de representação."
+        description: "UF de representação no mandato mais recente."
       - name: regiao
         description: "Região da UF de representação."
       - name: sk_partido
@@ -616,7 +616,7 @@ models:
       - name: nome
         description: "Nome parlamentar."
       - name: uf
-        description: "UF de representação."
+        description: "UF de representação no mandato mais recente."
       - name: sk_partido
         description: "Chave do partido."
       - name: partido_predominante
@@ -687,7 +687,7 @@ models:
       - name: nome
         description: "Nome parlamentar."
       - name: uf
-        description: "UF de representação."
+        description: "UF de representação no mandato mais recente."
       - name: sk_partido
         description: "Chave do partido."
       - name: partido_predominante

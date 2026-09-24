@@ -60,23 +60,38 @@ presidente_do_dia AS (
     ORDER BY c.data_sk ASC, p.inicio DESC
 ),
 
-final AS (
+atributos AS (
     SELECT
         c.*,
         l.legislatura,
-        -- A sessão legislativa vai de 1º/fev a 31/jan: janeiro ainda conta como o ano anterior.
-        c.ano - (c.mes_do_ano = 1)::INT - EXTRACT(YEAR FROM l.inicio)::INT + 1 AS sessao_legislativa,
         p.presidente,
         p.mandato                                                              AS mandato_presidencial,
+        c.data - (EXTRACT(ISODOW FROM c.data)::INT - 1)                        AS inicio_semana,
+        -- A sessão legislativa vai de 1º/fev a 31/jan: janeiro ainda conta como o ano anterior.
+        c.ano - (c.mes_do_ano = 1)::INT - EXTRACT(YEAR FROM l.inicio)::INT + 1 AS sessao_legislativa,
         -- Calendário eleitoral vigente: gerais desde 1994, municipais desde 1996.
         c.ano >= 1994 AND c.ano % 4 = 2                                        AS fl_ano_eleicao_geral,
-        c.ano >= 1996 AND c.ano % 4 = 0                                        AS fl_ano_eleicao_municipal,
-        '{{ run_started_at }}'::TIMESTAMPTZ                                    AS model_run_at
+        c.ano >= 1996 AND c.ano % 4 = 0                                        AS fl_ano_eleicao_municipal
     FROM calendario AS c
     LEFT JOIN legislaturas AS l
         ON c.data BETWEEN l.inicio AND l.fim
     LEFT JOIN presidente_do_dia AS p
         ON c.data_sk = p.data_sk
+),
+
+final AS (
+    SELECT
+        *,
+        CASE
+            WHEN legislatura IS NOT NULL
+                THEN {{ dbt_utils.generate_surrogate_key(['legislatura', 'sessao_legislativa']) }}
+        END                                 AS sk_sessao_legislativa,
+        CASE
+            WHEN presidente IS NOT NULL
+                THEN {{ dbt_utils.generate_surrogate_key(['presidente', 'mandato_presidencial']) }}
+        END                                 AS sk_governo,
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+    FROM atributos
 )
 
 SELECT * FROM final

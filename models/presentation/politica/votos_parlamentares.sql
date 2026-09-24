@@ -9,6 +9,7 @@ votos AS (
         sk_votacao,
         sk_parlamentar,
         sk_partido,
+        uf,
         partido,
         voto,
         orientacao_governo,
@@ -44,8 +45,8 @@ final AS (
         t2.fl_aprovada,
         t3.nome,
         t3.sexo,
-        t3.uf,
-        t3.regiao,
+        t1.uf,
+        t5.regiao,
         DATE_PART('year', AGE(t2.data_votacao, t3.data_nascimento))::INT
             AS idade,
         t1.partido,
@@ -75,6 +76,8 @@ final AS (
         ON t1.sk_parlamentar = t3.sk_parlamentar
     LEFT JOIN {{ ref('dim_partidos') }} AS t4
         ON t1.sk_partido = t4.sk_partido
+    LEFT JOIN {{ ref('dim_uf') }} AS t5
+        ON t1.uf = t5.uf
 )
 
 SELECT * FROM final

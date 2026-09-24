@@ -68,6 +68,7 @@ final AS (
         COALESCE(vt.sk_tipo_votacao, '{{ var("null_key") }}')                                        AS sk_tipo_votacao,
         COALESCE(tv.sk_tipo_voto, '{{ var("null_key") }}')                                           AS sk_tipo_voto,
         v.casa,
+        COALESCE(v.uf, '{{ var("null_string") }}')                                                   AS uf,
         v.votacao_id_nk,
         v.partido,
         v.partido_nome,

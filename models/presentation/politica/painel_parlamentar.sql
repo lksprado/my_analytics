@@ -90,7 +90,7 @@ atributos AS (
         t2.nome,
         t2.nome_completo,
         t2.sexo,
-        t2.uf,
+        t2.uf_mandato_recente AS uf,
         t2.regiao,
         t6.sk_partido,
         t6.partido_rotulo
