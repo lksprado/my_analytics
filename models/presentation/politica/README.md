@@ -45,6 +45,12 @@ Tabelas largas, prontas para visualização, sobre as votações da Câmara e do
 | `comportamento_bancada`           | casa × bancada × legislatura × presidente × trimestre | O mesmo para federações e blocos, com a disciplina medida contra a orientação da bancada |
 | `score_vs_governismo_por_partido` | casa × partido × ano                                  | Avaliação do Ranking dos Políticos × governismo por partido                              |
 
+## Indicadores externos
+
+| Tabela                 | Grão                                       | Responde                                                                                     |
+| ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `indicadores_externos` | indicador × parlamentar × período × coleta | Valor publicado por Radar e Ranking em cada período, com a data de coleta e a versão vigente |
+
 ## Qualidade do cálculo
 
 Validam o governismo calculado contra o publicado pelo Radar Congresso. Não são tabelas de análise política.
@@ -67,6 +73,7 @@ Validam o governismo calculado contra o publicado pelo Radar Congresso. Não sã
 
 - A orientação só existe no Senado a partir de 2019: antes disso, governismo e disciplina ficam nulos.
 - `ementa` e `idade` só existem para a Câmara.
+- Indicadores externos preservam o valor da fonte; comparações com o modelo ficam nos `comparativo_*`, nunca na mesma métrica.
 - `nota_base_votacoes` depende da posição de voto e é correlacionada ao governismo.
 - A pontuação do Ranking dos Políticos existe de 2023 em diante (`score_vs_governismo`).
 - Na Câmara a ausência é inferida: a API só lista quem votou, e o deputado é tido em exercício entre o primeiro e o último voto na legislatura.

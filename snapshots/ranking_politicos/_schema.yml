@@ -1,0 +1,18 @@
+version: 2
+
+snapshots:
+  - name: snap_ranking_politicos_deputados
+    description: "Ranking dos Políticos de deputados, versionado a cada mudança publicada (SCD2)."
+    columns:
+      - name: id
+        description: "Id do parlamentar no Ranking dos Políticos."
+        tests:
+          - not_null
+
+  - name: snap_ranking_politicos_senadores
+    description: "Ranking dos Políticos de senadores, versionado a cada mudança publicada (SCD2)."
+    columns:
+      - name: id
+        description: "Id do parlamentar no Ranking dos Políticos."
+        tests:
+          - not_null

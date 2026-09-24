@@ -972,6 +972,51 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: indicadores_externos
+    description: "Valores publicados por Radar Congresso e Ranking dos Políticos, com proveniência e versão da coleta. Grão: indicador × parlamentar × período × coleta."
+    columns:
+      - name: sk_indicador_valor
+        description: "Chave do valor publicado."
+        tests:
+          - not_null
+          - unique
+      - name: sk_parlamentar
+        description: "Chave do parlamentar."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: nome
+        description: "Nome parlamentar."
+      - name: fonte
+        description: "Fonte que publica o indicador (RADAR CONGRESSO, RANKING DOS POLITICOS)."
+      - name: indicador
+        description: "Nome do indicador."
+      - name: descricao
+        description: "O que o indicador mede, segundo a fonte."
+      - name: unidade
+        description: "Unidade do valor (PERCENTUAL, PONTOS, POSICAO)."
+      - name: escala
+        description: "Escala publicada do valor."
+      - name: parlamentar_fonte_id_nk
+        description: "Id do parlamentar na fonte externa."
+      - name: periodo_tipo
+        description: "Tipo do período de referência (TRIMESTRE, MANDATO, ANO, ATUAL)."
+      - name: periodo_inicio
+        description: "Primeiro dia do período de referência."
+      - name: periodo_fim
+        description: "Último dia do período de referência."
+      - name: valor_original
+        description: "Valor publicado pela fonte, sem alteração."
+      - name: qt_base
+        description: "Quantidade de votações que a fonte informa como base do valor."
+      - name: data_coleta
+        description: "Data em que esta versão do valor foi coletada."
+      - name: data_fim_vigencia
+        description: "Data em que esta versão deixou de ser a publicada; nula quando vigente."
+      - name: fl_versao_vigente
+        description: "1 quando esta é a versão publicada atualmente."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: score_vs_governismo
     description: "Ranking dos Políticos × governismo. Grão: parlamentar × ano."
     columns:

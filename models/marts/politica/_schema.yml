@@ -933,6 +933,111 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: dim_indicador_externo
+    description: "Indicadores publicados por fontes externas, com unidade, escala e metodologia. Grão: fonte × indicador."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - fonte
+              - indicador
+    columns:
+      - name: sk_indicador_externo
+        description: "Chave do indicador externo."
+        tests:
+          - not_null
+          - unique
+      - name: fonte
+        description: "Fonte que publica o indicador (RADAR CONGRESSO, RANKING DOS POLITICOS)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['RADAR CONGRESSO', 'RANKING DOS POLITICOS']
+      - name: indicador
+        description: "Nome do indicador."
+      - name: descricao
+        description: "O que o indicador mede, segundo a fonte."
+      - name: unidade
+        description: "Unidade do valor (PERCENTUAL, PONTOS, POSICAO)."
+      - name: escala
+        description: "Escala publicada do valor."
+      - name: periodo_tipo
+        description: "Período de referência do valor (TRIMESTRE, MANDATO, ANO, ATUAL)."
+      - name: url_fonte
+        description: "Endereço da fonte."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: fct_indicadores_externos
+    description: "Valores publicados por fontes externas, preservados sem alteração e versionados pela data de coleta. Grão: indicador × parlamentar × período × coleta."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_indicador_externo
+              - casa
+              - parlamentar_fonte_id_nk
+              - periodo_inicio
+              - data_coleta
+    columns:
+      - name: sk_indicador_valor
+        description: "Chave do valor publicado."
+        tests:
+          - not_null
+          - unique
+      - name: sk_indicador_externo
+        description: "Chave do indicador."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_indicador_externo')
+                field: sk_indicador_externo
+      - name: sk_parlamentar
+        description: "Chave do parlamentar; desconhecido quando a fonte não casa com a dimensão."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_parlamentares')
+                field: sk_parlamentar
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: parlamentar_fonte_id_nk
+        description: "Id do parlamentar na fonte externa."
+        tests:
+          - not_null
+      - name: periodo_tipo
+        description: "Tipo do período de referência (TRIMESTRE, MANDATO, ANO, ATUAL)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['TRIMESTRE', 'MANDATO', 'ANO', 'ATUAL']
+      - name: periodo_inicio
+        description: "Primeiro dia do período de referência; nulo para valores sem período."
+      - name: periodo_fim
+        description: "Último dia do período de referência; nulo para valores sem período."
+      - name: valor_original
+        description: "Valor publicado pela fonte, sem alteração."
+        tests:
+          - not_null
+      - name: qt_base
+        description: "Quantidade de votações que a fonte informa como base do valor, quando publicada."
+      - name: data_coleta
+        description: "Data em que esta versão do valor foi coletada."
+        tests:
+          - not_null
+      - name: data_fim_vigencia
+        description: "Data em que esta versão deixou de ser a publicada; nula quando vigente."
+      - name: fl_versao_vigente
+        description: "1 quando esta é a versão publicada atualmente."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: fct_ranking_politicos
     description: "Ranking dos Políticos atual. Grão: um parlamentar."
     columns:
