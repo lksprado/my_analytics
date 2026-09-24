@@ -139,6 +139,8 @@ models:
           - not_null
       - name: sk_partido
         description: "Chave do partido."
+      - name: sk_bancada
+        description: "Chave da federação ou bloco do partido do parlamentar na data; desconhecido sem bancada."
       - name: votacao_id_nk
         description: "Chave natural da votação na casa."
       - name: casa
@@ -181,6 +183,10 @@ models:
         description: "Sigla do partido no momento do voto; nula na ausência inferida."
       - name: partido_rotulo
         description: "Nome de exibição do partido; siglas reutilizadas levam o período."
+      - name: bancada
+        description: "Sigla da federação ou bloco do partido na data do voto."
+      - name: tipo_bancada
+        description: "Tipo da bancada (FEDERACAO, BLOCO)."
       - name: voto
         description: "Posição do voto (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO); nula quando não é voto."
         tests:
@@ -207,6 +213,8 @@ models:
         description: "Orientação do Governo (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO); nula sem orientação."
       - name: orientacao_partido
         description: "Orientação do partido do parlamentar (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO); nula sem orientação."
+      - name: orientacao_bancada
+        description: "Orientação da federação ou bloco do partido na votação."
       - name: fl_seguiu_governo
         description: "1 quando o voto seguiu a orientação do Governo, 0 quando divergiu."
         tests:
@@ -215,6 +223,12 @@ models:
                 values: [0, 1]
       - name: fl_seguiu_partido
         description: "1 quando o voto seguiu a orientação do partido, 0 quando divergiu."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: fl_seguiu_bancada
+        description: "1 quando o voto seguiu a orientação da federação ou bloco, 0 quando divergiu."
         tests:
           - accepted_values:
               arguments:
@@ -247,6 +261,8 @@ models:
         description: "Chave do partido."
       - name: partido
         description: "Sigla do partido no momento do voto."
+      - name: siglas_no_periodo
+        description: "Siglas usadas pela entidade partidária nos votos do período."
       - name: legislatura
         description: "Número da legislatura."
       - name: presidente
@@ -299,6 +315,77 @@ models:
             combination_of_columns:
               - casa
               - sk_partido
+              - legislatura
+              - presidente
+              - mandato
+              - ano
+              - trimestre
+
+  - name: comportamento_bancada
+    description: "Comportamento das federações e blocos: coesão, governismo e disciplina de bancada. Grão: casa × bancada × legislatura × presidente × trimestre."
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: sk_bancada
+        description: "Chave da federação ou bloco."
+      - name: bancada
+        description: "Sigla da federação ou bloco."
+      - name: tipo_bancada
+        description: "Tipo da bancada (FEDERACAO, BLOCO)."
+      - name: siglas_no_periodo
+        description: "Siglas dos partidos cujos parlamentares votaram na bancada no período."
+      - name: legislatura
+        description: "Número da legislatura."
+      - name: presidente
+        description: "Presidente da República em exercício no período."
+      - name: mandato
+        description: "Número do mandato do presidente."
+      - name: ano
+        description: "Ano das votações agregadas."
+      - name: trimestre
+        description: "Trimestre do ano das votações agregadas (1 a 4)."
+      - name: data_trimestre
+        description: "Primeiro dia do trimestre."
+      - name: qt_parlamentares
+        description: "Parlamentares distintos da bancada que votaram."
+      - name: qt_votacoes
+        description: "Votações em que a bancada votou."
+      - name: qt_votos
+        description: "Votos da bancada."
+      - name: qt_votacoes_coesao
+        description: "Votações com ao menos dois votos SIM/NÃO da bancada."
+      - name: indice_rice_medio
+        description: "Índice de Rice médio da bancada (0 = dividida, 1 = unânime)."
+      - name: qt_votos_governismo
+        description: "Votos da bancada em votações orientadas pelo Governo."
+      - name: qt_votos_alinhados_governo
+        description: "Votos da bancada alinhados ao Governo."
+      - name: governismo_pct_modelo
+        description: "Governismo da bancada calculado pelo modelo (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_disciplina
+        description: "Votos em votações orientadas pela federação ou bloco."
+      - name: qt_votos_disciplinados
+        description: "Votos que seguiram a orientação da federação ou bloco."
+      - name: disciplina_pct
+        description: "Disciplina em relação à orientação da federação ou bloco (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - sk_bancada
               - legislatura
               - presidente
               - mandato
@@ -394,6 +481,17 @@ models:
         description: "Votos que seguiram a orientação do partido."
       - name: disciplina_pct
         description: "Disciplina partidária (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_disciplina_bancada
+        description: "Votos em votações orientadas pela federação ou bloco do partido."
+      - name: qt_votos_disciplinados_bancada
+        description: "Votos que seguiram a orientação da federação ou bloco."
+      - name: disciplina_bancada_pct
+        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -502,6 +600,17 @@ models:
         description: "Votos que seguiram a orientação do partido."
       - name: disciplina_pct
         description: "Disciplina partidária (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_disciplina_bancada
+        description: "Votos em votações orientadas pela federação ou bloco do partido."
+      - name: qt_votos_disciplinados_bancada
+        description: "Votos que seguiram a orientação da federação ou bloco."
+      - name: disciplina_bancada_pct
+        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -620,6 +729,17 @@ models:
               arguments:
                 min_value: 0
                 max_value: 100
+      - name: qt_votos_disciplina_bancada
+        description: "Votos em votações orientadas pela federação ou bloco do partido."
+      - name: qt_votos_disciplinados_bancada
+        description: "Votos que seguiram a orientação da federação ou bloco."
+      - name: disciplina_bancada_pct
+        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
       - name: qt_votos_com_resultado
         description: "Votos SIM/NÃO em votações com resultado binário."
       - name: qt_votos_vencedores
@@ -723,6 +843,17 @@ models:
         description: "Votos que seguiram a orientação do partido."
       - name: disciplina_pct
         description: "Disciplina partidária (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_disciplina_bancada
+        description: "Votos em votações orientadas pela federação ou bloco do partido."
+      - name: qt_votos_disciplinados_bancada
+        description: "Votos que seguiram a orientação da federação ou bloco."
+      - name: disciplina_bancada_pct
+        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:

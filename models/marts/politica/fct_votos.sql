@@ -48,6 +48,43 @@ parlamentares AS (
     FROM {{ ref('dim_parlamentares') }}
 ),
 
+bancadas AS (
+    SELECT
+        sk_bancada,
+        sk_partido,
+        casa,
+        sigla_bancada,
+        tipo_bancada,
+        inicio,
+        COALESCE(fim, DATE '9999-12-31') AS fim
+    FROM {{ ref('bridge_bancadas_partidos') }}
+),
+
+-- A federação vale antes do bloco: é o agrupamento mais específico do partido.
+bancada_na_votacao AS (
+    SELECT DISTINCT ON (v.casa, v.votacao_id_nk, b.sk_partido)
+        v.casa,
+        v.votacao_id_nk,
+        b.sk_partido,
+        b.sk_bancada,
+        b.sigla_bancada
+    FROM votacoes AS v
+    INNER JOIN bancadas AS b
+        ON v.casa = b.casa
+        AND TO_DATE(v.sk_data::TEXT, 'YYYYMMDD') BETWEEN b.inicio AND b.fim
+    ORDER BY v.casa ASC, v.votacao_id_nk ASC, b.sk_partido ASC, (b.tipo_bancada = 'FEDERACAO') DESC, b.sigla_bancada ASC
+),
+
+orientacoes_bancada AS (
+    SELECT
+        casa,
+        votacao_id_nk,
+        sigla_lideranca,
+        orientacao_voto
+    FROM {{ ref('int_orientacoes_unificadas') }}
+    WHERE partido_id_senado IS NULL
+),
+
 tipos_voto AS (
     SELECT
         sk_tipo_voto,
@@ -62,6 +99,7 @@ final AS (
         COALESCE(vt.sk_votacao, '{{ var("null_key") }}')                                             AS sk_votacao,
         COALESCE(pd.sk_parlamentar, ps.sk_parlamentar, '{{ var("null_key") }}')                      AS sk_parlamentar,
         COALESCE(pt.sk_partido, '{{ var("null_key") }}')                                             AS sk_partido,
+        COALESCE(bv.sk_bancada, '{{ var("null_key") }}')                                             AS sk_bancada,
         vt.sk_data,
         COALESCE(vt.sk_proposicao, '{{ var("null_key") }}')                                          AS sk_proposicao,
         COALESCE(vt.sk_orgao, '{{ var("null_key") }}')                                               AS sk_orgao,
@@ -75,6 +113,7 @@ final AS (
         v.voto,
         vt.orientacao_governo,
         o.orientacao_voto                                                                            AS orientacao_partido,
+        ob.orientacao_voto                                                                           AS orientacao_bancada,
         COALESCE(vt.fl_governo_orientou, 0)                                                          AS fl_governo_orientou,
         CASE
             WHEN vt.fl_governo_orientou = 1 AND v.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
@@ -85,6 +124,10 @@ final AS (
             WHEN o.orientacao_voto IN ('SIM', 'NAO', 'OBSTRUCAO') AND v.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
                 THEN (v.voto = o.orientacao_voto)::INT
         END                                                                                          AS fl_seguiu_partido,
+        CASE
+            WHEN ob.orientacao_voto IN ('SIM', 'NAO', 'OBSTRUCAO') AND v.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
+                THEN (v.voto = ob.orientacao_voto)::INT
+        END                                                                                          AS fl_seguiu_bancada,
         CASE v.voto
             WHEN 'SIM' THEN vt.fl_aprovada
             WHEN 'NAO' THEN 1 - vt.fl_aprovada
@@ -104,6 +147,10 @@ final AS (
         ON v.casa = tv.casa AND v.codigo_voto = tv.codigo_origem
     LEFT JOIN partidos AS pt
         ON v.partido_id_senado = pt.partido_id_nk
+    LEFT JOIN bancada_na_votacao AS bv
+        ON v.casa = bv.casa AND v.votacao_id_nk = bv.votacao_id_nk AND pt.sk_partido = bv.sk_partido
+    LEFT JOIN orientacoes_bancada AS ob
+        ON bv.casa = ob.casa AND bv.votacao_id_nk = ob.votacao_id_nk AND bv.sigla_bancada = ob.sigla_lideranca
 )
 
 SELECT * FROM final

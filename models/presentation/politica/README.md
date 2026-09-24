@@ -32,10 +32,11 @@ Tabelas largas, prontas para visualização, sobre as votações da Câmara e do
 
 ## Bancada
 
-| Tabela                            | Grão                                                  | Responde                                                                      |
-| --------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `comportamento_partidario`        | casa × partido × legislatura × presidente × trimestre | Coesão (índice de Rice), governismo e disciplina da bancada ao longo do tempo |
-| `score_vs_governismo_por_partido` | casa × partido × ano                                  | Avaliação do Ranking dos Políticos × governismo por bancada                   |
+| Tabela                            | Grão                                                  | Responde                                                                                 |
+| --------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `comportamento_partidario`        | casa × partido × legislatura × presidente × trimestre | Coesão (índice de Rice), governismo e disciplina do partido ao longo do tempo            |
+| `comportamento_bancada`           | casa × bancada × legislatura × presidente × trimestre | O mesmo para federações e blocos, com a disciplina medida contra a orientação da bancada |
+| `score_vs_governismo_por_partido` | casa × partido × ano                                  | Avaliação do Ranking dos Políticos × governismo por partido                              |
 
 ## Qualidade do cálculo
 
@@ -63,3 +64,4 @@ Validam o governismo calculado contra o publicado pelo Radar Congresso. Não sã
 - A pontuação do Ranking dos Políticos existe de 2023 em diante (`score_vs_governismo`).
 - Na Câmara a ausência é inferida: a API só lista quem votou, e o deputado é tido em exercício entre o primeiro e o último voto na legislatura.
 - Participação e presença contam só o Plenário; governismo e disciplina incluem as comissões.
+- A composição das federações e blocos vem de `seed_bancadas_composicao`, mantida à mão; sem ela, `fl_seguiu_bancada` fica nulo.

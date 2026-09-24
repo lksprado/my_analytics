@@ -41,6 +41,7 @@ votos AS (
         v.uf,
         v.fl_seguiu_governo,
         v.fl_seguiu_partido,
+        v.fl_seguiu_bancada,
         v.fl_votou_com_resultado
     FROM {{ ref('votos_parlamentares') }} AS v
     INNER JOIN calendario AS c
@@ -78,6 +79,8 @@ metricas_votos AS (
         COALESCE(SUM(fl_seguiu_governo), 0)                      AS qt_votos_alinhados_governo,
         COUNT(fl_seguiu_partido)                                 AS qt_votos_disciplina,
         COALESCE(SUM(fl_seguiu_partido), 0)                      AS qt_votos_disciplinados,
+        COUNT(fl_seguiu_bancada)                                 AS qt_votos_disciplina_bancada,
+        COALESCE(SUM(fl_seguiu_bancada), 0)                      AS qt_votos_disciplinados_bancada,
         COUNT(fl_votou_com_resultado)                            AS qt_votos_com_resultado,
         COALESCE(SUM(fl_votou_com_resultado), 0)                 AS qt_votos_vencedores,
         STRING_AGG(DISTINCT partido, ', ' ORDER BY partido)      AS siglas_no_periodo
@@ -212,6 +215,10 @@ final AS (
         COALESCE(v.qt_votos_disciplina, 0)                                                     AS qt_votos_disciplina,
         COALESCE(v.qt_votos_disciplinados, 0)                                                  AS qt_votos_disciplinados,
         ROUND(100.0 * v.qt_votos_disciplinados / NULLIF(v.qt_votos_disciplina, 0), 2)          AS disciplina_pct,
+        COALESCE(v.qt_votos_disciplina_bancada, 0)                                             AS qt_votos_disciplina_bancada,
+        COALESCE(v.qt_votos_disciplinados_bancada, 0)                                          AS qt_votos_disciplinados_bancada,
+        ROUND(100.0 * v.qt_votos_disciplinados_bancada / NULLIF(v.qt_votos_disciplina_bancada, 0), 2)
+            AS disciplina_bancada_pct,
         COALESCE(v.qt_votos_com_resultado, 0)                                                  AS qt_votos_com_resultado,
         COALESCE(v.qt_votos_vencedores, 0)                                                     AS qt_votos_vencedores,
         ROUND(100.0 * v.qt_votos_vencedores / NULLIF(v.qt_votos_com_resultado, 0), 2)         AS votos_vencedores_pct,

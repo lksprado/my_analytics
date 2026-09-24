@@ -270,6 +270,89 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: dim_bancada
+    description: "Lideranças que orientam votações: partidos, federações, blocos, Governo, Maioria, Minoria e Oposição. Grão: casa × sigla da liderança × partido."
+    columns:
+      - name: sk_bancada
+        description: "Chave da bancada."
+        tests:
+          - not_null
+          - unique
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: sigla_bancada
+        description: "Sigla da liderança como aparece nas orientações."
+        tests:
+          - not_null
+      - name: tipo_bancada
+        description: "Tipo da bancada (PARTIDO, FEDERACAO, BLOCO, GOVERNO, MAIORIA, MINORIA, OPOSICAO, BANCADA TEMATICA, OUTRA)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PARTIDO', 'FEDERACAO', 'BLOCO', 'GOVERNO', 'MAIORIA', 'MINORIA', 'OPOSICAO', 'BANCADA TEMATICA', 'OUTRA', 'desconhecido']
+      - name: sk_partido
+        description: "Chave do partido quando a bancada é um partido; desconhecido nos demais tipos."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_partidos')
+                field: sk_partido
+      - name: partidos_membros
+        description: "Siglas dos partidos que compõem a federação ou o bloco, segundo a seed de composição."
+      - name: primeira_orientacao
+        description: "Data da primeira orientação da bancada."
+      - name: ultima_orientacao
+        description: "Data da última orientação da bancada."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: bridge_bancadas_partidos
+    description: "Composição das federações e blocos, com vigência. Grão: bancada × partido × início."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_bancada
+              - sk_partido
+              - inicio
+    columns:
+      - name: sk_bancada
+        description: "Chave da bancada."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_bancada')
+                field: sk_bancada
+      - name: sk_partido
+        description: "Chave do partido membro."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_partidos')
+                field: sk_partido
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: sigla_bancada
+        description: "Sigla da bancada."
+      - name: tipo_bancada
+        description: "Tipo da bancada (FEDERACAO, BLOCO)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['FEDERACAO', 'BLOCO']
+      - name: inicio
+        description: "Início da participação do partido na bancada."
+        tests:
+          - not_null
+      - name: fim
+        description: "Fim da participação; nulo quando vigente."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: dim_partidos
     description: "Partidos. Grão: entidade partidária, que agrupa as siglas de um mesmo partido."
     columns:
@@ -483,6 +566,14 @@ models:
               arguments:
                 to: ref('dim_partidos')
                 field: sk_partido
+      - name: sk_bancada
+        description: "Chave da federação ou bloco do partido do parlamentar na data do voto; desconhecido sem bancada."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_bancada')
+                field: sk_bancada
       - name: sk_data
         description: "Chave da data da votação."
         tests:
@@ -548,6 +639,8 @@ models:
         description: "Orientação do Governo na votação."
       - name: orientacao_partido
         description: "Orientação do partido do parlamentar na votação."
+      - name: orientacao_bancada
+        description: "Orientação da federação ou bloco do partido do parlamentar na votação."
       - name: fl_governo_orientou
         description: "1 quando o Governo orientou SIM, NÃO ou OBSTRUÇÃO."
       - name: fl_seguiu_governo
@@ -560,6 +653,12 @@ models:
         description: "1 quando o partido do parlamentar orientou a votação."
       - name: fl_seguiu_partido
         description: "1 quando o voto seguiu a orientação do partido, 0 quando divergiu."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: fl_seguiu_bancada
+        description: "1 quando o voto seguiu a orientação da federação ou bloco, 0 quando divergiu."
         tests:
           - accepted_values:
               arguments:
@@ -680,6 +779,14 @@ models:
               arguments:
                 to: ref('dim_partidos')
                 field: sk_partido
+      - name: sk_bancada
+        description: "Chave da bancada que orientou."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_bancada')
+                field: sk_bancada
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
@@ -1017,6 +1124,8 @@ unit_tests:
           - {sk_tipo_voto: t_sim, casa: CAMARA, codigo_origem: SIM}
           - {sk_tipo_voto: t_nao, casa: CAMARA, codigo_origem: NAO}
           - {sk_tipo_voto: t_abs, casa: CAMARA, codigo_origem: ABSTENCAO}
+      - input: ref('bridge_bancadas_partidos')
+        rows: []
     expect:
       rows:
         - {votacao_id_nk: '1-1', sk_parlamentar: d1, sk_partido: pt71, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: 1, fl_partido_orientou: 1, fl_seguiu_partido: 1, fl_votou_com_resultado: 1}
@@ -1074,6 +1183,50 @@ unit_tests:
         - {sk_parlamentar: s1, sk_votacao: vs1, casa: SENADO, categoria_presenca: AUSENCIA JUSTIFICADA, fl_presente: 0, fl_ausencia_inferida: 0, fl_votou_com_posicao: 0, fl_governo_orientou: 1, sk_partido: mdb, uf: RS}
         - {sk_parlamentar: s1, sk_votacao: vs2, casa: SENADO, categoria_presenca: VOTO SECRETO, fl_presente: 1, fl_ausencia_inferida: 0, fl_votou_com_posicao: 0, fl_governo_orientou: 0, sk_partido: mdb, uf: RS}
 
+  - name: fct_votos_bancada_do_partido
+    description: >
+      A bancada do voto é a federação ou bloco que contém o partido do parlamentar na data da
+      votação; a disciplina de bancada compara o voto com a orientação dela. Participação
+      encerrada não vale.
+    model: fct_votos
+    given:
+      - input: ref('int_votos_unificados')
+        rows:
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '2-1', partido: PT, partido_id_senado: 71, codigo_voto: SIM, voto: SIM}
+          - {casa: CAMARA, parlamentar_id_nk: 2, votacao_id_nk: '2-1', partido: PSOL, partido_id_senado: 458, codigo_voto: NAO, voto: NAO}
+          - {casa: CAMARA, parlamentar_id_nk: 3, votacao_id_nk: '2-1', partido: PL, partido_id_senado: 523, codigo_voto: SIM, voto: SIM}
+      - input: ref('fct_votacoes')
+        rows:
+          - {sk_votacao: v21, casa: CAMARA, votacao_id_nk: '2-1', sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv, orientacao_governo: SIM, fl_aprovada: 1, fl_governo_orientou: 1}
+      - input: ref('int_orientacoes_unificadas')
+        rows:
+          - {casa: CAMARA, votacao_id_nk: '2-1', sigla_lideranca: FDR PTPCDOBPV, partido_id_senado: null, orientacao_voto: SIM}
+          - {casa: CAMARA, votacao_id_nk: '2-1', sigla_lideranca: FDR PSOLREDE, partido_id_senado: null, orientacao_voto: SIM}
+      - input: ref('dim_partidos')
+        rows:
+          - {sk_partido: pt71, partido_id_nk: 71}
+          - {sk_partido: psol458, partido_id_nk: 458}
+          - {sk_partido: pl523, partido_id_nk: 523}
+      - input: ref('dim_parlamentares')
+        rows:
+          - {sk_parlamentar: d1, casa: CAMARA, deputado_id_nk: 1}
+          - {sk_parlamentar: d2, casa: CAMARA, deputado_id_nk: 2}
+          - {sk_parlamentar: d3, casa: CAMARA, deputado_id_nk: 3}
+      - input: ref('dim_tipo_voto')
+        rows:
+          - {sk_tipo_voto: t_sim, casa: CAMARA, codigo_origem: SIM}
+          - {sk_tipo_voto: t_nao, casa: CAMARA, codigo_origem: NAO}
+      - input: ref('bridge_bancadas_partidos')
+        rows:
+          - {sk_bancada: b_fdr_pt, sk_partido: pt71, casa: CAMARA, sigla_bancada: FDR PTPCDOBPV, tipo_bancada: FEDERACAO, inicio: '2023-03-14', fim: null}
+          - {sk_bancada: b_fdr_psol, sk_partido: psol458, casa: CAMARA, sigla_bancada: FDR PSOLREDE, tipo_bancada: FEDERACAO, inicio: '2023-03-14', fim: null}
+          - {sk_bancada: b_bloco_antigo, sk_partido: pt71, casa: CAMARA, sigla_bancada: PTPDTPCDOB, tipo_bancada: BLOCO, inicio: '2017-02-01', fim: '2019-01-31'}
+    expect:
+      rows:
+        - {sk_parlamentar: d1, sk_bancada: b_fdr_pt, orientacao_bancada: SIM, fl_seguiu_bancada: 1}
+        - {sk_parlamentar: d2, sk_bancada: b_fdr_psol, orientacao_bancada: SIM, fl_seguiu_bancada: 0}
+        - {sk_parlamentar: d3, sk_bancada: '0', orientacao_bancada: null, fl_seguiu_bancada: null}
+
 seeds:
 
   - name: seed_ufs
@@ -1090,3 +1243,29 @@ seeds:
         description: "Região da UF."
         tests:
           - not_null
+
+  - name: seed_bancadas_composicao
+    description: "Composição das federações e blocos por partido, com vigência. Mantida manualmente."
+    config:
+      column_types:
+        inicio: date
+        fim: date
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - casa
+              - sigla_bancada
+              - partido
+              - inicio
+    columns:
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: sigla_bancada
+        description: "Sigla da federação ou bloco como aparece nas orientações."
+      - name: partido
+        description: "Sigla do partido membro."
+      - name: inicio
+        description: "Início da participação do partido na bancada."
+      - name: fim
+        description: "Fim da participação; vazio quando vigente."
