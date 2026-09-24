@@ -6,50 +6,96 @@ models:
     columns:
       - name: ranking_id_nk
         description: "Chave natural do deputado no site Ranking dos Políticos."
+        meta:
+          source_column: "id"
       - name: congresso_id_fk
         description: "Id do deputado na Câmara."
+        meta:
+          source_column: "url_foto"
       - name: nome
         description: "Nome completo padronizado (upper)."
+        meta:
+          source_column: "nome"
       - name: nome_eleitoral
         description: "Nome eleitoral padronizado (upper)."
+        meta:
+          source_column: "nome_eleitoral"
       - name: nome_civil
         description: "Nome civil padronizado (upper)."
+        meta:
+          source_column: "nome_civil"
       - name: url_foto
         description: "URL da foto oficial do deputado."
+        meta:
+          source_column: "url_foto"
       - name: cargo
         description: "Cargo do parlamentar (Deputado Federal)."
+        meta:
+          source_column: "cargo"
       - name: partido
         description: "Sigla do partido padronizada (upper)."
+        meta:
+          source_column: "partido"
       - name: situacao
         description: "Situação do mandato padronizada (upper)."
+        meta:
+          source_column: "situacao"
       - name: uf
         description: "UF de representação padronizada (upper)."
+        meta:
+          source_column: "uf"
       - name: slug
         description: "Slug do parlamentar no site Ranking dos Políticos."
+        meta:
+          source_column: "slug"
       - name: composicao_pontuacao_pontuacao
         description: "Pontuação total atual no Ranking dos Políticos."
+        meta:
+          source_column: "composicao_pontuacao_pontuacao"
       - name: composicao_pontuacao_anos
         description: "Histórico anual de pontuação (JSON)."
+        meta:
+          source_column: "composicao_pontuacao_anos"
       - name: composicao_pontuacao_ranking_geral
         description: "Posição no ranking geral."
+        meta:
+          source_column: "composicao_pontuacao_ranking_geral"
       - name: composicao_pontuacao_ranking_geral_variacao
         description: "Variação da posição no ranking geral."
+        meta:
+          source_column: "composicao_pontuacao_ranking_geral_variacao"
       - name: composicao_pontuacao_ranking_casa
         description: "Posição no ranking dentro da casa (Câmara)."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa"
       - name: composicao_pontuacao_ranking_casa_variacao
         description: "Variação da posição no ranking da casa."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa_variacao"
       - name: composicao_pontuacao_ranking_partido
         description: "Posição no ranking dentro do partido."
+        meta:
+          source_column: "composicao_pontuacao_ranking_partido"
       - name: composicao_pontuacao_ranking_partido_variacao
         description: "Variação da posição no ranking do partido."
+        meta:
+          source_column: "composicao_pontuacao_ranking_partido_variacao"
       - name: composicao_pontuacao_ranking_estado
         description: "Posição no ranking dentro do estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_estado"
       - name: composicao_pontuacao_ranking_estado_variacao
         description: "Variação da posição no ranking do estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_estado_variacao"
       - name: composicao_pontuacao_ranking_casa_estado
         description: "Posição no ranking da casa dentro do estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa_estado"
       - name: composicao_pontuacao_ranking_casa_estado_variacao
         description: "Variação da posição no ranking da casa por estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa_estado_variacao"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -58,52 +104,96 @@ models:
     columns:
       - name: ranking_id_nk
         description: "Chave natural do senador no site Ranking dos Políticos."
+        meta:
+          source_column: "id"
         tests:
           - not_null
           - unique
       - name: congresso_id_fk
         description: "Id do senador no Senado."
+        meta:
+          source_column: "url_foto"
         tests:
           - not_null
       - name: nome
         description: "Nome completo padronizado (upper)."
+        meta:
+          source_column: "nome"
       - name: nome_civil
         description: "Nome civil padronizado (upper)."
+        meta:
+          source_column: "nome_civil"
       - name: url_foto
         description: "URL da foto oficial do senador."
+        meta:
+          source_column: "url_foto"
       - name: cargo
         description: "Cargo do parlamentar (Senador)."
+        meta:
+          source_column: "cargo"
       - name: partido
         description: "Sigla do partido padronizada (upper)."
+        meta:
+          source_column: "partido"
       - name: situacao
         description: "Situação do mandato padronizada (upper)."
+        meta:
+          source_column: "situacao"
       - name: uf
         description: "UF de representação padronizada (upper)."
+        meta:
+          source_column: "uf"
       - name: slug
         description: "Slug do parlamentar no site Ranking dos Políticos."
+        meta:
+          source_column: "slug"
       - name: composicao_pontuacao_pontuacao
         description: "Pontuação total atual no Ranking dos Políticos."
+        meta:
+          source_column: "composicao_pontuacao_pontuacao"
       - name: composicao_pontuacao_anos
         description: "Histórico anual de pontuação (JSON)."
+        meta:
+          source_column: "composicao_pontuacao_anos"
       - name: composicao_pontuacao_ranking_geral
         description: "Posição no ranking geral."
+        meta:
+          source_column: "composicao_pontuacao_ranking_geral"
       - name: composicao_pontuacao_ranking_geral_variacao
         description: "Variação da posição no ranking geral."
+        meta:
+          source_column: "composicao_pontuacao_ranking_geral_variacao"
       - name: composicao_pontuacao_ranking_casa
         description: "Posição no ranking dentro da casa (Senado)."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa"
       - name: composicao_pontuacao_ranking_casa_variacao
         description: "Variação da posição no ranking da casa."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa_variacao"
       - name: composicao_pontuacao_ranking_partido
         description: "Posição no ranking dentro do partido."
+        meta:
+          source_column: "composicao_pontuacao_ranking_partido"
       - name: composicao_pontuacao_ranking_partido_variacao
         description: "Variação da posição no ranking do partido."
+        meta:
+          source_column: "composicao_pontuacao_ranking_partido_variacao"
       - name: composicao_pontuacao_ranking_estado
         description: "Posição no ranking dentro do estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_estado"
       - name: composicao_pontuacao_ranking_estado_variacao
         description: "Variação da posição no ranking do estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_estado_variacao"
       - name: composicao_pontuacao_ranking_casa_estado
         description: "Posição no ranking da casa dentro do estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa_estado"
       - name: composicao_pontuacao_ranking_casa_estado_variacao
         description: "Variação da posição no ranking da casa por estado."
+        meta:
+          source_column: "composicao_pontuacao_ranking_casa_estado_variacao"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."

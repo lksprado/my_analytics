@@ -6,18 +6,30 @@ models:
     columns:
       - name: radar_parlamentar_id_nk
         description: "Id do parlamentar no Radar Congresso."
+        meta:
+          source_column: "id"
         tests:
           - not_null
       - name: qt_votos_alinhados_legislatura
         description: "Votos do deputado alinhados ao governo no acumulado do mandato."
+        meta:
+          source_column: "afavor"
       - name: qt_votos_legislatura
         description: "Votos em votações orientadas pelo Governo no mandato."
+        meta:
+          source_column: "n"
       - name: perc_governismo_legislatura
         description: "Percentual de governismo no mandato (0–100)."
+        meta:
+          source_column: "total"
       - name: data_trimestre
         description: "Data de referência do trimestre no Radar."
+        meta:
+          source_column: "trimestre"
       - name: perc_governismo_trimestre
         description: "Percentual de governismo no trimestre (0–100)."
+        meta:
+          source_column: "perc_governismo"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -26,18 +38,30 @@ models:
     columns:
       - name: radar_parlamentar_id_nk
         description: "Id do parlamentar no Radar Congresso."
+        meta:
+          source_column: "id"
         tests:
           - not_null
       - name: qt_votos_alinhados_legislatura
         description: "Votos do senador alinhados ao governo no acumulado do mandato."
+        meta:
+          source_column: "afavor"
       - name: qt_votos_legislatura
         description: "Votos em votações orientadas pelo Governo no mandato."
+        meta:
+          source_column: "n"
       - name: perc_governismo_legislatura
         description: "Percentual de governismo no mandato (0–100)."
+        meta:
+          source_column: "total"
       - name: data_trimestre
         description: "Data de referência do trimestre no Radar."
+        meta:
+          source_column: "trimestre"
       - name: perc_governismo_trimestre
         description: "Percentual de governismo no trimestre (0–100)."
+        meta:
+          source_column: "perc_governismo"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -46,20 +70,30 @@ models:
     columns:
       - name: radar_parlamentar_id_nk
         description: "Id do parlamentar no Radar Congresso."
+        meta:
+          source_column: "idparlamentarvoz"
         tests:
           - not_null
           - unique
       - name: parlamentar_id_fk
         description: "Id do parlamentar na casa."
+        meta:
+          source_column: "idparlamentar"
         tests:
           - not_null
           - unique
       - name: nome_eleitoral
         description: "Nome eleitoral do parlamentar conforme o Radar Congresso"
+        meta:
+          source_column: "nomeeleitoral"
       - name: uf
         description: "Unidade federativa representada"
+        meta:
+          source_column: "uf"
       - name: is_ativo
         description: "Booleano indicando se o parlamentar está em exercício"
+        meta:
+          source_column: "emexercicio"
       - name: casa
         description: "Casa legislativa (CAMARA ou SENADO), conformada com o resto do domínio."
         tests:
@@ -68,7 +102,11 @@ models:
                 values: ['CAMARA', 'SENADO']
       - name: partido_dict
         description: "Partido do parlamentar como vem da fonte (texto serializado)."
+        meta:
+          source_column: "parlamentarpartido"
       - name: nome_completo
         description: "Nome completo do parlamentar"
+        meta:
+          source_column: "nomeprocessado"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."

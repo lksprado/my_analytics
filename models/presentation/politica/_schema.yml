@@ -3,6 +3,16 @@ version: 2
 models:
   - name: votacoes
     description: "Votações da Câmara e do Senado, com placar, orientação e resultado. Grão: uma votação."
+    config:
+      meta:
+        grain: "uma votação"
+        primary_key:
+          - "sk_votacao"
+        foreign_keys:
+          - "sk_votacao -> fct_votacoes"
+        source: "raw_camara.raw_camara_votacoes, raw_senado.raw_senado_votacoes, raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao, raw_camara.raw_camara_proposicao, raw_senado.raw_senado_processo"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "Câmara desde 01/1993 (nominais desde 12/2001); Senado desde 02/2001; orientação do Governo: Câmara desde 12/2001; Senado desde 10/2018"
     tests:
       - dbt_utils.expression_is_true:
           arguments:
@@ -123,6 +133,19 @@ models:
 
   - name: votos_parlamentares
     description: "Todos os registros de voto, mais as ausências inferidas no Plenário da Câmara. Grão: parlamentar × votação."
+    config:
+      meta:
+        grain: "parlamentar × votação"
+        primary_key:
+          - "sk_voto"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_votacao -> fct_votacoes"
+          - "sk_partido -> dim_partidos"
+          - "sk_bancada -> dim_bancada"
+        source: "raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "votações nominais: Câmara desde 12/2001; Senado desde 02/2001"
     columns:
       - name: sk_voto
         description: "Chave do registro de voto."
@@ -254,6 +277,16 @@ models:
 
   - name: proposicoes
     description: "Proposições com situação, datas, autoria e votações. Grão: uma proposição."
+    config:
+      meta:
+        grain: "uma proposição"
+        primary_key:
+          - "sk_proposicao"
+        foreign_keys:
+          - "sk_proposicao -> dim_proposicoes"
+        source: "raw_camara.raw_camara_proposicao, raw_senado.raw_senado_processo, raw_senado.raw_senado_status, raw_camara.raw_camara_proposicao_tema"
+        refresh_frequency: "Câmara semanal; Senado mensal, status diário"
+        historical_coverage: "proposições votadas (Câmara apresentadas desde 1987; Senado desde 1989) e matérias acompanhadas no Senado"
     tests:
       - dbt_utils.expression_is_true:
           arguments:
@@ -313,6 +346,18 @@ models:
 
   - name: proposicoes_temas
     description: "Proposições por tema, sem peso: a proposição aparece em cada tema. Totais por tema não se somam entre temas. Grão: proposição × tema."
+    config:
+      meta:
+        grain: "proposição × tema"
+        primary_key:
+          - "sk_proposicao"
+          - "sk_tema"
+        foreign_keys:
+          - "sk_proposicao -> dim_proposicoes"
+          - "sk_tema -> dim_tema"
+        source: "raw_camara.raw_camara_proposicao, raw_camara.raw_camara_proposicao_tema"
+        refresh_frequency: "semanal (segundas)"
+        historical_coverage: "proposições da Câmara com tema extraído"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -353,6 +398,22 @@ models:
 
   - name: comportamento_partidario
     description: "Comportamento das bancadas: coesão, governismo e disciplina. Grão: casa × partido × legislatura × presidente × trimestre."
+    config:
+      meta:
+        grain: "casa × partido × legislatura × presidente × trimestre"
+        primary_key:
+          - "casa"
+          - "sk_partido"
+          - "legislatura"
+          - "presidente"
+          - "mandato"
+          - "ano"
+          - "trimestre"
+        foreign_keys:
+          - "sk_partido -> dim_partidos"
+        source: "raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "votações nominais: Câmara desde 12/2001; Senado desde 02/2001; orientação do Governo: Câmara desde 12/2001; Senado desde 10/2018"
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -422,6 +483,22 @@ models:
 
   - name: comportamento_bancada
     description: "Comportamento das federações e blocos: coesão, governismo e disciplina de bancada. Grão: casa × bancada × legislatura × presidente × trimestre."
+    config:
+      meta:
+        grain: "casa × bancada × legislatura × presidente × trimestre"
+        primary_key:
+          - "casa"
+          - "sk_bancada"
+          - "legislatura"
+          - "presidente"
+          - "mandato"
+          - "ano"
+          - "trimestre"
+        foreign_keys:
+          - "sk_bancada -> dim_bancada"
+        source: "raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao, seed seed_bancadas_composicao"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "federações desde 03/2023; blocos conforme a seed"
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -493,6 +570,18 @@ models:
 
   - name: parlamentar_legislatura
     description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × legislatura."
+    config:
+      meta:
+        grain: "parlamentar × legislatura"
+        primary_key:
+          - "sk_parlamentar"
+          - "legislatura"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_partido -> dim_partidos"
+        source: "raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "votações nominais: Câmara desde 12/2001; Senado desde 02/2001; orientação do Governo: Câmara desde 12/2001; Senado desde 10/2018"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -612,6 +701,18 @@ models:
 
   - name: parlamentar_ano
     description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × ano civil."
+    config:
+      meta:
+        grain: "parlamentar × ano"
+        primary_key:
+          - "sk_parlamentar"
+          - "ano"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_partido -> dim_partidos"
+        source: "raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "votações nominais: Câmara desde 12/2001; Senado desde 02/2001; orientação do Governo: Câmara desde 12/2001; Senado desde 10/2018"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -731,6 +832,19 @@ models:
 
   - name: parlamentar_trimestre
     description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × trimestre."
+    config:
+      meta:
+        grain: "parlamentar × trimestre"
+        primary_key:
+          - "sk_parlamentar"
+          - "ano"
+          - "trimestre"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_partido -> dim_partidos"
+        source: "raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "votações nominais: Câmara desde 12/2001; Senado desde 02/2001; orientação do Governo: Câmara desde 12/2001; Senado desde 10/2018"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -855,6 +969,18 @@ models:
 
   - name: parlamentar_semana
     description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × semana ISO."
+    config:
+      meta:
+        grain: "parlamentar × semana ISO"
+        primary_key:
+          - "sk_parlamentar"
+          - "inicio_semana"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_partido -> dim_partidos"
+        source: "raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "votações nominais: Câmara desde 12/2001; Senado desde 02/2001; orientação do Governo: Câmara desde 12/2001; Senado desde 10/2018"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -974,6 +1100,16 @@ models:
 
   - name: indicadores_externos
     description: "Valores publicados por Radar Congresso e Ranking dos Políticos, com proveniência e versão da coleta. Grão: indicador × parlamentar × período × coleta."
+    config:
+      meta:
+        grain: "indicador × parlamentar × período × coleta"
+        primary_key:
+          - "sk_indicador_valor"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+        source: "raw_radar_congresso.raw_radar_governismo_deputados, raw_radar_congresso.raw_radar_governismo_senadores, raw_radar_congresso.raw_radar_parlamentares, raw_ranking_politicos.raw_ranking_deputados, raw_ranking_politicos.raw_ranking_senadores"
+        refresh_frequency: "Radar semanal; Ranking semanal (segundas)"
+        historical_coverage: "Radar 2023 T1 a 2025 T4; Ranking pontuação atual e anual de 2023 a 2026"
     columns:
       - name: sk_indicador_valor
         description: "Chave do valor publicado."
@@ -1019,6 +1155,18 @@ models:
 
   - name: score_vs_governismo
     description: "Ranking dos Políticos × governismo. Grão: parlamentar × ano."
+    config:
+      meta:
+        grain: "parlamentar × ano"
+        primary_key:
+          - "sk_parlamentar"
+          - "ano"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_partido -> dim_partidos"
+        source: "raw_ranking_politicos.raw_ranking_deputados, raw_ranking_politicos.raw_ranking_senadores, raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Ranking semanal (segundas); votos Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "2023 a 2026"
     columns:
       - name: sk_parlamentar
         description: "Chave do parlamentar."
@@ -1093,6 +1241,18 @@ models:
 
   - name: score_vs_governismo_por_partido
     description: "Ranking dos Políticos × governismo por bancada, entre parlamentares com pontuação no ano. Grão: casa × partido × ano."
+    config:
+      meta:
+        grain: "casa × partido × ano"
+        primary_key:
+          - "casa"
+          - "sk_partido"
+          - "ano"
+        foreign_keys:
+          - "sk_partido -> dim_partidos"
+        source: "raw_ranking_politicos.raw_ranking_deputados, raw_ranking_politicos.raw_ranking_senadores, raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Ranking semanal (segundas); votos Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "2023 a 2026"
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -1140,6 +1300,16 @@ models:
 
   - name: consultas_publicas
     description: "Consulta pública do e-Cidadania por matéria, com o resultado da consulta, a deliberação do Senado e a aderência entre os dois. Grão: uma matéria."
+    config:
+      meta:
+        grain: "uma matéria"
+        primary_key:
+          - "identificacao"
+        foreign_keys:
+          - "sk_proposicao -> dim_proposicoes"
+        source: "raw_ecidadania.raw_ecidadania_paginas, raw_ecidadania.raw_ecidadania_mais_votados, raw_senado.raw_senado_status, raw_senado.raw_senado_processo, seed seed_senado_deliberacoes_resultado"
+        refresh_frequency: "mensal (dia 20), com os mais votados diários"
+        historical_coverage: "extrações desde 11/2025"
     tests:
       - dbt_utils.expression_is_true:
           arguments:
@@ -1202,6 +1372,15 @@ models:
 
   - name: ecidadania_bignumbers
     description: "Totais de votações e votantes do e-Cidadania. Grão: um dia."
+    config:
+      meta:
+        grain: "um dia de extração"
+        primary_key:
+          - "data_extracao"
+        foreign_keys: []
+        source: "raw_ecidadania.raw_ecidadania_bignumbers"
+        refresh_frequency: "mensal (dia 20), com os mais votados diários"
+        historical_coverage: "extrações desde 11/2025"
     columns:
       - name: data_extracao
         description: "Data de extração dos dados da fonte."
@@ -1236,6 +1415,17 @@ models:
 
   - name: comparativo_governismo_legislatura
     description: "Governismo calculado × publicado pelo Radar Congresso, na legislatura corrente. Grão: parlamentar."
+    config:
+      meta:
+        grain: "um parlamentar"
+        primary_key:
+          - "sk_parlamentar"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_partido -> dim_partidos"
+        source: "raw_radar_congresso.raw_radar_governismo_deputados, raw_radar_congresso.raw_radar_governismo_senadores, raw_radar_congresso.raw_radar_parlamentares, raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Radar semanal; votos Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "legislatura corrente, janela 2023 T1 a 2025 T4"
     columns:
       - name: sk_parlamentar
         description: "Chave do parlamentar."
@@ -1308,6 +1498,19 @@ models:
 
   - name: comparativo_governismo_trimestre
     description: "Governismo calculado × publicado pelo Radar Congresso. Grão: parlamentar × trimestre."
+    config:
+      meta:
+        grain: "parlamentar × trimestre"
+        primary_key:
+          - "sk_parlamentar"
+          - "ano"
+          - "trimestre"
+        foreign_keys:
+          - "sk_parlamentar -> dim_parlamentares"
+          - "sk_partido -> dim_partidos"
+        source: "raw_radar_congresso.raw_radar_governismo_deputados, raw_radar_congresso.raw_radar_governismo_senadores, raw_radar_congresso.raw_radar_parlamentares, raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Radar semanal; votos Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "2023 T1 a 2025 T4"
     columns:
       - name: sk_parlamentar
         description: "Chave do parlamentar."
@@ -1375,6 +1578,17 @@ models:
 
   - name: comparativo_governismo_resumo
     description: "Concordância entre cálculo próprio e Radar Congresso. Grão: casa × trimestre."
+    config:
+      meta:
+        grain: "casa × trimestre"
+        primary_key:
+          - "casa"
+          - "ano"
+          - "trimestre"
+        foreign_keys: []
+        source: "raw_radar_congresso.raw_radar_governismo_deputados, raw_radar_congresso.raw_radar_governismo_senadores, raw_radar_congresso.raw_radar_parlamentares, raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Radar semanal; votos Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "2023 T1 a 2025 T4"
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -1410,6 +1624,17 @@ models:
 
   - name: comparativo_governismo_por_partido
     description: "Concordância entre cálculo próprio e Radar Congresso. Grão: casa × partido."
+    config:
+      meta:
+        grain: "casa × partido"
+        primary_key:
+          - "casa"
+          - "sk_partido"
+        foreign_keys:
+          - "sk_partido -> dim_partidos"
+        source: "raw_radar_congresso.raw_radar_governismo_deputados, raw_radar_congresso.raw_radar_governismo_senadores, raw_radar_congresso.raw_radar_parlamentares, raw_camara.raw_camara_votos_deputados, raw_senado.raw_senado_votos_senadores, raw_camara.raw_camara_votacoes_orientacao, raw_senado.raw_senado_votos_orientacao"
+        refresh_frequency: "Radar semanal; votos Câmara semanal (segundas); Senado mensal (dia 1)"
+        historical_coverage: "legislatura corrente, janela 2023 T1 a 2025 T4"
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
