@@ -5,16 +5,19 @@
 WITH
 camara_proposicoes AS (
     SELECT
-        'CAMARA'                               AS casa,
-        proposicao_id_nk                       AS id,
-        {{ clean_string ("t2.nome","upper") }} AS tipo_proposicao,
-        data_apresentacao                      AS data_proposicao,
+        'CAMARA'                                           AS casa,
+        proposicao_id_nk                                   AS id,
+        {{ clean_string ("t2.nome","upper") }}             AS tipo_proposicao,
+        data_apresentacao                                  AS data_proposicao,
         t1.sigla_tipo || ' ' || t1.numero || '/' || t1.ano AS identificacao,
         t1.ementa,
-        t1.status_descricao_situacao           AS situacao_atual,
-        NULLIF(t1.status_regime, '.')          AS regime,
-        NULL                                   AS autoria,
-        NULL                                   AS norma_gerada
+        t1.status_descricao_situacao                       AS situacao_atual,
+        t1.data_status                                     AS data_situacao_atual,
+        NULL::INT                                          AS fl_tramitando,
+        NULLIF(t1.status_regime, '.')                      AS regime,
+        NULL                                               AS autoria,
+        NULL                                               AS norma_gerada,
+        t1.relator_id_fk                                   AS relator_atual_id_nk
     FROM {{ ref('stg_camara_proposicao') }} AS t1
     LEFT JOIN {{ ref('seed_camara_tipos_proposicao') }} AS t2
         ON t1.codigo_tipo = t2.cod
@@ -22,16 +25,19 @@ camara_proposicoes AS (
 
 senado_proposicoes AS (
     SELECT
-        'SENADO'                                    AS casa,
-        processo_id_nk                              AS id,
-        {{ clean_string ("t2.descricao","upper") }} AS tipo_proposicao,
-        data_apresentacao                           AS data_proposicao,
+        'SENADO'                                                   AS casa,
+        processo_id_nk                                             AS id,
+        {{ clean_string ("t2.descricao","upper") }}                AS tipo_proposicao,
+        data_apresentacao                                          AS data_proposicao,
         t1.identificacao,
-        NULL                                        AS ementa,
+        NULL                                                       AS ementa,
         t1.situacao_atual,
-        NULL                                        AS regime,
+        t1.data_situacao_atual,
+        CASE t1.tramitando WHEN 'SIM' THEN 1 WHEN 'NAO' THEN 0 END AS fl_tramitando,
+        NULL                                                       AS regime,
         t1.autoria,
-        t1.norma_gerada
+        t1.norma_gerada,
+        NULL::INT                                                  AS relator_atual_id_nk
     FROM {{ ref('stg_senado_processo') }} AS t1
     LEFT JOIN {{ ref('seed_senado_tipos_projetos') }} AS t2
         ON t1.sigla_tipo = t2.sigla
@@ -47,14 +53,17 @@ final AS (
     SELECT
         casa,
         id                                                    AS proposicao_id_nk,
-        COALESCE(tipo_proposicao, '{{ var("null_string") }}')  AS tipo_proposicao,
+        COALESCE(tipo_proposicao, '{{ var("null_string") }}') AS tipo_proposicao,
         data_proposicao,
         identificacao,
         ementa,
         situacao_atual,
+        data_situacao_atual,
+        fl_tramitando,
         regime,
         autoria,
-        norma_gerada
+        norma_gerada,
+        relator_atual_id_nk
     FROM proposicoes
 ),
 
@@ -79,9 +88,12 @@ SELECT
     identificacao,
     ementa,
     situacao_atual,
+    data_situacao_atual,
+    fl_tramitando,
     regime,
     autoria,
     norma_gerada,
+    relator_atual_id_nk,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM deduplicada
 WHERE rn = 1

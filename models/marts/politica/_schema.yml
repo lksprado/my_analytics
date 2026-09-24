@@ -72,14 +72,141 @@ models:
         description: "Ementa (só Câmara)."
       - name: situacao_atual
         description: "Situação atual de tramitação."
+      - name: data_situacao_atual
+        description: "Data da situação atual de tramitação."
+      - name: fl_tramitando
+        description: "1 quando a proposição está em tramitação (só Senado)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
       - name: regime
         description: "Regime de tramitação atual (só Câmara)."
       - name: autoria
         description: "Autoria (só Senado)."
       - name: norma_gerada
         description: "Norma gerada pela proposição (só Senado)."
+      - name: relator_atual_id_nk
+        description: "Id do deputado relator atual (só Câmara)."
       - name: sk_data
         description: "Chave da data de apresentação."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: dim_tema
+    description: "Temas das proposições, segundo a classificação da Câmara. Grão: um tema."
+    columns:
+      - name: sk_tema
+        description: "Chave do tema."
+        tests:
+          - not_null
+          - unique
+      - name: codigo_tema
+        description: "Código do tema na Câmara."
+      - name: tema
+        description: "Nome do tema."
+        tests:
+          - not_null
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: bridge_proposicoes_temas
+    description: "Temas de cada proposição, sem peso: a proposição conta em cada tema. Grão: proposição × tema."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_proposicao
+              - sk_tema
+    columns:
+      - name: sk_proposicao
+        description: "Chave da proposição."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_proposicoes')
+                field: sk_proposicao
+      - name: sk_tema
+        description: "Chave do tema."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tema')
+                field: sk_tema
+      - name: relevancia
+        description: "Relevância do tema para a proposição, segundo a Câmara."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: bridge_votacoes_proposicoes
+    description: "Proposições relacionadas a cada votação, com o tipo da relação. Grão: votação × proposição × tipo de relação."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_votacao
+              - sk_proposicao
+              - tipo_relacao
+    columns:
+      - name: sk_votacao
+        description: "Chave da votação."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_votacoes')
+                field: sk_votacao
+      - name: sk_proposicao
+        description: "Chave da proposição."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_proposicoes')
+                field: sk_proposicao
+      - name: tipo_relacao
+        description: "Tipo da relação (OBJETO, AFETADA, POSSIVEL_OBJETO)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['OBJETO', 'AFETADA', 'POSSIVEL_OBJETO']
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: bridge_proposicoes_relacionadas
+    description: "Relações entre proposições da Câmara (principal, anterior, posterior). Grão: proposição × relacionada × tipo."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_proposicao
+              - proposicao_relacionada_id_nk
+              - tipo_relacao
+    columns:
+      - name: sk_proposicao
+        description: "Chave da proposição."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_proposicoes')
+                field: sk_proposicao
+      - name: sk_proposicao_relacionada
+        description: "Chave da proposição relacionada; desconhecida quando ela não foi extraída."
+        tests:
+          - not_null
+      - name: proposicao_relacionada_id_nk
+        description: "Id da proposição relacionada na Câmara."
+        tests:
+          - not_null
+      - name: tipo_relacao
+        description: "Tipo da relação (PRINCIPAL, ANTERIOR, POSTERIOR)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['PRINCIPAL', 'ANTERIOR', 'POSTERIOR']
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 

@@ -14,6 +14,7 @@ renamed AS (
         data::DATE                                AS data_votacao,
         datahoraregistro::TIMESTAMP               AS datahora_votacao,
         siglaorgao                                AS sigla_orgao,
+        NULLIF(SPLIT_PART(uriorgao, '/', 7), '')  AS orgao_id_fk,
         proposicaoobjeto                          AS proposicao_objeto,
         {{ clean_string("descricao", "upper") }}  AS descricao,
         id_proposicao::INT                        AS proposicao_id_fk,

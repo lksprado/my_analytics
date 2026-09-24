@@ -252,6 +252,105 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: proposicoes
+    description: "Proposições com situação, datas, autoria e votações. Grão: uma proposição."
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "qt_votacoes_nominais <= qt_votacoes AND qt_votacoes_aprovadas <= qt_votacoes"
+    columns:
+      - name: sk_proposicao
+        description: "Chave da proposição."
+        tests:
+          - not_null
+          - unique
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: proposicao_id_nk
+        description: "Id da proposição na casa."
+      - name: tipo_proposicao
+        description: "Tipo da proposição (PL, PEC...)."
+      - name: identificacao
+        description: "Identificação da proposição (ex.: PL 1234/2023)."
+      - name: ementa
+        description: "Ementa (só Câmara)."
+      - name: data_apresentacao
+        description: "Data de apresentação."
+      - name: ano_apresentacao
+        description: "Ano de apresentação."
+      - name: situacao_atual
+        description: "Situação atual de tramitação."
+      - name: data_situacao_atual
+        description: "Data da situação atual."
+      - name: fl_tramitando
+        description: "1 quando a proposição está em tramitação (só Senado)."
+      - name: regime
+        description: "Regime de tramitação atual (só Câmara)."
+      - name: autoria
+        description: "Autoria (só Senado)."
+      - name: norma_gerada
+        description: "Norma gerada pela proposição (só Senado)."
+      - name: relator_atual
+        description: "Nome do deputado relator atual (só Câmara)."
+      - name: qt_votacoes
+        description: "Votações em que a proposição é o objeto."
+      - name: qt_votacoes_nominais
+        description: "Votações nominais em que a proposição é o objeto."
+      - name: qt_votacoes_aprovadas
+        description: "Votações aprovadas em que a proposição é o objeto."
+      - name: data_primeira_votacao
+        description: "Data da primeira votação da proposição."
+      - name: data_ultima_votacao
+        description: "Data da última votação da proposição."
+      - name: qt_temas
+        description: "Temas da proposição."
+      - name: temas
+        description: "Temas da proposição, para exibição (use proposicoes_temas para agregar)."
+      - name: qt_proposicoes_relacionadas
+        description: "Proposições relacionadas (principal, anterior, posterior)."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: proposicoes_temas
+    description: "Proposições por tema, sem peso: a proposição aparece em cada tema. Totais por tema não se somam entre temas. Grão: proposição × tema."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_proposicao
+              - sk_tema
+    columns:
+      - name: sk_proposicao
+        description: "Chave da proposição."
+        tests:
+          - not_null
+      - name: sk_tema
+        description: "Chave do tema."
+        tests:
+          - not_null
+      - name: codigo_tema
+        description: "Código do tema na Câmara."
+      - name: tema
+        description: "Nome do tema."
+      - name: relevancia
+        description: "Relevância do tema para a proposição, segundo a Câmara."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: tipo_proposicao
+        description: "Tipo da proposição (PL, PEC...)."
+      - name: identificacao
+        description: "Identificação da proposição (ex.: PL 1234/2023)."
+      - name: ano_apresentacao
+        description: "Ano de apresentação."
+      - name: situacao_atual
+        description: "Situação atual de tramitação."
+      - name: qt_votacoes
+        description: "Votações em que a proposição é o objeto."
+      - name: qt_votacoes_aprovadas
+        description: "Votações aprovadas em que a proposição é o objeto."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: comportamento_partidario
     description: "Comportamento das bancadas: coesão, governismo e disciplina. Grão: casa × partido × legislatura × presidente × trimestre."
     columns:

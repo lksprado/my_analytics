@@ -20,6 +20,13 @@ Tabelas largas, prontas para visualização, sobre as votações da Câmara e do
 | `votacoes`            | votação               | Placar, margem e unanimidade; resultado alinhado ao Governo por presidente, classe (mérito × procedimental), órgão e modalidade |
 | `votos_parlamentares` | parlamentar × votação | Voto a voto: segue Governo, segue partido, lado vencedor, alinhamento em quatro quadrantes, perfil do parlamentar               |
 
+## Proposições
+
+| Tabela              | Grão              | Responde                                                                                               |
+| ------------------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `proposicoes`       | proposição        | Situação, datas, autoria, relator atual, votações (objeto), temas e proposições relacionadas           |
+| `proposicoes_temas` | proposição × tema | Proposições e votações por tema; a proposição aparece em cada tema, então totais não somam entre temas |
+
 ## Parlamentar
 
 | Tabela                    | Grão                      | Responde                                                                                                   |
@@ -64,4 +71,5 @@ Validam o governismo calculado contra o publicado pelo Radar Congresso. Não sã
 - A pontuação do Ranking dos Políticos existe de 2023 em diante (`score_vs_governismo`).
 - Na Câmara a ausência é inferida: a API só lista quem votou, e o deputado é tido em exercício entre o primeiro e o último voto na legislatura.
 - Participação e presença contam só o Plenário; governismo e disciplina incluem as comissões.
+- O universo de proposições é o das votadas; temas cobrem só as proposições extraídas com tema, e a tramitação é só o status atual.
 - A composição das federações e blocos vem de `seed_bancadas_composicao`, mantida à mão; sem ela, `fl_seguiu_bancada` fica nulo.

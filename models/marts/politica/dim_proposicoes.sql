@@ -15,9 +15,12 @@ SELECT
     identificacao,
     ementa,
     situacao_atual,
+    data_situacao_atual,
+    fl_tramitando,
     regime,
     autoria,
     norma_gerada,
+    relator_atual_id_nk,
     CAST(TO_CHAR(data_proposicao, 'YYYYMMDD') AS INTEGER)                AS sk_data,
     '{{ run_started_at }}'::TIMESTAMPTZ                                  AS model_run_at
 FROM proposicoes
@@ -31,9 +34,12 @@ UNION ALL
     ['identificacao', 'null::text'],
     ['ementa', 'null::text'],
     ['situacao_atual', 'null::text'],
+    ['data_situacao_atual', 'null::date'],
+    ['fl_tramitando', 'null::int'],
     ['regime', 'null::text'],
     ['autoria', 'null::text'],
     ['norma_gerada', 'null::text'],
+    ['relator_atual_id_nk', 'null::int'],
     ['sk_data', '1'],
     ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}
