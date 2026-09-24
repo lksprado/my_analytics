@@ -219,6 +219,9 @@ models:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "qt_votantes = qt_votos_sim + qt_votos_nao + qt_obstrucao"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "(fl_resultado_alinhado_governo IS NULL) = (motivo_resultado_nao_classificado IS NOT NULL)"
     columns:
       - name: sk_votacao
         description: "Chave da votação."
@@ -229,6 +232,8 @@ models:
         description: "Chave natural da votação na casa."
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
+      - name: sessao_id
+        description: "Id da sessão em que a votação ocorreu."
       - name: sk_data
         description: "Chave da data da votação."
         tests:
@@ -263,18 +268,35 @@ models:
                 field: sk_tipo_votacao
       - name: descricao
         description: "Descrição da votação."
+      - name: modalidade_votacao
+        description: "Modalidade (NOMINAL ABERTA, NOMINAL SECRETA, SEM REGISTRO NOMINAL)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['NOMINAL ABERTA', 'NOMINAL SECRETA', 'SEM REGISTRO NOMINAL']
       - name: orientacao_governo
-        description: "Orientação do Governo."
+        description: "Orientação do Governo (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO)."
       - name: fl_aprovada
-        description: "1 quando a votação foi aprovada."
+        description: "1 quando a votação foi aprovada, 0 quando rejeitada; nulo quando o resultado não é binário."
       - name: fl_nominal
         description: "1 quando a votação teve votos nominais."
       - name: fl_secreta
         description: "1 quando a votação foi secreta."
       - name: fl_governo_orientou
         description: "1 quando o Governo orientou SIM, NÃO ou OBSTRUÇÃO."
-      - name: fl_governo_venceu
-        description: "1 quando o resultado seguiu a orientação SIM/NÃO do Governo, 0 quando contrariou."
+      - name: fl_resultado_alinhado_governo
+        description: "1 quando o resultado seguiu a orientação do Governo, 0 quando contrariou."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: motivo_resultado_nao_classificado
+        description: "Motivo de o resultado não ser classificado (SEM ORIENTACAO, LIBERADO, ORIENTACAO ABSTENCAO, RESULTADO NAO BINARIO)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['SEM ORIENTACAO', 'LIBERADO', 'ORIENTACAO ABSTENCAO', 'RESULTADO NAO BINARIO']
       - name: qt_votos_sim
         description: Votos SIM.
       - name: qt_votos_nao
@@ -542,12 +564,17 @@ models:
                 field: sk_parlamentar
       - name: legislatura
         description: "Número da legislatura."
-      - name: qt_votos_alinhados_legislatura
-        description: "Votos alinhados ao Governo na legislatura."
-      - name: qt_votos_legislatura
-        description: "Votos em votações orientadas pelo Governo na legislatura."
-      - name: perc_governismo_legislatura
-        description: "Percentual de governismo na legislatura (0–100)."
+      - name: qt_votos_alinhados_governo
+        description: "Votos alinhados ao Governo."
+      - name: qt_votos_governismo
+        description: "Votos em votações orientadas pelo Governo."
+      - name: governismo_pct_modelo
+        description: "Governismo calculado pelo modelo (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -572,12 +599,17 @@ models:
         description: "Ano da votação."
       - name: trimestre
         description: "Trimestre da votação (1 a 4)."
-      - name: qt_votos_alinhados_trimestre
-        description: "Votos alinhados ao Governo no trimestre."
-      - name: qt_votos_trimestre
-        description: "Votos em votações orientadas pelo Governo no trimestre."
-      - name: perc_governismo_trimestre
-        description: "Percentual de governismo no trimestre (0–100)."
+      - name: qt_votos_alinhados_governo
+        description: "Votos alinhados ao Governo."
+      - name: qt_votos_governismo
+        description: "Votos em votações orientadas pelo Governo."
+      - name: governismo_pct_modelo
+        description: "Governismo calculado pelo modelo (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -605,12 +637,17 @@ models:
         description: "Id do parlamentar no Radar Congresso."
       - name: legislatura
         description: "Legislatura do acumulado."
-      - name: qt_votos_alinhados_legislatura
-        description: "Votos alinhados ao Governo no mandato."
-      - name: qt_votos_legislatura
-        description: "Votos em votações orientadas pelo Governo no mandato."
-      - name: perc_governismo_legislatura
-        description: "Percentual de governismo no mandato (0–100)."
+      - name: qt_votos_alinhados_radar
+        description: "Votos alinhados ao Governo no mandato, segundo o Radar."
+      - name: qt_votos_radar
+        description: "Votos considerados pelo Radar no mandato."
+      - name: governismo_pct_radar
+        description: "Governismo publicado pelo Radar no mandato (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -645,25 +682,34 @@ models:
         description: Trimestre medido (1 a 4).
       - name: data_trimestre
         description: "Data de referência do trimestre no Radar."
-      - name: perc_governismo_trimestre
-        description: "Percentual de governismo no trimestre (0–100)."
+      - name: governismo_pct_radar
+        description: "Governismo publicado pelo Radar no trimestre (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
 unit_tests:
 
-  - name: fct_votacoes_placar_e_sucesso_do_governo
+  - name: fct_votacoes_placar_e_resultado_alinhado_governo
     description: >
-      Votantes são só SIM, NÃO e OBSTRUÇÃO; abstenção, presença sem voto e ausência têm contagem
-      própria. fl_nominal nasce do placar, não da casa. O governo vence quando o resultado segue a
-      orientação SIM/NÃO; LIBERADO não é orientação. Proposição sem par na dimensão vai para null_key.
+      Votantes são só SIM, NÃO e OBSTRUÇÃO. O resultado é alinhado ao Governo quando segue a
+      orientação SIM, ou NÃO/OBSTRUÇÃO com rejeição; sem classificação, o motivo fica explícito.
+      A modalidade separa nominal aberta, nominal secreta e sem registro nominal.
     model: fct_votacoes
     given:
       - input: ref('int_votacoes_unificadas')
         rows:
-          - {casa: CAMARA, votacao_id_nk: '1-1', data_votacao: '2023-05-10', sigla_orgao: PLEN, descricao: A, proposicao_id_nk: 10, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}
-          - {casa: CAMARA, votacao_id_nk: '1-2', data_votacao: '2023-05-10', sigla_orgao: CCJC, descricao: B, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0, classe_votacao: PARECER}
-          - {casa: SENADO, votacao_id_nk: '99', data_votacao: '2023-05-11', sigla_orgao: PLEN, descricao: C, proposicao_id_nk: 20, aprovado: 1, fl_secreta: 1, classe_votacao: AUTORIDADE}
+          - {casa: CAMARA, votacao_id_nk: '1-1', sessao_id: '395', data_votacao: '2023-05-10', sigla_orgao: PLEN, descricao: A, proposicao_id_nk: 10, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}
+          - {casa: CAMARA, votacao_id_nk: '1-2', sessao_id: '395', data_votacao: '2023-05-10', sigla_orgao: CCJC, descricao: B, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0, classe_votacao: PARECER}
+          - {casa: SENADO, votacao_id_nk: '99', sessao_id: '7', data_votacao: '2023-05-11', sigla_orgao: PLEN, descricao: C, proposicao_id_nk: 20, aprovado: 1, fl_secreta: 1, classe_votacao: AUTORIDADE}
+          - {casa: CAMARA, votacao_id_nk: '1-3', sessao_id: '396', data_votacao: '2023-05-12', sigla_orgao: PLEN, descricao: D, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0, classe_votacao: MERITO}
+          - {casa: CAMARA, votacao_id_nk: '1-4', sessao_id: '396', data_votacao: '2023-05-12', sigla_orgao: PLEN, descricao: E, proposicao_id_nk: null, aprovado: null, fl_secreta: 0, classe_votacao: MERITO}
+          - {casa: CAMARA, votacao_id_nk: '1-5', sessao_id: '396', data_votacao: '2023-05-12', sigla_orgao: PLEN, descricao: F, proposicao_id_nk: null, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}
+          - {casa: CAMARA, votacao_id_nk: '1-6', sessao_id: '396', data_votacao: '2023-05-12', sigla_orgao: PLEN, descricao: G, proposicao_id_nk: null, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}
       - input: ref('int_votos_unificados')
         rows:
           - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-1', partido: PT, voto: SIM, categoria: VOTOU}
@@ -674,12 +720,19 @@ unit_tests:
           - {casa: SENADO, parlamentar_id_nk: 7, votacao_id_nk: '99', partido: PT, voto: null, categoria: VOTO SECRETO}
           - {casa: SENADO, parlamentar_id_nk: 8, votacao_id_nk: '99', partido: PL, voto: null, categoria: AUSENCIA JUSTIFICADA}
           - {casa: SENADO, parlamentar_id_nk: 9, votacao_id_nk: '99', partido: PL, voto: null, categoria: PRESENTE SEM VOTO}
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-3', partido: PT, voto: NAO, categoria: VOTOU}
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-4', partido: PT, voto: SIM, categoria: VOTOU}
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-5', partido: PT, voto: SIM, categoria: VOTOU}
+          - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-6', partido: PT, voto: SIM, categoria: VOTOU}
       - input: ref('int_orientacoes_unificadas')
         rows:
           - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: GOVERNO, orientacao_voto: SIM}
           - {casa: CAMARA, votacao_id_nk: '1-1', sigla_lideranca: PT, orientacao_voto: SIM}
           - {casa: CAMARA, votacao_id_nk: '1-2', sigla_lideranca: GOVERNO, orientacao_voto: LIBERADO}
           - {casa: SENADO, votacao_id_nk: '99', sigla_lideranca: GOVERNO, orientacao_voto: NAO}
+          - {casa: CAMARA, votacao_id_nk: '1-3', sigla_lideranca: GOVERNO, orientacao_voto: OBSTRUCAO}
+          - {casa: CAMARA, votacao_id_nk: '1-4', sigla_lideranca: GOVERNO, orientacao_voto: SIM}
+          - {casa: CAMARA, votacao_id_nk: '1-6', sigla_lideranca: GOVERNO, orientacao_voto: ABSTENCAO}
       - input: ref('dim_proposicoes')
         rows:
           - {sk_proposicao: p10, casa: CAMARA, proposicao_id_nk: 10}
@@ -695,9 +748,13 @@ unit_tests:
           - {sk_tipo_votacao: tv_autoridade_secreta, classe_votacao: AUTORIDADE, fl_nominal: 0, fl_secreta: 1}
     expect:
       rows:
-        - {votacao_id_nk: '1-1', sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, orientacao_governo: SIM, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_governo_venceu: 1, qt_votos_sim: 1, qt_votos_nao: 1, qt_obstrucao: 1, qt_abstencao: 1, qt_votantes: 3, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 2}
-        - {votacao_id_nk: '1-2', sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_ccjc, sk_tipo_votacao: tv_parecer, orientacao_governo: LIBERADO, fl_aprovada: 0, fl_nominal: 0, fl_secreta: 0, fl_governo_orientou: 0, fl_governo_venceu: null, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 0}
-        - {votacao_id_nk: '99', sk_data: 20230511, sk_proposicao: '0', sk_orgao: o_plen_s, sk_tipo_votacao: tv_autoridade_secreta, orientacao_governo: NAO, fl_aprovada: 1, fl_nominal: 0, fl_secreta: 1, fl_governo_orientou: 1, fl_governo_venceu: 0, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 1, qt_ausentes: 1, qt_partidos: 0}
+        - {votacao_id_nk: '1-1', sessao_id: '395', sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: SIM, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_resultado_alinhado_governo: 1, motivo_resultado_nao_classificado: null, qt_votos_sim: 1, qt_votos_nao: 1, qt_obstrucao: 1, qt_abstencao: 1, qt_votantes: 3, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 2}
+        - {votacao_id_nk: '1-2', sessao_id: '395', sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_ccjc, sk_tipo_votacao: tv_parecer, modalidade_votacao: SEM REGISTRO NOMINAL, orientacao_governo: LIBERADO, fl_aprovada: 0, fl_nominal: 0, fl_secreta: 0, fl_governo_orientou: 0, fl_resultado_alinhado_governo: null, motivo_resultado_nao_classificado: LIBERADO, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 0}
+        - {votacao_id_nk: '99', sessao_id: '7', sk_data: 20230511, sk_proposicao: '0', sk_orgao: o_plen_s, sk_tipo_votacao: tv_autoridade_secreta, modalidade_votacao: NOMINAL SECRETA, orientacao_governo: NAO, fl_aprovada: 1, fl_nominal: 0, fl_secreta: 1, fl_governo_orientou: 1, fl_resultado_alinhado_governo: 0, motivo_resultado_nao_classificado: null, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 1, qt_ausentes: 1, qt_partidos: 0}
+        - {votacao_id_nk: '1-3', sessao_id: '396', sk_data: 20230512, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: OBSTRUCAO, fl_aprovada: 0, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_resultado_alinhado_governo: 1, motivo_resultado_nao_classificado: null, qt_votos_sim: 0, qt_votos_nao: 1, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 1, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 1}
+        - {votacao_id_nk: '1-4', sessao_id: '396', sk_data: 20230512, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: SIM, fl_aprovada: null, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_resultado_alinhado_governo: null, motivo_resultado_nao_classificado: RESULTADO NAO BINARIO, qt_votos_sim: 1, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 1, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 1}
+        - {votacao_id_nk: '1-5', sessao_id: '396', sk_data: 20230512, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: null, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 0, fl_resultado_alinhado_governo: null, motivo_resultado_nao_classificado: SEM ORIENTACAO, qt_votos_sim: 1, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 1, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 1}
+        - {votacao_id_nk: '1-6', sessao_id: '396', sk_data: 20230512, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: ABSTENCAO, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 0, fl_resultado_alinhado_governo: null, motivo_resultado_nao_classificado: ORIENTACAO ABSTENCAO, qt_votos_sim: 1, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 1, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 1}
 
   - name: fct_votos_flags_de_alinhamento
     description: >

@@ -26,6 +26,7 @@ final AS (
     SELECT
         casa,
         votacao_id_nk,
+        sessao_id,
         data_votacao,
         sigla_orgao,
         descricao,

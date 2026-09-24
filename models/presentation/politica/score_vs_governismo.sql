@@ -44,11 +44,11 @@ metricas AS (
         SUM(fl_seguiu_governo)
             AS qt_votos_alinhados_governo,
         ROUND(100.0 * SUM(fl_seguiu_governo) / NULLIF(COUNT(fl_seguiu_governo), 0), 2)
-            AS perc_governismo,
+            AS governismo_pct_modelo,
         NULLIF(COUNT(fl_seguiu_partido), 0)
             AS qt_votos_disciplina,
         ROUND(100.0 * SUM(fl_seguiu_partido) / NULLIF(COUNT(fl_seguiu_partido), 0), 2)
-            AS perc_disciplina
+            AS disciplina_pct
     FROM votos_ano
     GROUP BY sk_parlamentar, ano
 ),
@@ -121,9 +121,9 @@ base AS (
         t1.fl_componentes_normalizados,
         t3.qt_votos_governismo,
         t3.qt_votos_alinhados_governo,
-        t3.perc_governismo,
+        t3.governismo_pct_modelo,
         t3.qt_votos_disciplina,
-        t3.perc_disciplina
+        t3.disciplina_pct
     FROM score AS t1
     LEFT JOIN {{ ref('dim_parlamentares') }} AS t2
         ON t1.sk_parlamentar = t2.sk_parlamentar
@@ -135,91 +135,38 @@ base AS (
         ON t1.sk_parlamentar = t6.sk_parlamentar AND t1.ano = t6.ano
 ),
 
--- Percentis na mesma população; o corte de 30 votos tira governismo sem base.
-elegiveis AS (
-    SELECT *
-    FROM base
-    WHERE pontuacao IS NOT NULL
-        AND qt_votos_governismo >= 30
-),
-
-medianas AS (
-    SELECT
-        casa,
-        ano,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY perc_governismo)
-            AS mediana_governismo,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY pontuacao)
-            AS mediana_pontuacao
-    FROM elegiveis
-    GROUP BY casa, ano
-),
-
-qualificados AS (
-    SELECT
-        t1.sk_parlamentar,
-        t1.ano,
-        t2.mediana_governismo,
-        t2.mediana_pontuacao,
-        PERCENT_RANK() OVER (PARTITION BY t1.casa, t1.ano ORDER BY t1.perc_governismo)
-            AS percentil_governismo,
-        PERCENT_RANK() OVER (PARTITION BY t1.casa, t1.ano ORDER BY t1.pontuacao)
-            AS percentil_pontuacao
-    FROM elegiveis AS t1
-    INNER JOIN medianas AS t2
-        ON t1.casa = t2.casa AND t1.ano = t2.ano
-),
-
 final AS (
     SELECT
-        t1.sk_parlamentar,
-        t1.deputado_id_nk,
-        t1.senador_id_nk,
-        t1.casa,
-        t1.nome,
-        t1.uf,
-        t1.regiao,
-        t1.sk_partido,
-        t1.partido_predominante,
-        t1.ano,
-        t1.legislatura,
+        sk_parlamentar,
+        deputado_id_nk,
+        senador_id_nk,
+        casa,
+        nome,
+        uf,
+        regiao,
+        sk_partido,
+        partido_predominante,
+        ano,
+        legislatura,
 
-        t1.pontuacao,
-        t1.nota_base_votacoes,
-        t1.nota_base_gastos,
-        t1.nota_base_presenca,
-        t1.nota_base_privilegios,
-        t1.bonus_processos,
-        t1.bonus_producao_legislativa,
-        t1.bonus_articulacao_legislativa,
-        t1.fl_componentes_normalizados,
+        pontuacao,
+        nota_base_votacoes,
+        nota_base_gastos,
+        nota_base_presenca,
+        nota_base_privilegios,
+        bonus_processos,
+        bonus_producao_legislativa,
+        bonus_articulacao_legislativa,
+        fl_componentes_normalizados,
 
-        t1.qt_votos_governismo,
-        t1.qt_votos_alinhados_governo,
-        t1.perc_governismo,
-        t1.qt_votos_disciplina,
-        t1.perc_disciplina,
-
-        ROUND(t2.percentil_governismo::NUMERIC, 4)
-            AS percentil_governismo,
-        ROUND(t2.percentil_pontuacao::NUMERIC, 4)
-            AS percentil_pontuacao,
-        ROUND(t2.percentil_pontuacao::NUMERIC, 4) - ROUND(t2.percentil_governismo::NUMERIC, 4)
-            AS gap_percentil,
-        CASE
-            WHEN t2.sk_parlamentar IS NULL THEN NULL
-            WHEN t1.perc_governismo >= t2.mediana_governismo
-                AND t1.pontuacao >= t2.mediana_pontuacao THEN 'GOVERNISTA BEM AVALIADO'
-            WHEN t1.perc_governismo >= t2.mediana_governismo THEN 'GOVERNISTA MAL AVALIADO'
-            WHEN t1.pontuacao >= t2.mediana_pontuacao THEN 'OPOSICAO BEM AVALIADA'
-            ELSE 'OPOSICAO MAL AVALIADA'
-        END
-            AS quadrante,
+        qt_votos_governismo,
+        qt_votos_alinhados_governo,
+        governismo_pct_modelo,
+        qt_votos_disciplina,
+        disciplina_pct,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
-    FROM base AS t1
-    LEFT JOIN qualificados AS t2
-        ON t1.sk_parlamentar = t2.sk_parlamentar AND t1.ano = t2.ano
+    FROM base
 )
 
 SELECT * FROM final

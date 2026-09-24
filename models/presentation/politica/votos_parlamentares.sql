@@ -52,11 +52,8 @@ final AS (
         t4.rotulo
             AS partido_rotulo,
         t1.voto,
-        -- LIBERADO não é orientação: fica nulo, como quando a liderança não se manifesta.
-        CASE WHEN t1.fl_seguiu_governo IS NOT NULL THEN t1.orientacao_governo END
-            AS orientacao_governo,
-        CASE WHEN t1.fl_seguiu_partido IS NOT NULL THEN t1.orientacao_partido END
-            AS orientacao_partido,
+        t1.orientacao_governo,
+        t1.orientacao_partido,
         t1.fl_seguiu_governo,
         t1.fl_seguiu_partido,
         t1.fl_votou_com_resultado,
@@ -71,8 +68,8 @@ final AS (
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
     FROM votos AS t1
-    -- Contexto via votacoes_placar: juntar as tabelas inteiras estoura a memória compartilhada do Postgres.
-    INNER JOIN {{ ref('votacoes_placar') }} AS t2
+    -- Contexto via votacoes: juntar as tabelas inteiras estoura a memória compartilhada do Postgres.
+    INNER JOIN {{ ref('votacoes') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
     LEFT JOIN {{ ref('dim_parlamentares') }} AS t3
         ON t1.sk_parlamentar = t3.sk_parlamentar

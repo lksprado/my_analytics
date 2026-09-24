@@ -81,7 +81,7 @@ erDiagram
         text orientacao_governo "DD"
         int  fl_aprovada
         int  fl_nominal
-        int  fl_governo_venceu
+        int  fl_resultado_alinhado_governo
         int  qt_votantes
     }
     fct_votos {
@@ -106,13 +106,13 @@ erDiagram
     fct_governismo_legislatura {
         text sk_parlamentar FK
         int  legislatura
-        int  qt_votos_alinhados_legislatura
-        int  qt_votos_legislatura
+        int  qt_votos_alinhados_governo
+        int  qt_votos_governismo
     }
     fct_radarcongresso_governismo_legislatura {
         text sk_parlamentar FK
         int  legislatura
-        int  perc_governismo_legislatura
+        int  governismo_pct_radar
     }
     dim_calendario_legislativo {
         int  data_sk PK "mesma chave de dim_datas"

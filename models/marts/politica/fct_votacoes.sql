@@ -44,6 +44,7 @@ medidas AS (
     SELECT
         v.casa,
         v.votacao_id_nk,
+        v.sessao_id,
         v.data_votacao,
         v.sigla_orgao,
         v.classe_votacao,
@@ -53,12 +54,23 @@ medidas AS (
         v.aprovado                                                                     AS fl_aprovada,
         CAST(COALESCE(pl.qt_votantes, 0) > 0 AS INTEGER)                               AS fl_nominal,
         v.fl_secreta,
+        CASE
+            WHEN v.fl_secreta = 1 THEN 'NOMINAL SECRETA'
+            WHEN COALESCE(pl.qt_votantes, 0) > 0 THEN 'NOMINAL ABERTA'
+            ELSE 'SEM REGISTRO NOMINAL'
+        END                                                                            AS modalidade_votacao,
         COALESCE(CAST(g.orientacao_voto IN ('SIM', 'NAO', 'OBSTRUCAO') AS INTEGER), 0) AS fl_governo_orientou,
-        -- Obstrução e liberação não indicam o resultado desejado.
-        CASE g.orientacao_voto
-            WHEN 'SIM' THEN v.aprovado
-            WHEN 'NAO' THEN 1 - v.aprovado
-        END                                                                            AS fl_governo_venceu,
+        -- Obstrução busca derrubar a matéria: conta como NÃO.
+        CASE
+            WHEN g.orientacao_voto = 'SIM' THEN v.aprovado
+            WHEN g.orientacao_voto IN ('NAO', 'OBSTRUCAO') THEN 1 - v.aprovado
+        END                                                                            AS fl_resultado_alinhado_governo,
+        CASE
+            WHEN g.orientacao_voto IS NULL THEN 'SEM ORIENTACAO'
+            WHEN g.orientacao_voto = 'LIBERADO' THEN 'LIBERADO'
+            WHEN g.orientacao_voto NOT IN ('SIM', 'NAO', 'OBSTRUCAO') THEN 'ORIENTACAO ' || g.orientacao_voto
+            WHEN v.aprovado IS NULL THEN 'RESULTADO NAO BINARIO'
+        END                                                                            AS motivo_resultado_nao_classificado,
         COALESCE(pl.qt_votos_sim, 0)                                                   AS qt_votos_sim,
         COALESCE(pl.qt_votos_nao, 0)                                                   AS qt_votos_nao,
         COALESCE(pl.qt_obstrucao, 0)                                                   AS qt_obstrucao,
@@ -81,17 +93,20 @@ final AS (
         {{ dbt_utils.generate_surrogate_key(['m.casa', 'm.votacao_id_nk']) }} AS sk_votacao,
         m.votacao_id_nk,
         m.casa,
+        m.sessao_id,
         CAST(TO_CHAR(m.data_votacao, 'YYYYMMDD') AS INTEGER)                  AS sk_data,
         COALESCE(m.sk_proposicao, '{{ var("null_key") }}')                    AS sk_proposicao,
         COALESCE(o.sk_orgao, '{{ var("null_key") }}')                         AS sk_orgao,
         COALESCE(t.sk_tipo_votacao, '{{ var("null_key") }}')                  AS sk_tipo_votacao,
         m.descricao,
+        m.modalidade_votacao,
         m.orientacao_governo,
         m.fl_aprovada,
         m.fl_nominal,
         m.fl_secreta,
         m.fl_governo_orientou,
-        m.fl_governo_venceu,
+        m.fl_resultado_alinhado_governo,
+        m.motivo_resultado_nao_classificado,
         m.qt_votos_sim,
         m.qt_votos_nao,
         m.qt_obstrucao,
@@ -105,10 +120,9 @@ final AS (
     LEFT JOIN {{ ref('dim_orgaos') }} AS o
         ON m.casa = o.casa AND m.sigla_orgao = o.sigla_orgao
     LEFT JOIN {{ ref('dim_tipo_votacao') }} AS t
-        ON
-            m.classe_votacao = t.classe_votacao
-            AND m.fl_nominal = t.fl_nominal
-            AND m.fl_secreta = t.fl_secreta
+        ON m.classe_votacao = t.classe_votacao
+        AND m.fl_nominal = t.fl_nominal
+        AND m.fl_secreta = t.fl_secreta
 )
 
 SELECT * FROM final

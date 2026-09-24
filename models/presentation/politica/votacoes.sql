@@ -5,7 +5,6 @@
 WITH
 votacoes AS (
     SELECT * FROM {{ ref('fct_votacoes') }}
-    WHERE fl_nominal = 1
 ),
 
 calendario AS (
@@ -36,6 +35,7 @@ final AS (
         t1.sk_votacao,
         t1.votacao_id_nk,
         t1.casa,
+        t1.sessao_id,
         t2.data
             AS data_votacao,
         t2.ano,
@@ -49,6 +49,7 @@ final AS (
         t4.tipo_orgao,
         t5.classe_votacao,
         t5.grupo_votacao,
+        t1.modalidade_votacao,
         t1.descricao,
         t3.tipo_proposicao,
         t3.proposicao_id_nk,
@@ -57,33 +58,36 @@ final AS (
         t3.ementa,
         t3.data_proposicao,
         t1.fl_aprovada,
-        CASE t1.fl_aprovada WHEN 1 THEN 'APROVADA' WHEN 0 THEN 'REJEITADA' END
+        CASE t1.fl_aprovada WHEN 1 THEN 'APROVADA' WHEN 0 THEN 'REJEITADA' ELSE 'NAO BINARIO' END
             AS resultado,
-        t1.qt_votantes,
-        t1.qt_votos_sim,
-        t1.qt_votos_nao,
-        t1.qt_obstrucao,
-        t1.qt_partidos,
-        t1.qt_votos_sim - t1.qt_votos_nao
+        -- O placar só existe onde há registro nominal aberto.
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votantes END
+            AS qt_votantes,
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votos_sim END
+            AS qt_votos_sim,
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votos_nao END
+            AS qt_votos_nao,
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_obstrucao END
+            AS qt_obstrucao,
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_abstencao END
+            AS qt_abstencao,
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_partidos END
+            AS qt_partidos,
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votos_sim - t1.qt_votos_nao END
             AS margem,
         ROUND(100.0 * t1.qt_votos_sim / NULLIF(t1.qt_votantes, 0), 2)
-            AS perc_sim,
-        -- LIBERADO não é orientação: fica nulo, como quando o governo não se manifesta.
-        CASE WHEN t1.fl_governo_orientou = 1 THEN t1.orientacao_governo END
-            AS orientacao_governo,
+            AS sim_pct,
+        t1.orientacao_governo,
         t1.fl_governo_orientou,
-        t1.fl_governo_venceu,
-        CASE
-            WHEN t1.fl_governo_venceu = 1 THEN 'VENCEU'
-            WHEN t1.fl_governo_venceu = 0 THEN 'PERDEU'
-            WHEN t1.fl_governo_orientou = 1 THEN 'OBSTRUCAO'
-            ELSE 'SEM ORIENTACAO'
+        t1.fl_resultado_alinhado_governo,
+        CASE t1.fl_resultado_alinhado_governo
+            WHEN 1 THEN 'ALINHADO'
+            WHEN 0 THEN 'NAO ALINHADO'
+            ELSE t1.motivo_resultado_nao_classificado
         END
-            AS resultado_governo,
-        (t1.qt_votos_sim = 0 OR t1.qt_votos_nao = 0)::INT
+            AS resultado_alinhado_governo,
+        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN (t1.qt_votos_sim = 0 OR t1.qt_votos_nao = 0)::INT END
             AS fl_unanimidade,
-        (ROUND(100.0 * t1.qt_votos_sim / NULLIF(t1.qt_votantes, 0), 2) BETWEEN 45 AND 55)::INT
-            AS fl_votacao_apertada,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
     FROM votacoes AS t1
@@ -98,4 +102,3 @@ final AS (
 )
 
 SELECT * FROM final
-ORDER BY data_votacao DESC

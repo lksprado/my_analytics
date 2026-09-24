@@ -8,24 +8,24 @@ Tabelas largas, prontas para visualização, sobre as votações da Câmara e do
 | --------- | ----------------------------------------------------------------------- |
 | `fl_*`    | 0/1: a média é a taxa, a soma é a contagem                              |
 | `qt_*`    | Contagem, somável                                                       |
-| `perc_*`  | Percentual 0–100; não somar nem tirar média, recalcular pelas contagens |
+| `*_pct`   | Percentual 0–100; não somar nem tirar média, recalcular pelas contagens |
 | Rótulos   | Texto em maiúsculas sem acento, pronto para legenda e filtro            |
 | `partido` | Rótulo da entidade partidária; siglas reutilizadas levam o período      |
 | `sk_*`    | Chave para drill-through entre tabelas                                  |
 
 ## Votações
 
-| Tabela                | Grão                  | Responde                                                                                                          |
-| --------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `votacoes_placar`     | votação nominal       | Placar, margem, apertadas e unânimes; sucesso do Governo por presidente, classe (mérito × procedimental) e órgão  |
-| `votos_parlamentares` | parlamentar × votação | Voto a voto: segue Governo, segue partido, lado vencedor, alinhamento em quatro quadrantes, perfil do parlamentar |
+| Tabela                | Grão                  | Responde                                                                                                                        |
+| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `votacoes`            | votação               | Placar, margem e unanimidade; resultado alinhado ao Governo por presidente, classe (mérito × procedimental), órgão e modalidade |
+| `votos_parlamentares` | parlamentar × votação | Voto a voto: segue Governo, segue partido, lado vencedor, alinhamento em quatro quadrantes, perfil do parlamentar               |
 
 ## Parlamentar
 
-| Tabela                | Grão                      | Responde                                                                                                                    |
-| --------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `painel_parlamentar`  | parlamentar × legislatura | Ficha e ranking: governismo bruto e ajustado, disciplina, participação, votos vencedores, Ranking dos Políticos e quadrante |
-| `score_vs_governismo` | parlamentar × ano         | Avaliação do Ranking dos Políticos × governismo no mesmo ano                                                                |
+| Tabela                | Grão                      | Responde                                                                                        |
+| --------------------- | ------------------------- | ----------------------------------------------------------------------------------------------- |
+| `painel_parlamentar`  | parlamentar × legislatura | Ficha e ranking: governismo, disciplina, participação, votos vencedores e Ranking dos Políticos |
+| `score_vs_governismo` | parlamentar × ano         | Avaliação do Ranking dos Políticos × governismo no mesmo ano                                    |
 
 ## Bancada
 

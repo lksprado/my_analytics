@@ -112,11 +112,11 @@ final AS (
         t1.qt_votos_governismo,
         t1.qt_votos_alinhados_governo,
         ROUND(100.0 * t1.qt_votos_alinhados_governo / t1.qt_votos_governismo, 2)
-            AS perc_governismo,
+            AS governismo_pct_modelo,
         t1.qt_votos_disciplina,
         t1.qt_votos_disciplinados,
         ROUND(100.0 * t1.qt_votos_disciplinados / t1.qt_votos_disciplina, 2)
-            AS perc_disciplina,
+            AS disciplina_pct,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
     FROM bancada AS t1

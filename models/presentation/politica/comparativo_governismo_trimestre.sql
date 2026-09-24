@@ -5,7 +5,7 @@
 WITH
 legislatura_corrente AS (
     SELECT MAX(legislatura) AS legislatura
-    FROM {{ ref('votacoes_placar') }}
+    FROM {{ ref('votacoes') }}
 ),
 
 -- Trimestre sem percentual no radar também não tem voto nosso: a linha não informa nada.
@@ -17,11 +17,11 @@ radar AS (
         ano,
         trimestre,
         data_trimestre,
-        perc_governismo_trimestre
+        governismo_pct_radar
     FROM {{ ref('fct_radarcongresso_governismo_trimestre') }}
 ),
 
-oficial AS (
+modelo AS (
     SELECT
         sk_parlamentar,
         ano,
@@ -29,7 +29,7 @@ oficial AS (
         COUNT(*)
             AS qt_votos,
         ROUND(100.0 * COUNT(*) FILTER (WHERE fl_seguiu_governo = 1) / NULLIF(COUNT(*), 0), 2)
-            AS perc_governismo
+            AS governismo_pct
     FROM {{ ref('votos_parlamentares') }}
     WHERE legislatura = (SELECT legislatura FROM legislatura_corrente)
         AND fl_seguiu_governo IS NOT NULL
@@ -74,17 +74,16 @@ comparado AS (
         t1.trimestre,
         t1.data_trimestre,
         t3.qt_votos
-            AS qt_votos_oficial,
-        t3.perc_governismo
-            AS perc_governismo_oficial,
-        t1.perc_governismo_trimestre
-            AS perc_governismo_radar,
-        t3.perc_governismo - t1.perc_governismo_trimestre
+            AS qt_votos_modelo,
+        t3.governismo_pct
+            AS governismo_pct_modelo,
+        t1.governismo_pct_radar,
+        t3.governismo_pct - t1.governismo_pct_radar
             AS diferenca_pp
     FROM radar AS t1
     INNER JOIN {{ ref('dim_parlamentares') }} AS t2
         ON t1.sk_parlamentar = t2.sk_parlamentar
-    LEFT JOIN oficial AS t3
+    LEFT JOIN modelo AS t3
         ON t2.sk_parlamentar = t3.sk_parlamentar
         AND t1.ano = t3.ano
         AND t1.trimestre = t3.trimestre
@@ -98,7 +97,7 @@ final AS (
         ABS(t1.diferenca_pp)
             AS diferenca_abs_pp,
         CASE
-            WHEN t1.perc_governismo_oficial IS NULL THEN 'SO RADAR'
+            WHEN t1.governismo_pct_modelo IS NULL THEN 'SO RADAR'
             ELSE 'AMBAS'
         END
             AS fonte_disponivel,

@@ -16,11 +16,11 @@ final AS (
             AS qt_parlamentares,
         COUNT(*) FILTER (WHERE fonte_disponivel = 'AMBAS')
             AS qt_parlamentares_ambas_fontes,
-        ROUND(AVG(perc_governismo_oficial), 2)
-            AS perc_governismo_oficial_medio,
-        ROUND(AVG(perc_governismo_radar), 2)
-            AS perc_governismo_radar_medio,
-        ROUND(CORR(perc_governismo_oficial, perc_governismo_radar)::NUMERIC, 4)
+        ROUND(AVG(governismo_pct_modelo), 2)
+            AS governismo_pct_modelo_medio,
+        ROUND(AVG(governismo_pct_radar), 2)
+            AS governismo_pct_radar_medio,
+        ROUND(CORR(governismo_pct_modelo, governismo_pct_radar)::NUMERIC, 4)
             AS correlacao,
         ROUND(AVG(diferenca_abs_pp), 2)
             AS erro_absoluto_medio,

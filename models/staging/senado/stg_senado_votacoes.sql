@@ -18,6 +18,7 @@ SELECT
     numero,
     numerosessao::INT                   AS numero_sessao,
     sigla,
+    informelegislativo_siglacolegiado   AS sigla_colegiado,
     descricaovotacao                    AS descricao_votacao,
     siglatiposessao                     AS sigla_tipo_sessao,
     totalvotosabstencao::INT            AS total_votos_abstencao,
@@ -34,9 +35,10 @@ SELECT
         WHEN votacaosecreta = 'N' THEN 'NAO'
         WHEN votacaosecreta = 'S' THEN 'SIM'
     END                                 AS votacao_secreta,
+    -- Empate e prejudicado não são resultado binário.
     CASE
         WHEN resultadovotacao = 'A' THEN 1
-        WHEN resultadovotacao IN ('R', 'E', 'P') THEN 0
+        WHEN resultadovotacao = 'R' THEN 0
     END                                 AS aprovado,
     loaded_at_utc,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at

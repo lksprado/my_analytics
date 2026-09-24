@@ -5,7 +5,7 @@
 WITH
 legislatura_corrente AS (
     SELECT MAX(legislatura) AS legislatura
-    FROM {{ ref('votacoes_placar') }}
+    FROM {{ ref('votacoes') }}
 ),
 
 radar AS (
@@ -13,9 +13,9 @@ radar AS (
         sk_parlamentar,
         casa,
         radar_parlamentar_id_nk,
-        qt_votos_legislatura,
-        qt_votos_alinhados_legislatura,
-        perc_governismo_legislatura
+        qt_votos_radar,
+        qt_votos_alinhados_radar,
+        governismo_pct_radar
     FROM {{ ref('fct_radarcongresso_governismo_legislatura') }}
     WHERE legislatura = (SELECT legislatura FROM legislatura_corrente)
 ),
@@ -28,7 +28,7 @@ janela_radar AS (
     FROM {{ ref('fct_radarcongresso_governismo_trimestre') }}
 ),
 
-oficial_janela AS (
+modelo_janela AS (
     SELECT
         t1.sk_parlamentar,
         COUNT(*)
@@ -43,11 +43,11 @@ oficial_janela AS (
     GROUP BY t1.sk_parlamentar
 ),
 
-oficial_completa AS (
+modelo_completa AS (
     SELECT
         sk_parlamentar,
         ROUND(100.0 * COUNT(*) FILTER (WHERE fl_seguiu_governo = 1) / NULLIF(COUNT(*), 0), 2)
-            AS perc_governismo
+            AS governismo_pct
     FROM {{ ref('votos_parlamentares') }}
     WHERE legislatura = (SELECT legislatura FROM legislatura_corrente)
         AND fl_seguiu_governo IS NOT NULL
@@ -89,30 +89,27 @@ comparado AS (
         t1.radar_parlamentar_id_nk
             AS id_parlamentar_radar,
         t3.qt_votos
-            AS qt_votos_oficial,
+            AS qt_votos_modelo,
         t3.qt_votos_alinhados
-            AS qt_votos_alinhados_oficial,
-        t1.qt_votos_legislatura
-            AS qt_votos_radar,
-        t1.qt_votos_alinhados_legislatura
-            AS qt_votos_alinhados_radar,
-        t1.perc_governismo_legislatura
-            AS perc_governismo_radar,
-        t4.perc_governismo
-            AS perc_governismo_oficial_legislatura_completa,
+            AS qt_votos_alinhados_modelo,
+        t1.qt_votos_radar,
+        t1.qt_votos_alinhados_radar,
+        t1.governismo_pct_radar,
+        t4.governismo_pct
+            AS governismo_pct_modelo_legislatura_completa,
         ROUND(100.0 * t3.qt_votos_alinhados / NULLIF(t3.qt_votos, 0), 2)
-            AS perc_governismo_oficial,
-        t3.qt_votos - t1.qt_votos_legislatura
+            AS governismo_pct_modelo,
+        t3.qt_votos - t1.qt_votos_radar
             AS diferenca_qt_votos,
         ROUND(100.0 * t3.qt_votos_alinhados / NULLIF(t3.qt_votos, 0), 2)
-        - t1.perc_governismo_legislatura
+        - t1.governismo_pct_radar
             AS diferenca_pp
     FROM radar AS t1
     INNER JOIN {{ ref('dim_parlamentares') }} AS t2
         ON t1.sk_parlamentar = t2.sk_parlamentar
-    LEFT JOIN oficial_janela AS t3
+    LEFT JOIN modelo_janela AS t3
         ON t2.sk_parlamentar = t3.sk_parlamentar
-    LEFT JOIN oficial_completa AS t4
+    LEFT JOIN modelo_completa AS t4
         ON t2.sk_parlamentar = t4.sk_parlamentar
     LEFT JOIN partido_predominante AS t5
         ON t2.sk_parlamentar = t5.sk_parlamentar
@@ -126,7 +123,7 @@ final AS (
         (ABS(t1.diferenca_pp) > 5)::INT
             AS fl_divergencia_relevante,
         CASE
-            WHEN t1.perc_governismo_oficial IS NULL THEN 'SO RADAR'
+            WHEN t1.governismo_pct_modelo IS NULL THEN 'SO RADAR'
             ELSE 'AMBAS'
         END
             AS fonte_disponivel,
