@@ -19,7 +19,9 @@ votos AS (
         fl_seguiu_governo,
         fl_seguiu_partido
     FROM {{ ref('votos_parlamentares') }}
-    WHERE sk_partido <> '{{ var("null_key") }}'
+    WHERE
+        sk_partido <> '{{ var("null_key") }}'
+        AND voto IN ('SIM', 'NAO', 'OBSTRUCAO')
 ),
 
 -- Rice ignora obstrução; votação com um só votante do partido fica de fora (daria Rice 1).

@@ -22,10 +22,13 @@ Tabelas largas, prontas para visualização, sobre as votações da Câmara e do
 
 ## Parlamentar
 
-| Tabela                | Grão                      | Responde                                                                                        |
-| --------------------- | ------------------------- | ----------------------------------------------------------------------------------------------- |
-| `painel_parlamentar`  | parlamentar × legislatura | Ficha e ranking: governismo, disciplina, participação, votos vencedores e Ranking dos Políticos |
-| `score_vs_governismo` | parlamentar × ano         | Avaliação do Ranking dos Políticos × governismo no mesmo ano                                    |
+| Tabela                    | Grão                      | Responde                                                                                                   |
+| ------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `parlamentar_legislatura` | parlamentar × legislatura | Presença, participação, ausências, governismo, disciplina e votos vencedores do parlamentar na legislatura |
+| `parlamentar_ano`         | parlamentar × ano         | O mesmo, por ano civil                                                                                     |
+| `parlamentar_trimestre`   | parlamentar × trimestre   | O mesmo, por trimestre                                                                                     |
+| `parlamentar_semana`      | parlamentar × semana ISO  | O mesmo, por semana (segunda a domingo)                                                                    |
+| `score_vs_governismo`     | parlamentar × ano         | Avaliação do Ranking dos Políticos × governismo no mesmo ano                                               |
 
 ## Bancada
 
@@ -57,4 +60,6 @@ Validam o governismo calculado contra o publicado pelo Radar Congresso. Não sã
 - A orientação só existe no Senado a partir de 2019: antes disso, governismo e disciplina ficam nulos.
 - `ementa` e `idade` só existem para a Câmara.
 - `nota_base_votacoes` depende da posição de voto e é correlacionada ao governismo.
-- A pontuação do Ranking dos Políticos existe só na legislatura corrente (`painel_parlamentar`) e de 2023 em diante (`score_vs_governismo`).
+- A pontuação do Ranking dos Políticos existe de 2023 em diante (`score_vs_governismo`).
+- Na Câmara a ausência é inferida: a API só lista quem votou, e o deputado é tido em exercício entre o primeiro e o último voto na legislatura.
+- Participação e presença contam só o Plenário; governismo e disciplina incluem as comissões.

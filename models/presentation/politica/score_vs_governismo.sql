@@ -26,54 +26,10 @@ score AS (
 votos_ano AS (
     SELECT
         sk_parlamentar,
-        sk_partido,
-        partido_rotulo,
         ano,
-        legislatura,
-        fl_seguiu_governo,
-        fl_seguiu_partido
+        legislatura
     FROM {{ ref('votos_parlamentares') }}
-),
-
-metricas AS (
-    SELECT
-        sk_parlamentar,
-        ano,
-        NULLIF(COUNT(fl_seguiu_governo), 0)
-            AS qt_votos_governismo,
-        SUM(fl_seguiu_governo)
-            AS qt_votos_alinhados_governo,
-        ROUND(100.0 * SUM(fl_seguiu_governo) / NULLIF(COUNT(fl_seguiu_governo), 0), 2)
-            AS governismo_pct_modelo,
-        NULLIF(COUNT(fl_seguiu_partido), 0)
-            AS qt_votos_disciplina,
-        ROUND(100.0 * SUM(fl_seguiu_partido) / NULLIF(COUNT(fl_seguiu_partido), 0), 2)
-            AS disciplina_pct
-    FROM votos_ano
-    GROUP BY sk_parlamentar, ano
-),
-
-votos_por_partido AS (
-    SELECT
-        sk_parlamentar,
-        ano,
-        sk_partido,
-        partido_rotulo,
-        COUNT(*) AS qt_votos
-    FROM votos_ano
-    WHERE sk_partido <> '{{ var("null_key") }}'
-    GROUP BY sk_parlamentar, ano, sk_partido, partido_rotulo
-),
-
--- Quem trocou de partido no meio do ano fica com o majoritário; desempate alfabético.
-partido_predominante AS (
-    SELECT DISTINCT ON (sk_parlamentar, ano)
-        sk_parlamentar,
-        ano,
-        sk_partido,
-        partido_rotulo
-    FROM votos_por_partido
-    ORDER BY sk_parlamentar ASC, ano ASC, qt_votos DESC, partido_rotulo ASC
+    WHERE voto IN ('SIM', 'NAO', 'OBSTRUCAO')
 ),
 
 votos_por_legislatura AS (
@@ -104,10 +60,10 @@ base AS (
         t2.senador_id_nk,
         t2.casa,
         t2.nome,
-        t2.uf_mandato_recente AS uf,
-        t2.regiao,
-        t5.sk_partido,
-        t5.partido_rotulo
+        t3.uf,
+        t3.regiao,
+        t3.sk_partido,
+        t3.partido
             AS partido_predominante,
         t6.legislatura,
         t1.pontuacao,
@@ -119,18 +75,19 @@ base AS (
         t1.bonus_producao_legislativa,
         t1.bonus_articulacao_legislativa,
         t1.fl_componentes_normalizados,
-        t3.qt_votos_governismo,
-        t3.qt_votos_alinhados_governo,
         t3.governismo_pct_modelo,
-        t3.qt_votos_disciplina,
-        t3.disciplina_pct
+        t3.disciplina_pct,
+        NULLIF(t3.qt_votos_governismo, 0)
+            AS qt_votos_governismo,
+        CASE WHEN t3.qt_votos_governismo > 0 THEN t3.qt_votos_alinhados_governo END
+            AS qt_votos_alinhados_governo,
+        NULLIF(t3.qt_votos_disciplina, 0)
+            AS qt_votos_disciplina
     FROM score AS t1
     LEFT JOIN {{ ref('dim_parlamentares') }} AS t2
         ON t1.sk_parlamentar = t2.sk_parlamentar
-    LEFT JOIN metricas AS t3
+    LEFT JOIN {{ ref('parlamentar_ano') }} AS t3
         ON t1.sk_parlamentar = t3.sk_parlamentar AND t1.ano = t3.ano
-    LEFT JOIN partido_predominante AS t5
-        ON t1.sk_parlamentar = t5.sk_parlamentar AND t1.ano = t5.ano
     LEFT JOIN legislatura_predominante AS t6
         ON t1.sk_parlamentar = t6.sk_parlamentar AND t1.ano = t6.ano
 ),

@@ -3,24 +3,40 @@
 ) }}
 
 WITH
-votos AS (
+registros AS (
     SELECT
         sk_voto,
         sk_votacao,
         sk_parlamentar,
         sk_partido,
+        sk_tipo_voto,
         uf,
         partido,
         voto,
-        orientacao_governo,
         orientacao_partido,
         fl_seguiu_governo,
         fl_seguiu_partido,
-        fl_votou_com_resultado
+        fl_votou_com_resultado,
+        0 AS fl_ausencia_inferida
     FROM {{ ref('fct_votos') }}
-    WHERE
-        voto IN ('SIM', 'NAO', 'OBSTRUCAO')
-        AND sk_parlamentar <> '{{ var("null_key") }}'
+    WHERE sk_parlamentar <> '{{ var("null_key") }}'
+    UNION ALL
+    SELECT
+        sk_presenca AS sk_voto,
+        sk_votacao,
+        sk_parlamentar,
+        sk_partido,
+        sk_tipo_voto,
+        uf,
+        NULL        AS partido,
+        NULL        AS voto,
+        NULL        AS orientacao_partido,
+        NULL::INT   AS fl_seguiu_governo,
+        NULL::INT   AS fl_seguiu_partido,
+        NULL::INT   AS fl_votou_com_resultado,
+        1           AS fl_ausencia_inferida
+    FROM {{ ref('fct_presencas_plenario') }}
+    WHERE fl_ausencia_inferida = 1
 ),
 
 final AS (
@@ -53,7 +69,12 @@ final AS (
         t4.rotulo
             AS partido_rotulo,
         t1.voto,
-        t1.orientacao_governo,
+        CASE WHEN t1.fl_ausencia_inferida = 1 THEN 'AUSENCIA INFERIDA' ELSE t6.categoria END
+            AS categoria,
+        CASE WHEN t1.fl_ausencia_inferida = 1 THEN 0 ELSE t6.fl_presente END
+            AS fl_presente,
+        t1.fl_ausencia_inferida,
+        t2.orientacao_governo,
         t1.orientacao_partido,
         t1.fl_seguiu_governo,
         t1.fl_seguiu_partido,
@@ -68,7 +89,7 @@ final AS (
             AS alinhamento,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at
-    FROM votos AS t1
+    FROM registros AS t1
     -- Contexto via votacoes: juntar as tabelas inteiras estoura a memória compartilhada do Postgres.
     INNER JOIN {{ ref('votacoes') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
@@ -78,6 +99,8 @@ final AS (
         ON t1.sk_partido = t4.sk_partido
     LEFT JOIN {{ ref('dim_uf') }} AS t5
         ON t1.uf = t5.uf
+    LEFT JOIN {{ ref('dim_tipo_voto') }} AS t6
+        ON t1.sk_tipo_voto = t6.sk_tipo_voto
 )
 
 SELECT * FROM final

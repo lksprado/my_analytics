@@ -122,7 +122,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: votos_parlamentares
-    description: "Votos SIM, NÃO e OBSTRUÇÃO nas votações nominais, com orientações e alinhamento. Grão: parlamentar × votação."
+    description: "Todos os registros de voto, mais as ausências inferidas no Plenário da Câmara. Grão: parlamentar × votação."
     columns:
       - name: sk_voto
         description: "Chave do registro de voto."
@@ -178,18 +178,31 @@ models:
       - name: idade
         description: "Idade do parlamentar na data da votação (só Câmara)."
       - name: partido
-        description: "Sigla do partido no momento do voto."
+        description: "Sigla do partido no momento do voto; nula na ausência inferida."
       - name: partido_rotulo
         description: "Nome de exibição do partido; siglas reutilizadas levam o período."
       - name: voto
-        description: "Voto do parlamentar (SIM, NAO, OBSTRUCAO)."
+        description: "Posição do voto (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO); nula quando não é voto."
         tests:
           - accepted_values:
               arguments:
-                values:
-                  - SIM
-                  - NAO
-                  - OBSTRUCAO
+                values: ['SIM', 'NAO', 'OBSTRUCAO', 'ABSTENCAO', 'BRANCO']
+      - name: categoria
+        description: "Categoria do registro (VOTOU, VOTO SECRETO, PRESENTE SEM VOTO, PRESIDENCIA, AUSENCIA JUSTIFICADA, AUSENCIA NAO JUSTIFICADA, AUSENCIA INFERIDA, NAO INFORMADO)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['VOTOU', 'VOTO SECRETO', 'PRESENTE SEM VOTO', 'PRESIDENCIA', 'AUSENCIA JUSTIFICADA', 'AUSENCIA NAO JUSTIFICADA', 'AUSENCIA INFERIDA', 'NAO INFORMADO']
+      - name: fl_presente
+        description: "1 quando o parlamentar esteve presente, 0 quando ausente; nulo quando a origem não informa."
+      - name: fl_ausencia_inferida
+        description: "1 quando a ausência é inferida (deputado sem registro no período de exercício)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
       - name: orientacao_governo
         description: "Orientação do Governo (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO); nula sem orientação."
       - name: orientacao_partido
@@ -292,8 +305,17 @@ models:
               - ano
               - trimestre
 
-  - name: painel_parlamentar
-    description: "Ficha do parlamentar: governismo, disciplina, participação, votos vencedores e Ranking dos Políticos. Grão: parlamentar × legislatura."
+  - name: parlamentar_legislatura
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × legislatura."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - legislatura
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "qt_votacoes_participadas <= qt_votacoes_elegiveis AND qt_presencas <= qt_votacoes_nominais_elegiveis AND qt_votos_alinhados_governo <= qt_votos_governismo"
     columns:
       - name: sk_parlamentar
         description: "Chave do parlamentar."
@@ -307,32 +329,58 @@ models:
         description: "Casa legislativa (CAMARA, SENADO)."
       - name: nome
         description: "Nome parlamentar."
-      - name: nome_completo
-        description: "Nome civil do parlamentar."
       - name: sexo
         description: "Sexo (MASCULINO, FEMININO)."
-      - name: uf
-        description: "UF de representação no mandato mais recente."
-      - name: regiao
-        description: "Região da UF de representação."
-      - name: sk_partido
-        description: "Chave do partido."
-      - name: partido_predominante
-        description: "Partido com mais votos do parlamentar no período."
       - name: legislatura
         description: "Número da legislatura."
         tests:
           - not_null
-      - name: qt_votos_legislatura
-        description: "Votos do parlamentar na legislatura."
-      - name: qt_votacoes_legislatura
-        description: "Votações em que o parlamentar votou na legislatura."
-      - name: qt_votacoes_casa
-        description: "Votações nominais da casa na legislatura."
+      - name: periodo_inicio
+        description: "Primeiro dia do período."
+      - name: periodo_fim
+        description: "Último dia do período."
+      - name: uf
+        description: "UF com mais votos do parlamentar no período."
+      - name: regiao
+        description: "Região da UF do período."
+      - name: sk_partido
+        description: "Chave do partido com mais votos do parlamentar no período."
+      - name: partido
+        description: "Partido com mais votos do parlamentar no período (rótulo da entidade)."
+      - name: siglas_no_periodo
+        description: "Siglas partidárias usadas pelo parlamentar nos votos do período."
+      - name: qt_votacoes_nominais_elegiveis
+        description: "Votações nominais do Plenário em que o parlamentar estava em exercício."
+      - name: qt_presencas
+        description: "Votações nominais do Plenário com presença registrada."
+      - name: presenca_pct
+        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_ausencias_justificadas
+        description: "Ausências justificadas (só Senado)."
+      - name: qt_ausencias_nao_justificadas
+        description: "Ausências não justificadas (só Senado)."
+      - name: qt_ausencias_inferidas
+        description: "Ausências inferidas (só Câmara)."
+      - name: qt_votacoes_elegiveis
+        description: "Votações nominais abertas do Plenário, orientadas pelo Governo, em que o parlamentar estava em exercício."
+      - name: qt_votacoes_participadas
+        description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
+      - name: participacao_pct
+        description: "Percentual de participação nas votações elegíveis (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
       - name: qt_votos_governismo
-        description: "Votos do parlamentar em votações com orientação do Governo."
+        description: "Votos em votações orientadas pelo Governo, inclusive em comissões."
       - name: qt_votos_alinhados_governo
-        description: "Votos em que o parlamentar seguiu a orientação do Governo."
+        description: "Votos alinhados à orientação do Governo."
       - name: governismo_pct_modelo
         description: "Governismo calculado pelo modelo (0–100)."
         tests:
@@ -352,7 +400,7 @@ models:
                 min_value: 0
                 max_value: 100
       - name: qt_votos_com_resultado
-        description: "Votos SIM/NÃO em votações com resultado conhecido."
+        description: "Votos SIM/NÃO em votações com resultado binário."
       - name: qt_votos_vencedores
         description: "Votos do lado vencedor."
       - name: votos_vencedores_pct
@@ -362,20 +410,109 @@ models:
               arguments:
                 min_value: 0
                 max_value: 100
-      - name: pontuacao_geral
-        description: "Pontuação atual no Ranking dos Políticos; só na legislatura corrente."
-      - name: ranking_geral
-        description: "Posição no ranking geral do Ranking dos Políticos."
-      - name: ranking_casa
-        description: "Posição no ranking dentro da casa."
-      - name: ranking_partido
-        description: "Posição no ranking dentro do partido."
-      - name: ranking_estado
-        description: "Posição no ranking dentro do estado."
-      - name: ranking_casa_estado
-        description: "Posição no ranking dentro da casa e do estado."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: parlamentar_ano
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × ano civil."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - ano
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "qt_votacoes_participadas <= qt_votacoes_elegiveis AND qt_presencas <= qt_votacoes_nominais_elegiveis AND qt_votos_alinhados_governo <= qt_votos_governismo"
+    columns:
+      - name: sk_parlamentar
+        description: "Chave do parlamentar."
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: "Id do deputado na Câmara."
+      - name: senador_id_nk
+        description: "Id do senador no Senado."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: nome
+        description: "Nome parlamentar."
+      - name: sexo
+        description: "Sexo (MASCULINO, FEMININO)."
+      - name: ano
+        description: "Ano civil."
+        tests:
+          - not_null
+      - name: periodo_inicio
+        description: "Primeiro dia do período."
+      - name: periodo_fim
+        description: "Último dia do período."
+      - name: uf
+        description: "UF com mais votos do parlamentar no período."
+      - name: regiao
+        description: "Região da UF do período."
+      - name: sk_partido
+        description: "Chave do partido com mais votos do parlamentar no período."
+      - name: partido
+        description: "Partido com mais votos do parlamentar no período (rótulo da entidade)."
+      - name: siglas_no_periodo
+        description: "Siglas partidárias usadas pelo parlamentar nos votos do período."
+      - name: qt_votacoes_nominais_elegiveis
+        description: "Votações nominais do Plenário em que o parlamentar estava em exercício."
+      - name: qt_presencas
+        description: "Votações nominais do Plenário com presença registrada."
+      - name: presenca_pct
+        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_ausencias_justificadas
+        description: "Ausências justificadas (só Senado)."
+      - name: qt_ausencias_nao_justificadas
+        description: "Ausências não justificadas (só Senado)."
+      - name: qt_ausencias_inferidas
+        description: "Ausências inferidas (só Câmara)."
+      - name: qt_votacoes_elegiveis
+        description: "Votações nominais abertas do Plenário, orientadas pelo Governo, em que o parlamentar estava em exercício."
+      - name: qt_votacoes_participadas
+        description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
       - name: participacao_pct
-        description: "Percentual das votações nominais da casa em que o parlamentar votou (0–100)."
+        description: "Percentual de participação nas votações elegíveis (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_governismo
+        description: "Votos em votações orientadas pelo Governo, inclusive em comissões."
+      - name: qt_votos_alinhados_governo
+        description: "Votos alinhados à orientação do Governo."
+      - name: governismo_pct_modelo
+        description: "Governismo calculado pelo modelo (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_disciplina
+        description: "Votos em votações orientadas pelo partido."
+      - name: qt_votos_disciplinados
+        description: "Votos que seguiram a orientação do partido."
+      - name: disciplina_pct
+        description: "Disciplina partidária (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_com_resultado
+        description: "Votos SIM/NÃO em votações com resultado binário."
+      - name: qt_votos_vencedores
+        description: "Votos do lado vencedor."
+      - name: votos_vencedores_pct
+        description: "Percentual de votos do lado vencedor (0–100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -383,12 +520,227 @@ models:
                 max_value: 100
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
+
+  - name: parlamentar_trimestre
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × trimestre."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns:
               - sk_parlamentar
-              - legislatura
+              - ano
+              - trimestre
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "qt_votacoes_participadas <= qt_votacoes_elegiveis AND qt_presencas <= qt_votacoes_nominais_elegiveis AND qt_votos_alinhados_governo <= qt_votos_governismo"
+    columns:
+      - name: sk_parlamentar
+        description: "Chave do parlamentar."
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: "Id do deputado na Câmara."
+      - name: senador_id_nk
+        description: "Id do senador no Senado."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: nome
+        description: "Nome parlamentar."
+      - name: sexo
+        description: "Sexo (MASCULINO, FEMININO)."
+      - name: ano
+        description: "Ano civil."
+        tests:
+          - not_null
+      - name: trimestre
+        description: "Trimestre do ano (1 a 4)."
+        tests:
+          - not_null
+      - name: periodo_inicio
+        description: "Primeiro dia do período."
+      - name: periodo_fim
+        description: "Último dia do período."
+      - name: uf
+        description: "UF com mais votos do parlamentar no período."
+      - name: regiao
+        description: "Região da UF do período."
+      - name: sk_partido
+        description: "Chave do partido com mais votos do parlamentar no período."
+      - name: partido
+        description: "Partido com mais votos do parlamentar no período (rótulo da entidade)."
+      - name: siglas_no_periodo
+        description: "Siglas partidárias usadas pelo parlamentar nos votos do período."
+      - name: qt_votacoes_nominais_elegiveis
+        description: "Votações nominais do Plenário em que o parlamentar estava em exercício."
+      - name: qt_presencas
+        description: "Votações nominais do Plenário com presença registrada."
+      - name: presenca_pct
+        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_ausencias_justificadas
+        description: "Ausências justificadas (só Senado)."
+      - name: qt_ausencias_nao_justificadas
+        description: "Ausências não justificadas (só Senado)."
+      - name: qt_ausencias_inferidas
+        description: "Ausências inferidas (só Câmara)."
+      - name: qt_votacoes_elegiveis
+        description: "Votações nominais abertas do Plenário, orientadas pelo Governo, em que o parlamentar estava em exercício."
+      - name: qt_votacoes_participadas
+        description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
+      - name: participacao_pct
+        description: "Percentual de participação nas votações elegíveis (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_governismo
+        description: "Votos em votações orientadas pelo Governo, inclusive em comissões."
+      - name: qt_votos_alinhados_governo
+        description: "Votos alinhados à orientação do Governo."
+      - name: governismo_pct_modelo
+        description: "Governismo calculado pelo modelo (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_disciplina
+        description: "Votos em votações orientadas pelo partido."
+      - name: qt_votos_disciplinados
+        description: "Votos que seguiram a orientação do partido."
+      - name: disciplina_pct
+        description: "Disciplina partidária (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_com_resultado
+        description: "Votos SIM/NÃO em votações com resultado binário."
+      - name: qt_votos_vencedores
+        description: "Votos do lado vencedor."
+      - name: votos_vencedores_pct
+        description: "Percentual de votos do lado vencedor (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: parlamentar_semana
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × semana ISO."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - inicio_semana
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "qt_votacoes_participadas <= qt_votacoes_elegiveis AND qt_presencas <= qt_votacoes_nominais_elegiveis AND qt_votos_alinhados_governo <= qt_votos_governismo"
+    columns:
+      - name: sk_parlamentar
+        description: "Chave do parlamentar."
+        tests:
+          - not_null
+      - name: deputado_id_nk
+        description: "Id do deputado na Câmara."
+      - name: senador_id_nk
+        description: "Id do senador no Senado."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: nome
+        description: "Nome parlamentar."
+      - name: sexo
+        description: "Sexo (MASCULINO, FEMININO)."
+      - name: inicio_semana
+        description: "Segunda-feira da semana ISO."
+        tests:
+          - not_null
+      - name: periodo_inicio
+        description: "Primeiro dia do período."
+      - name: periodo_fim
+        description: "Último dia do período."
+      - name: uf
+        description: "UF com mais votos do parlamentar no período."
+      - name: regiao
+        description: "Região da UF do período."
+      - name: sk_partido
+        description: "Chave do partido com mais votos do parlamentar no período."
+      - name: partido
+        description: "Partido com mais votos do parlamentar no período (rótulo da entidade)."
+      - name: siglas_no_periodo
+        description: "Siglas partidárias usadas pelo parlamentar nos votos do período."
+      - name: qt_votacoes_nominais_elegiveis
+        description: "Votações nominais do Plenário em que o parlamentar estava em exercício."
+      - name: qt_presencas
+        description: "Votações nominais do Plenário com presença registrada."
+      - name: presenca_pct
+        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_ausencias_justificadas
+        description: "Ausências justificadas (só Senado)."
+      - name: qt_ausencias_nao_justificadas
+        description: "Ausências não justificadas (só Senado)."
+      - name: qt_ausencias_inferidas
+        description: "Ausências inferidas (só Câmara)."
+      - name: qt_votacoes_elegiveis
+        description: "Votações nominais abertas do Plenário, orientadas pelo Governo, em que o parlamentar estava em exercício."
+      - name: qt_votacoes_participadas
+        description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
+      - name: participacao_pct
+        description: "Percentual de participação nas votações elegíveis (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_governismo
+        description: "Votos em votações orientadas pelo Governo, inclusive em comissões."
+      - name: qt_votos_alinhados_governo
+        description: "Votos alinhados à orientação do Governo."
+      - name: governismo_pct_modelo
+        description: "Governismo calculado pelo modelo (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_disciplina
+        description: "Votos em votações orientadas pelo partido."
+      - name: qt_votos_disciplinados
+        description: "Votos que seguiram a orientação do partido."
+      - name: disciplina_pct
+        description: "Disciplina partidária (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: qt_votos_com_resultado
+        description: "Votos SIM/NÃO em votações com resultado binário."
+      - name: qt_votos_vencedores
+        description: "Votos do lado vencedor."
+      - name: votos_vencedores_pct
+        description: "Percentual de votos do lado vencedor (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
 
   - name: score_vs_governismo
     description: "Ranking dos Políticos × governismo. Grão: parlamentar × ano."

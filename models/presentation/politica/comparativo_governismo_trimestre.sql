@@ -44,6 +44,7 @@ votos_por_partido AS (
         COUNT(*) AS qt_votos
     FROM {{ ref('votos_parlamentares') }}
     WHERE sk_partido <> '{{ var("null_key") }}'
+        AND voto IN ('SIM', 'NAO', 'OBSTRUCAO')
         AND legislatura = (SELECT legislatura FROM legislatura_corrente)
     GROUP BY sk_parlamentar, sk_partido, partido_rotulo
 ),
@@ -64,7 +65,8 @@ comparado AS (
         t2.deputado_id_nk,
         t2.senador_id_nk,
         t2.nome,
-        t2.uf_mandato_recente AS uf,
+        t2.uf_mandato_recente
+            AS uf,
         t4.sk_partido,
         t4.partido_rotulo
             AS partido_predominante,

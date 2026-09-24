@@ -569,6 +569,87 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: fct_presencas_plenario
+    description: "Presença e ausência nas votações nominais do Plenário em que o parlamentar estava em exercício. Grão: parlamentar × votação."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_parlamentar
+              - sk_votacao
+    columns:
+      - name: sk_presenca
+        description: "Chave do registro de presença."
+        tests:
+          - not_null
+          - unique
+      - name: sk_parlamentar
+        description: "Chave do parlamentar."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_parlamentares')
+                field: sk_parlamentar
+      - name: sk_votacao
+        description: "Chave da votação."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_votacoes')
+                field: sk_votacao
+      - name: sk_data
+        description: "Chave da data da votação."
+        tests:
+          - not_null
+      - name: sk_tipo_voto
+        description: "Chave do tipo de registro; desconhecido na ausência inferida."
+        tests:
+          - not_null
+      - name: sk_partido
+        description: "Chave do partido do parlamentar na data; na ausência inferida, o do voto anterior."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_partidos')
+                field: sk_partido
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: modalidade_votacao
+        description: "Modalidade da votação (NOMINAL ABERTA, NOMINAL SECRETA)."
+      - name: uf
+        description: "UF de representação na data; na ausência inferida, a do voto anterior."
+      - name: categoria_presenca
+        description: "Categoria do registro, com AUSENCIA INFERIDA para o deputado sem registro no período de exercício."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['VOTOU', 'VOTO SECRETO', 'PRESENTE SEM VOTO', 'PRESIDENCIA', 'AUSENCIA JUSTIFICADA', 'AUSENCIA NAO JUSTIFICADA', 'AUSENCIA INFERIDA', 'NAO INFORMADO']
+      - name: fl_presente
+        description: "1 quando o parlamentar esteve presente, 0 quando ausente; nulo quando a origem não informa."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: fl_ausencia_inferida
+        description: "1 quando a ausência é inferida (deputado sem registro no período de exercício)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: fl_votou_com_posicao
+        description: "1 quando o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
+        tests:
+          - not_null
+      - name: fl_governo_orientou
+        description: "1 quando o Governo orientou SIM, NÃO ou OBSTRUÇÃO na votação."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: fct_orientacoes
     description: "Orientações de voto das lideranças. Grão: liderança × votação."
     tests:
@@ -943,6 +1024,55 @@ unit_tests:
         - {votacao_id_nk: '1-1', sk_parlamentar: d3, sk_partido: pt71, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_abs, voto: ABSTENCAO, orientacao_governo: SIM, orientacao_partido: SIM, fl_governo_orientou: 1, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: null, fl_votou_com_resultado: null}
         - {votacao_id_nk: '1-1', sk_parlamentar: '0', sk_partido: pl523, sk_votacao: v11, sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: '0', voto: OBSTRUCAO, orientacao_governo: SIM, orientacao_partido: LIBERADO, fl_governo_orientou: 1, fl_seguiu_governo: 0, fl_partido_orientou: 0, fl_seguiu_partido: null, fl_votou_com_resultado: null}
         - {votacao_id_nk: '1-2', sk_parlamentar: d1, sk_partido: pt71, sk_votacao: v12, sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, sk_tipo_voto: t_sim, voto: SIM, orientacao_governo: LIBERADO, orientacao_partido: NAO, fl_governo_orientou: 0, fl_seguiu_governo: null, fl_partido_orientou: 1, fl_seguiu_partido: 0, fl_votou_com_resultado: 0}
+
+  - name: fct_presencas_plenario_cobertura
+    description: >
+      Câmara: o deputado é elegível às votações nominais do Plenário entre o seu primeiro e o seu
+      último voto na legislatura; sem registro nesse intervalo, a ausência é inferida e herda a UF
+      e o partido do voto anterior. Comissões ficam de fora. Senado: vale a lista de registros.
+    model: fct_presencas_plenario
+    given:
+      - input: ref('fct_votacoes')
+        rows:
+          - {sk_votacao: v1, casa: CAMARA, sk_data: 20230110, sk_orgao: plen_c, modalidade_votacao: NOMINAL ABERTA, fl_governo_orientou: 1}
+          - {sk_votacao: v2, casa: CAMARA, sk_data: 20230111, sk_orgao: plen_c, modalidade_votacao: NOMINAL ABERTA, fl_governo_orientou: 1}
+          - {sk_votacao: v3, casa: CAMARA, sk_data: 20230112, sk_orgao: plen_c, modalidade_votacao: NOMINAL ABERTA, fl_governo_orientou: 0}
+          - {sk_votacao: v4, casa: CAMARA, sk_data: 20230113, sk_orgao: plen_c, modalidade_votacao: NOMINAL ABERTA, fl_governo_orientou: 1}
+          - {sk_votacao: vc, casa: CAMARA, sk_data: 20230111, sk_orgao: ccjc, modalidade_votacao: NOMINAL ABERTA, fl_governo_orientou: 1}
+          - {sk_votacao: v0, casa: CAMARA, sk_data: 20230111, sk_orgao: plen_c, modalidade_votacao: SEM REGISTRO NOMINAL, fl_governo_orientou: 0}
+          - {sk_votacao: vs1, casa: SENADO, sk_data: 20230110, sk_orgao: plen_s, modalidade_votacao: NOMINAL ABERTA, fl_governo_orientou: 1}
+          - {sk_votacao: vs2, casa: SENADO, sk_data: 20230111, sk_orgao: plen_s, modalidade_votacao: NOMINAL SECRETA, fl_governo_orientou: 0}
+      - input: ref('fct_votos')
+        rows:
+          - {sk_voto: a, sk_votacao: v1, sk_parlamentar: d1, casa: CAMARA, sk_tipo_voto: t_sim, voto: SIM, sk_partido: pt, uf: SP}
+          - {sk_voto: b, sk_votacao: v3, sk_parlamentar: d1, casa: CAMARA, sk_tipo_voto: t_nao, voto: NAO, sk_partido: pt, uf: SP}
+          - {sk_voto: c, sk_votacao: vc, sk_parlamentar: d1, casa: CAMARA, sk_tipo_voto: t_sim, voto: SIM, sk_partido: pt, uf: SP}
+          - {sk_voto: d, sk_votacao: vs1, sk_parlamentar: s1, casa: SENADO, sk_tipo_voto: t_aj, voto: null, sk_partido: mdb, uf: RS}
+          - {sk_voto: e, sk_votacao: vs2, sk_parlamentar: s1, casa: SENADO, sk_tipo_voto: t_sec, voto: null, sk_partido: mdb, uf: RS}
+      - input: ref('dim_orgaos')
+        rows:
+          - {sk_orgao: plen_c, tipo_orgao: PLENARIO}
+          - {sk_orgao: ccjc, tipo_orgao: COMISSAO}
+          - {sk_orgao: plen_s, tipo_orgao: PLENARIO}
+      - input: ref('dim_tipo_voto')
+        rows:
+          - {sk_tipo_voto: t_sim, categoria: VOTOU, fl_presente: 1}
+          - {sk_tipo_voto: t_nao, categoria: VOTOU, fl_presente: 1}
+          - {sk_tipo_voto: t_aj, categoria: AUSENCIA JUSTIFICADA, fl_presente: 0}
+          - {sk_tipo_voto: t_sec, categoria: VOTO SECRETO, fl_presente: 1}
+      - input: ref('dim_calendario_legislativo')
+        rows:
+          - {data_sk: 20230110, data: '2023-01-10', legislatura: 56}
+          - {data_sk: 20230111, data: '2023-01-11', legislatura: 56}
+          - {data_sk: 20230112, data: '2023-01-12', legislatura: 56}
+          - {data_sk: 20230113, data: '2023-01-13', legislatura: 56}
+    expect:
+      rows:
+        - {sk_parlamentar: d1, sk_votacao: v1, casa: CAMARA, categoria_presenca: VOTOU, fl_presente: 1, fl_ausencia_inferida: 0, fl_votou_com_posicao: 1, fl_governo_orientou: 1, sk_partido: pt, uf: SP}
+        - {sk_parlamentar: d1, sk_votacao: v2, casa: CAMARA, categoria_presenca: AUSENCIA INFERIDA, fl_presente: 0, fl_ausencia_inferida: 1, fl_votou_com_posicao: 0, fl_governo_orientou: 1, sk_partido: pt, uf: SP}
+        - {sk_parlamentar: d1, sk_votacao: v3, casa: CAMARA, categoria_presenca: VOTOU, fl_presente: 1, fl_ausencia_inferida: 0, fl_votou_com_posicao: 1, fl_governo_orientou: 0, sk_partido: pt, uf: SP}
+        - {sk_parlamentar: s1, sk_votacao: vs1, casa: SENADO, categoria_presenca: AUSENCIA JUSTIFICADA, fl_presente: 0, fl_ausencia_inferida: 0, fl_votou_com_posicao: 0, fl_governo_orientou: 1, sk_partido: mdb, uf: RS}
+        - {sk_parlamentar: s1, sk_votacao: vs2, casa: SENADO, categoria_presenca: VOTO SECRETO, fl_presente: 1, fl_ausencia_inferida: 0, fl_votou_com_posicao: 0, fl_governo_orientou: 0, sk_partido: mdb, uf: RS}
 
 seeds:
 
