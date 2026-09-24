@@ -23,6 +23,8 @@ renamed AS (
         {{ clean_string("tramitando", "upper") }}                                               AS tramitando,
         TO_DATE(datadeliberacao, 'YYYY-MM-DD')                                                  AS data_deliberacao,
         siglatipodeliberacao                                                                    AS codigo_deliberacao,
+        {{ clean_string("situacaoatual", "upper") }}                                            AS situacao_atual,
+        TO_DATE(datasituacaoatual, 'YYYY-MM-DD')                                                AS data_situacao_atual,
         urldocumento                                                                            AS link_documento,
         {{ clean_string("objetivo", "upper") }}                                                 AS objetivo,
         {{ clean_string("normagerada", "upper") }}                                              AS norma_gerada,

@@ -21,6 +21,8 @@ SELECT
     autoria,
     norma_gerada,
     relator_atual_id_nk,
+    codigo_deliberacao,
+    data_deliberacao,
     CAST(TO_CHAR(data_proposicao, 'YYYYMMDD') AS INTEGER)                AS sk_data,
     '{{ run_started_at }}'::TIMESTAMPTZ                                  AS model_run_at
 FROM proposicoes
@@ -40,6 +42,8 @@ UNION ALL
     ['autoria', 'null::text'],
     ['norma_gerada', 'null::text'],
     ['relator_atual_id_nk', 'null::int'],
+    ['codigo_deliberacao', 'null::text'],
+    ['data_deliberacao', 'null::date'],
     ['sk_data', '1'],
     ['model_run_at', "'" ~ run_started_at ~ "'::TIMESTAMPTZ"],
 ]) }}

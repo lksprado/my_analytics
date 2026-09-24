@@ -19,6 +19,10 @@ models:
 
   - name: stg_ecidadania_votacoes
     description: "Proposições do e-Cidadania. Grão: uma proposição."
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "resultado_consulta = CASE WHEN votos_sim > votos_nao THEN 'SIM' WHEN votos_nao > votos_sim THEN 'NAO' ELSE 'EMPATE' END"
     columns:
       - name: data_extracao
         description: "Data de extração dos dados da fonte"
@@ -40,7 +44,11 @@ models:
         description: "Quantidade de votos contrários à proposição"
       - name: total_votos
         description: "Total de votos registrados para a proposição"
-      - name: vontade_popular
-        description: "Vontade popular (SIM, NÃO) pela maioria dos votos."
+      - name: resultado_consulta
+        description: "Resultado da consulta (SIM, NAO, EMPATE) pela maioria dos votos."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['SIM', 'NAO', 'EMPATE']
       - name: link
         description: "URL da proposição na plataforma e-Cidadania"

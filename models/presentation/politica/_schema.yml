@@ -1138,6 +1138,68 @@ models:
               - partido
               - ano
 
+  - name: consultas_publicas
+    description: "Consulta pública do e-Cidadania por matéria, com o resultado da consulta, a deliberação do Senado e a aderência entre os dois. Grão: uma matéria."
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "(aderencia_consulta_publica IS NULL) = (motivo_aderencia_nula IS NOT NULL)"
+    columns:
+      - name: identificacao
+        description: "Identificação da matéria (ex.: PL 2987/2024)."
+        tests:
+          - not_null
+          - unique
+      - name: sk_proposicao
+        description: "Chave da matéria no Senado; desconhecida quando não foi encontrada."
+      - name: tipo_proposicao
+        description: "Tipo da matéria."
+      - name: ementa
+        description: "Ementa da matéria."
+      - name: situacao_atual
+        description: "Situação atual da matéria no Senado."
+      - name: fl_tramitando
+        description: "1 quando a matéria está em tramitação."
+      - name: codigo_deliberacao
+        description: "Código da deliberação da matéria no Senado."
+      - name: data_deliberacao
+        description: "Data da deliberação da matéria."
+      - name: votos_sim_ecidadania
+        description: "Votos SIM na consulta, na última extração."
+      - name: votos_nao_ecidadania
+        description: "Votos NÃO na consulta, na última extração."
+      - name: total_votos_ecidadania
+        description: "Total de votos na consulta, na última extração."
+      - name: qt_extracoes
+        description: "Extrações em que a consulta foi observada."
+      - name: data_primeira_extracao
+        description: "Data da primeira extração da consulta."
+      - name: data_ultima_extracao
+        description: "Data da última extração da consulta."
+      - name: resultado_consulta
+        description: "Resultado da consulta pela maioria dos votos (SIM, NAO, EMPATE)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SIM', 'NAO', 'EMPATE']
+      - name: resultado_votacao
+        description: "Resultado da deliberação da matéria no Senado (APROVADA, REJEITADA, OUTRO); nulo sem deliberação."
+      - name: aderencia_consulta_publica
+        description: "1 quando a deliberação coincide com o resultado da consulta, 0 quando diverge."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: motivo_aderencia_nula
+        description: "Motivo de a aderência não ser calculada (MATERIA NAO ENCONTRADA NO SENADO, EMPATE NA CONSULTA, SEM DELIBERACAO, DELIBERACAO NAO BINARIA)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['MATERIA NAO ENCONTRADA NO SENADO', 'EMPATE NA CONSULTA', 'SEM DELIBERACAO', 'DELIBERACAO NAO BINARIA']
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: ecidadania_bignumbers
     description: "Totais de votações e votantes do e-Cidadania. Grão: um dia."
     columns:
@@ -1169,62 +1231,8 @@ models:
         description: "Verdadeiro aos sábados e domingos."
       - name: fl_feriado
         description: "Verdadeiro em feriado nacional ou ponto facultativo bancário."
-
-  - name: ecidadania_proposicoes
-    description: "Proposições do e-Cidadania com tramitação do Senado (desabilitado)."
-    columns:
-      - name: data_extracao
-        description: "Data de extração dos dados da fonte."
-      - name: sk_proposicao_ecidadania
-        description: "Chave da proposição no e-Cidadania."
-        tests:
-          - not_null
-      - name: proposicao_id_nk
-        description: "Identificação da proposição (ex.: PL 123/2024)."
-      - name: ano_proposicao
-        description: "Ano de apresentação da proposição."
-      - name: apelido
-        description: "Apelido ou nome popular da proposição."
-      - name: ementa
-        description: "Ementa descritiva da proposição."
-      - name: tramitando
-        description: "Indica se a proposição está em tramitação ativa."
-      - name: votos_sim
-        description: "Quantidade de votos favoráveis à proposição."
-      - name: votos_nao
-        description: "Quantidade de votos contrários à proposição."
-      - name: total_votos
-        description: "Total de votos registrados para a proposição."
-      - name: vontade_popular
-        description: "Vontade popular (SIM, NÃO) pela maioria dos votos."
-      - name: tipo_deliberacao
-        description: "Categoria do tipo de deliberação da proposição."
-      - name: aderencia_vontade_popular
-        description: "Aderência entre a deliberação e a vontade popular."
-      - name: flag_mais_votado_no_dia
-        description: "Verdadeiro quando a proposição estava entre as mais votadas do dia."
-      - name: casa
-        description: "Casa legislativa (CAMARA, SENADO)."
-      - name: status_consultado
-        description: "Status da consulta pública associada à proposição."
-      - name: nome_ente
-        description: "Nome do ente vinculado à proposição."
-      - name: descricao_proposicao
-        description: "Descrição completa do tipo de proposição."
-      - name: data_apresentacao
-        description: "Data de apresentação da proposição."
-      - name: autoria
-        description: "Autoria da proposição."
-      - name: descricao_deliberacao
-        description: "Descrição textual do tipo de deliberação."
-      - name: data_deliberacao
-        description: "Data da deliberação/votação mais recente."
-      - name: norma_gerada
-        description: "Norma jurídica gerada pela proposição, se aprovada."
-      - name: link_documento
-        description: "URL para o documento oficial da proposição."
-      - name: link_votacao
-        description: "URL para a votação da proposição na plataforma e-Cidadania."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
 
   - name: comparativo_governismo_legislatura
     description: "Governismo calculado × publicado pelo Radar Congresso, na legislatura corrente. Grão: parlamentar."
@@ -1431,3 +1439,45 @@ models:
             combination_of_columns:
               - casa
               - partido
+
+unit_tests:
+
+  - name: consultas_publicas_aderencia
+    description: >
+      A aderência compara o resultado da consulta (maioria SIM ou NÃO na última extração) com a
+      deliberação da matéria no Senado. Empate, matéria sem decisão, decisão que não é aprovação
+      nem rejeição e matéria fora do Senado deixam a aderência nula, com o motivo.
+    model: consultas_publicas
+    given:
+      - input: ref('fct_consultas_publicas')
+        rows:
+          - {identificacao: PL 1/2023, sk_proposicao: p1, data_extracao: '2026-09-01', votos_sim: 10, votos_nao: 2, total_votos: 12}
+          - {identificacao: PL 1/2023, sk_proposicao: p1, data_extracao: '2026-09-22', votos_sim: 30, votos_nao: 5, total_votos: 35}
+          - {identificacao: PL 2/2023, sk_proposicao: p2, data_extracao: '2026-09-22', votos_sim: 1, votos_nao: 9, total_votos: 10}
+          - {identificacao: PL 3/2023, sk_proposicao: p3, data_extracao: '2026-09-22', votos_sim: 9, votos_nao: 1, total_votos: 10}
+          - {identificacao: PL 4/2023, sk_proposicao: p4, data_extracao: '2026-09-22', votos_sim: 5, votos_nao: 5, total_votos: 10}
+          - {identificacao: PL 5/2023, sk_proposicao: p5, data_extracao: '2026-09-22', votos_sim: 7, votos_nao: 3, total_votos: 10}
+          - {identificacao: PL 6/2023, sk_proposicao: p6, data_extracao: '2026-09-22', votos_sim: 7, votos_nao: 3, total_votos: 10}
+          - {identificacao: PL 7/2023, sk_proposicao: '0', data_extracao: '2026-09-22', votos_sim: 7, votos_nao: 3, total_votos: 10}
+      - input: ref('dim_proposicoes')
+        rows:
+          - {sk_proposicao: p1, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: A, situacao_atual: X, fl_tramitando: 0, codigo_deliberacao: APROVADA_NO_PLENARIO, data_deliberacao: '2026-08-01'}
+          - {sk_proposicao: p2, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: B, situacao_atual: X, fl_tramitando: 0, codigo_deliberacao: APROVADA_NO_PLENARIO, data_deliberacao: '2026-08-01'}
+          - {sk_proposicao: p3, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: C, situacao_atual: X, fl_tramitando: 0, codigo_deliberacao: REJEITADO_PLENARIO, data_deliberacao: '2026-08-01'}
+          - {sk_proposicao: p4, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: D, situacao_atual: X, fl_tramitando: 0, codigo_deliberacao: APROVADA_NO_PLENARIO, data_deliberacao: '2026-08-01'}
+          - {sk_proposicao: p5, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: E, situacao_atual: X, fl_tramitando: 1, codigo_deliberacao: null, data_deliberacao: null}
+          - {sk_proposicao: p6, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: F, situacao_atual: X, fl_tramitando: 0, codigo_deliberacao: PREJUDICADO, data_deliberacao: '2026-08-01'}
+      - input: ref('seed_senado_deliberacoes_resultado')
+        rows:
+          - {codigo_deliberacao: APROVADA_NO_PLENARIO, resultado_legislativo: APROVADA}
+          - {codigo_deliberacao: REJEITADO_PLENARIO, resultado_legislativo: REJEITADA}
+          - {codigo_deliberacao: PREJUDICADO, resultado_legislativo: OUTRO}
+    expect:
+      rows:
+        - {identificacao: PL 1/2023, votos_sim_ecidadania: 30, votos_nao_ecidadania: 5, total_votos_ecidadania: 35, qt_extracoes: 2, resultado_consulta: SIM, resultado_votacao: APROVADA, aderencia_consulta_publica: 1, motivo_aderencia_nula: null}
+        - {identificacao: PL 2/2023, votos_sim_ecidadania: 1, votos_nao_ecidadania: 9, total_votos_ecidadania: 10, qt_extracoes: 1, resultado_consulta: NAO, resultado_votacao: APROVADA, aderencia_consulta_publica: 0, motivo_aderencia_nula: null}
+        - {identificacao: PL 3/2023, votos_sim_ecidadania: 9, votos_nao_ecidadania: 1, total_votos_ecidadania: 10, qt_extracoes: 1, resultado_consulta: SIM, resultado_votacao: REJEITADA, aderencia_consulta_publica: 0, motivo_aderencia_nula: null}
+        - {identificacao: PL 4/2023, votos_sim_ecidadania: 5, votos_nao_ecidadania: 5, total_votos_ecidadania: 10, qt_extracoes: 1, resultado_consulta: EMPATE, resultado_votacao: APROVADA, aderencia_consulta_publica: null, motivo_aderencia_nula: EMPATE NA CONSULTA}
+        - {identificacao: PL 5/2023, votos_sim_ecidadania: 7, votos_nao_ecidadania: 3, total_votos_ecidadania: 10, qt_extracoes: 1, resultado_consulta: SIM, resultado_votacao: null, aderencia_consulta_publica: null, motivo_aderencia_nula: SEM DELIBERACAO}
+        - {identificacao: PL 6/2023, votos_sim_ecidadania: 7, votos_nao_ecidadania: 3, total_votos_ecidadania: 10, qt_extracoes: 1, resultado_consulta: SIM, resultado_votacao: OUTRO, aderencia_consulta_publica: null, motivo_aderencia_nula: DELIBERACAO NAO BINARIA}
+        - {identificacao: PL 7/2023, votos_sim_ecidadania: 7, votos_nao_ecidadania: 3, total_votos_ecidadania: 10, qt_extracoes: 1, resultado_consulta: SIM, resultado_votacao: null, aderencia_consulta_publica: null, motivo_aderencia_nula: MATERIA NAO ENCONTRADA NO SENADO}

@@ -88,6 +88,10 @@ models:
         description: "Norma gerada pela proposição (só Senado)."
       - name: relator_atual_id_nk
         description: "Id do deputado relator atual (só Câmara)."
+      - name: codigo_deliberacao
+        description: "Código da deliberação da matéria no Senado."
+      - name: data_deliberacao
+        description: "Data da deliberação da matéria no Senado."
       - name: sk_data
         description: "Chave da data de apresentação."
       - name: model_run_at
@@ -1038,6 +1042,45 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: fct_consultas_publicas
+    description: "Votos da consulta pública do e-Cidadania por matéria em cada extração. Grão: matéria × data de extração."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - identificacao
+              - data_extracao
+    columns:
+      - name: sk_consulta
+        description: "Chave da observação da consulta."
+        tests:
+          - not_null
+          - unique
+      - name: sk_proposicao
+        description: "Chave da matéria no Senado; desconhecida quando não foi encontrada."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_proposicoes')
+                field: sk_proposicao
+      - name: sk_data
+        description: "Chave da data de extração."
+      - name: identificacao
+        description: "Identificação da matéria (ex.: PL 2987/2024)."
+        tests:
+          - not_null
+      - name: data_extracao
+        description: "Data da extração."
+      - name: votos_sim
+        description: "Votos SIM acumulados na consulta até a extração."
+      - name: votos_nao
+        description: "Votos NÃO acumulados na consulta até a extração."
+      - name: total_votos
+        description: "Total de votos acumulados na consulta até a extração."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: fct_ranking_politicos
     description: "Ranking dos Políticos atual. Grão: um parlamentar."
     columns:
@@ -1501,3 +1544,20 @@ seeds:
         description: "Início da participação do partido na bancada."
       - name: fim
         description: "Fim da participação; vazio quando vigente."
+
+  - name: seed_senado_deliberacoes_resultado
+    description: "Resultado legislativo de cada tipo de deliberação do Senado. Pré-preenchida por palavra-chave; revisar à mão."
+    columns:
+      - name: codigo_deliberacao
+        description: "Código da deliberação no Senado."
+        tests:
+          - not_null
+          - unique
+      - name: resultado_legislativo
+        description: "Resultado (APROVADA, REJEITADA, OUTRO)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['APROVADA', 'REJEITADA', 'OUTRO']
+      - name: descricao
+        description: "Descrição da deliberação no Senado."

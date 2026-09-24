@@ -24,6 +24,7 @@ SELECT
         ''
     )                                           AS sigla_tipo,
     identificacao,
+    {{ clean_string("ementa", "upper") }}       AS ementa,
     {{ clean_string("normagerada", "upper") }}  AS norma_gerada,
     {{ clean_string("objetivo","upper") }}      AS objetivo,
     siglatipodeliberacao                        AS sigla_tipo_deliberacao,

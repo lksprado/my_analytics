@@ -64,15 +64,16 @@ Validam o governismo calculado contra o publicado pelo Radar Congresso. Não sã
 
 ## e-Cidadania
 
-| Tabela                   | Grão | Responde                           |
-| ------------------------ | ---- | ---------------------------------- |
-| `ecidadania_bignumbers`  | dia  | Participação popular na plataforma |
-| `ecidadania_proposicoes` | —    | Desabilitada                       |
+| Tabela                  | Grão    | Responde                                                                                                      |
+| ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `consultas_publicas`    | matéria | Resultado da consulta pública, deliberação do Senado e aderência entre os dois (`aderencia_consulta_publica`) |
+| `ecidadania_bignumbers` | dia     | Participação na plataforma ao longo do tempo                                                                  |
 
 ## Cuidados de leitura
 
 - A orientação só existe no Senado a partir de 2019: antes disso, governismo e disciplina ficam nulos.
 - `ementa` e `idade` só existem para a Câmara.
+- A consulta pública representa os participantes do e-Cidadania, não a população, e não vincula os senadores. A aderência só existe para matérias encontradas no Senado e já deliberadas.
 - Indicadores externos preservam o valor da fonte; comparações com o modelo ficam nos `comparativo_*`, nunca na mesma métrica.
 - `nota_base_votacoes` depende da posição de voto e é correlacionada ao governismo.
 - A pontuação do Ranking dos Políticos existe de 2023 em diante (`score_vs_governismo`).
