@@ -16,6 +16,7 @@ votos_filtrados AS (
         senador_id_nk,
         votacao_id_fk,
         sigla_partido,
+        uf,
         data_votacao,
         identificacao,
         COALESCE(sigla_voto, 'NAO INFORMADO') AS codigo_voto
@@ -27,11 +28,11 @@ partidos_norm AS (
     SELECT
         id_senado,
         id_camara,
-        {{ clean_string('sigla_senado', 'upper') }}        AS sigla_senado,
-        {{ clean_string('sigla_conformada', 'upper') }}    AS partido_sigla,
-        {{ clean_string('nome', 'upper') }}                AS partido_nome,
+        {{ clean_string('sigla_senado', 'upper') }}     AS sigla_senado,
+        {{ clean_string('sigla_conformada', 'upper') }} AS partido_sigla,
+        {{ clean_string('nome', 'upper') }}             AS partido_nome,
         data_criacao,
-        COALESCE(data_extincao, DATE '9999-12-31')         AS data_extincao
+        COALESCE(data_extincao, DATE '9999-12-31')      AS data_extincao
     FROM {{ ref('seed_partidos') }}
 ),
 
@@ -74,13 +75,14 @@ votos_com_partidos AS (
         t1.casa,
         t1.senador_id_nk,
         t1.votacao_id_fk,
-        t2.id_senado                                            AS partido_id_senado,
-        t2.partido_sigla                                        AS partido,
-        COALESCE(t2.partido_nome, '{{ var("null_string") }}')   AS partido_nome,
+        t2.id_senado                                          AS partido_id_senado,
+        t2.partido_sigla                                      AS partido,
+        COALESCE(t2.partido_nome, '{{ var("null_string") }}') AS partido_nome,
         t1.data_votacao,
         t1.identificacao,
+        t1.uf,
         t1.codigo_voto,
-        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
+        '{{ run_started_at }}'::TIMESTAMPTZ                   AS model_run_at
     FROM votos_filtrados t1
     LEFT JOIN partidos_senado t2
         ON t2.sigla_senado = t1.sigla_partido

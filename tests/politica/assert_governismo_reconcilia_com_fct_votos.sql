@@ -12,15 +12,15 @@ atomico AS (
 
 legislatura AS (
     SELECT
-        SUM(qt_votos_alinhados_legislatura) AS qt_alinhados,
-        SUM(qt_votos_legislatura)           AS qt_votos
+        SUM(qt_votos_alinhados_governo) AS qt_alinhados,
+        SUM(qt_votos_governismo)        AS qt_votos
     FROM {{ ref('fct_governismo_legislatura') }}
 ),
 
 trimestre AS (
     SELECT
-        SUM(qt_votos_alinhados_trimestre) AS qt_alinhados,
-        SUM(qt_votos_trimestre)           AS qt_votos
+        SUM(qt_votos_alinhados_governo) AS qt_alinhados,
+        SUM(qt_votos_governismo)        AS qt_votos
     FROM {{ ref('fct_governismo_trimestre') }}
 )
 

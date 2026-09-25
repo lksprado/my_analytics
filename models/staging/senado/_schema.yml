@@ -7,48 +7,88 @@ models:
     columns:
       - name: senador_id_nk
         description: "Chave natural do senador na API do Senado."
+        meta:
+          source_column: "identificacaoparlamentar_codigoparlamentar"
       - name: codigo_publico_na_leg_atual
         description: "Código público do senador na legislatura atual."
+        meta:
+          source_column: "identificacaoparlamentar_codigopubliconalegatual"
       - name: nome
         description: "Nome parlamentar do senador."
+        meta:
+          source_column: "identificacaoparlamentar_nomeparlamentar"
       - name: nome_completo
         description: "Nome civil completo do senador."
+        meta:
+          source_column: "identificacaoparlamentar_nomecompletoparlamentar"
       - name: sexo
         description: "Sexo informado no cadastro (M/F)."
+        meta:
+          source_column: "identificacaoparlamentar_sexoparlamentar"
       - name: forma_tratamento
         description: "Forma de tratamento do senador (ex: Senador, Senadora)."
+        meta:
+          source_column: "identificacaoparlamentar_formatratamento"
       - name: email
         description: "E-mail institucional do senador."
+        meta:
+          source_column: "identificacaoparlamentar_emailparlamentar"
       - name: telefones_telefone
         description: "Telefone(s) do gabinete em formato semi-estruturado."
+        meta:
+          source_column: "identificacaoparlamentar_telefones_telefone"
       - name: sigla_partido
         description: "Sigla do partido no momento mais recente da carga."
+        meta:
+          source_column: "identificacaoparlamentar_siglapartidoparlamentar"
       - name: uf
         description: "UF representada pelo senador."
+        meta:
+          source_column: "identificacaoparlamentar_ufparlamentar"
       - name: bloco_codigo_bloco
         description: "Código do bloco parlamentar ao qual o senador pertence."
+        meta:
+          source_column: "identificacaoparlamentar_bloco_codigobloco"
       - name: bloco_nome_bloco
         description: "Nome do bloco parlamentar."
+        meta:
+          source_column: "identificacaoparlamentar_bloco_nomebloco"
       - name: bloco_nome_apelido
         description: "Nome/apelido do bloco parlamentar."
+        meta:
+          source_column: "identificacaoparlamentar_bloco_nomeapelido"
       - name: membro_mesa
         description: "Indica se o senador é membro da Mesa Diretora."
+        meta:
+          source_column: "identificacaoparlamentar_membromesa"
       - name: membro_lideranca
         description: "Indica se o senador exerce função de liderança."
+        meta:
+          source_column: "identificacaoparlamentar_membrolideranca"
       - name: mandato_codigomandato
         description: "Código identificador do mandato."
+        meta:
+          source_column: "mandato_codigomandato"
       - name: mandato_ufparlamentar
         description: "UF do mandato (pode diferir da UF de identificação)."
+        meta:
+          source_column: "mandato_ufparlamentar"
       - name: mandato_primeiralegislaturadomandato_numerolegislatura
         description: "Número da primeira legislatura coberta pelo mandato."
       - name: mandato_segundalegislaturadomandato_numerolegislatura
         description: "Número da segunda legislatura coberta pelo mandato."
       - name: mandato_descricaoparticipacao
         description: "Condição no mandato (TITULAR, SUPLENTE)."
+        meta:
+          source_column: "mandato_descricaoparticipacao"
       - name: mandato_suplentes_suplente
         description: "Dados do(s) suplente(s) do senador em formato semi-estruturado."
+        meta:
+          source_column: "mandato_suplentes_suplente"
       - name: mandato_exercicios_exercicio
         description: "Períodos de exercício do mandato (JSON)."
+        meta:
+          source_column: "mandato_exercicios_exercicio"
       - name: identificacaoparlamentar_bloco_datacriacao
         description: "Data de criação do bloco parlamentar."
       - name: mandato_primeiralegislaturadomandato_datainicio
@@ -63,10 +103,16 @@ models:
         description: "Participação do titular do mandato; nula se o senador é titular."
       - name: mandato_titular_codigoparlamentar
         description: "Código do titular do mandato; nulo se o senador é titular."
+        meta:
+          source_column: "mandato_titular_codigoparlamentar"
       - name: mandato_titular_nomeparlamentar
         description: "Nome do titular do mandato; nulo se o senador é titular."
+        meta:
+          source_column: "mandato_titular_nomeparlamentar"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -75,26 +121,48 @@ models:
     columns:
       - name: senador_id_nk
         description: "Chave natural do senador na API do Senado."
+        meta:
+          source_column: "identificacaoparlamentar_codigoparlamentar"
       - name: nome
         description: "Nome parlamentar do senador (upper)."
+        meta:
+          source_column: "identificacaoparlamentar_nomeparlamentar"
       - name: nome_completo
         description: "Nome completo do senador (upper)."
+        meta:
+          source_column: "identificacaoparlamentar_nomecompletoparlamentar"
       - name: sexo
         description: "Sexo do senador (upper)."
+        meta:
+          source_column: "identificacaoparlamentar_sexoparlamentar"
       - name: forma_tratamento
         description: "Forma de tratamento do senador (upper)."
+        meta:
+          source_column: "identificacaoparlamentar_formatratamento"
       - name: mandatos_mandato
         description: "Mandatos do senador (JSON)."
+        meta:
+          source_column: "mandatos_mandato"
       - name: email
         description: "E-mail institucional do senador."
+        meta:
+          source_column: "identificacaoparlamentar_emailparlamentar"
       - name: sigla_partido
         description: "Sigla do partido do senador."
+        meta:
+          source_column: "identificacaoparlamentar_siglapartidoparlamentar"
       - name: codigo_publico_na_leg_atual
         description: "Código público do senador na legislatura atual."
+        meta:
+          source_column: "identificacaoparlamentar_codigopubliconalegatual"
       - name: uf
         description: "UF representada pelo senador."
+        meta:
+          source_column: "identificacaoparlamentar_ufparlamentar"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -103,36 +171,73 @@ models:
     columns:
       - name: processo_id_nk
         description: "Chave natural do processo legislativo na API do Senado."
+        meta:
+          source_column: "id"
+        data_tests:
+          - unique
+          - not_null
       - name: tramitando
         description: "Indica se o processo está em tramitação."
+        meta:
+          source_column: "tramitando"
       - name: autoria
         description: "Autoria do processo."
+        meta:
+          source_column: "autoria"
       - name: codigo_materia
         description: "Código da matéria associada ao processo."
+        meta:
+          source_column: "codigomateria"
       - name: data_apresentacao
         description: "Data de apresentação do processo."
+        meta:
+          source_column: "dataapresentacao"
       - name: data_deliberacao
         description: "Data de deliberação do processo."
+        meta:
+          source_column: "datadeliberacao"
       - name: data_situacao_atual
         description: "Data da situação atual do processo."
+        meta:
+          source_column: "datasituacaoatual"
       - name: sigla_tipo
         description: "Sigla do tipo do processo."
       - name: identificacao
         description: "Identificação textual do processo (ex: PL 123/2024)."
+        meta:
+          source_column: "identificacao"
       - name: norma_gerada
         description: "Norma gerada pelo processo, quando houver."
+        meta:
+          source_column: "normagerada"
       - name: objetivo
         description: "Objetivo do processo (upper)."
+        meta:
+          source_column: "objetivo"
       - name: sigla_tipo_deliberacao
         description: "Sigla do tipo de deliberação."
+        meta:
+          source_column: "siglatipodeliberacao"
       - name: situacao_atual
         description: "Situação atual do processo (upper)."
+        meta:
+          source_column: "situacaoatual"
       - name: tipo_conteudo
         description: "Tipo de conteúdo do processo (upper)."
+        meta:
+          source_column: "tipoconteudo"
       - name: tipo_documento
         description: "Tipo de documento do processo (upper)."
+        meta:
+          source_column: "tipodocumento"
+      - name: origem
+        description: "Fonte do registro (API, ARQUIVO)."
+        meta:
+          source_column: "constante"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -141,44 +246,84 @@ models:
     columns:
       - name: proposicao_id_nk
         description: "Id da proposição no Senado."
+        meta:
+          source_column: "id"
       - name: codigo_materia
         description: "Código da matéria associada à proposição."
+        meta:
+          source_column: "codigomateria"
       - name: identificacao
         description: "Identificação textual da proposição (ex: PL 123/2024)."
+        meta:
+          source_column: "identificacao"
       - name: sigla_proposicao
         description: "Sigla do tipo de proposição."
+        meta:
+          source_column: "identificacao"
       - name: apelido
         description: "Apelido pelo qual a proposição é conhecida (upper)."
+        meta:
+          source_column: "apelido"
       - name: codigo_casa
         description: "Código da casa identificadora (SF, CN)."
+        meta:
+          source_column: "casaidentificadora"
       - name: casa
         description: "Casa identificadora (Senado Federal, Congresso Nacional)."
+        meta:
+          source_column: "casaidentificadora"
       - name: codigo_ente
         description: "Código do ente vinculado à proposição."
+        meta:
+          source_column: "enteidentificador"
       - name: ementa
         description: "Ementa da proposição (upper)."
+        meta:
+          source_column: "ementa"
       - name: tipo_proposicao
         description: "Tipo do documento da proposição (upper)."
+        meta:
+          source_column: "tipodocumento"
       - name: data_apresentacao
         description: "Data de apresentação da proposição."
+        meta:
+          source_column: "dataapresentacao"
       - name: autoria
         description: "Autoria da proposição."
+        meta:
+          source_column: "autoria"
       - name: tramitando
         description: "Indica se a proposição está em tramitação."
+        meta:
+          source_column: "tramitando"
       - name: data_deliberacao
         description: "Data da deliberação da proposição."
+        meta:
+          source_column: "datadeliberacao"
       - name: codigo_deliberacao
         description: "Código do tipo de deliberação."
+        meta:
+          source_column: "siglatipodeliberacao"
       - name: link_documento
         description: "URL do documento da proposição."
+        meta:
+          source_column: "urldocumento"
       - name: objetivo
         description: "Objetivo da proposição."
+        meta:
+          source_column: "objetivo"
       - name: norma_gerada
         description: "Norma gerada pela proposição, quando houver."
+        meta:
+          source_column: "normagerada"
       - name: ultima_informacao_atualizada
         description: "Data/hora da última atualização da informação na origem."
+        meta:
+          source_column: "ultimainformacaoatualizada"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -188,36 +333,68 @@ models:
     columns:
       - name: codigo_materia
         description: "Código da matéria votada."
+        meta:
+          source_column: "codigomateria"
       - name: codigo_sessao
         description: "Código da sessão."
+        meta:
+          source_column: "codigosessao"
       - name: codigo_sessao_legislativa
         description: "Código da sessão legislativa."
+        meta:
+          source_column: "codigosessaolegislativa"
       - name: votacao_id_nk
         description: "Id da sessão de votação no Senado."
+        meta:
+          source_column: "codigosessaovotacao"
       - name: votacao_sve_id
         description: "Id da votação no sistema eletrônico do Senado (desde 2019)."
+        meta:
+          source_column: "codigovotacaosve"
       - name: processo_id_nk
         description: "Chave natural do processo legislativo associado à votação."
+        meta:
+          source_column: "idprocesso"
       - name: identificacao
         description: "Identificação da matéria votada."
+        meta:
+          source_column: "identificacao"
       - name: numero
         description: "Número da matéria."
+        meta:
+          source_column: "numero"
       - name: numero_sessao
         description: "Número da sessão."
+        meta:
+          source_column: "numerosessao"
       - name: sigla
         description: "Sigla do tipo de matéria (PL, PEC, etc.)."
+        meta:
+          source_column: "sigla"
       - name: descricao_votacao
         description: "Descrição textual da votação."
+        meta:
+          source_column: "descricaovotacao"
       - name: sigla_tipo_sessao
         description: "Sigla do tipo de sessão (ex. O, E)."
+        meta:
+          source_column: "siglatiposessao"
       - name: total_votos_abstencao
         description: "Total de votos de abstenção."
+        meta:
+          source_column: "totalvotosabstencao"
       - name: total_votos_contra
         description: "Total de votos contrários."
+        meta:
+          source_column: "totalvotosnao"
       - name: total_votos_favor
         description: "Total de votos favoráveis."
+        meta:
+          source_column: "totalvotossim"
       - name: data_votacao
         description: "Data da sessão de votação."
+        meta:
+          source_column: "datasessao"
       - name: resultado_votacao
         description: "Resultado da votação (APROVADO, REPROVADO, PREJUDICADO, EMPATE)."
       - name: votacao_secreta
@@ -226,6 +403,8 @@ models:
         description: "1 quando a votação foi aprovada."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -234,38 +413,72 @@ models:
     columns:
       - name: codigo_materia
         description: "Código da matéria votada."
+        meta:
+          source_column: "codigomateria"
       - name: codigo_sessao
         description: "Código da sessão."
+        meta:
+          source_column: "codigosessao"
       - name: codigo_sessao_legislativa
         description: "Código da sessão legislativa."
+        meta:
+          source_column: "codigosessaolegislativa"
       - name: votacao_id_fk
         description: "Id da votação."
+        meta:
+          source_column: "codigosessaovotacao"
       - name: votacao_sve_id
         description: "Id da votação no sistema eletrônico do Senado (desde 2019)."
+        meta:
+          source_column: "codigovotacaosve"
       - name: data_votacao
         description: "Data da sessão de votação."
+        meta:
+          source_column: "datasessao"
       - name: processo_id_nk
         description: "Chave natural do processo legislativo associado à votação."
+        meta:
+          source_column: "idprocesso"
       - name: identificacao
         description: "Identificação da matéria votada."
+        meta:
+          source_column: "identificacao"
       - name: numero
         description: "Número da matéria."
+        meta:
+          source_column: "numero"
       - name: numero_sessao
         description: "Número da sessão."
+        meta:
+          source_column: "numerosessao"
       - name: sigla
         description: "Sigla do tipo de matéria."
+        meta:
+          source_column: "sigla"
       - name: sigla_tipo_sessao
         description: "Sigla do tipo de sessão."
+        meta:
+          source_column: "siglatiposessao"
       - name: senador_id_nk
         description: "Chave natural do senador na API do Senado."
+        meta:
+          source_column: "codigoparlamentar"
       - name: descricao_voto
         description: "Descrição textual do voto do senador (upper)."
+        meta:
+          source_column: "descricaovotoparlamentar"
       - name: sigla_partido
         description: "Sigla do partido do senador no momento do voto (upper)."
+        meta:
+          source_column: "siglapartidoparlamentar"
       - name: sigla_voto
         description: "Sigla do voto registrado (SIM, NAO, ABSTENCAO, etc.) (upper)."
+        meta:
+          source_column: "siglavotoparlamentar"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -274,24 +487,42 @@ models:
     columns:
       - name: votacao_id_fk
         description: "Id da votação no sistema eletrônico do Senado."
+        meta:
+          source_column: "codigovotacaosve"
       - name: sigla_tipo_materia
         description: "Sigla do tipo de matéria votada."
+        meta:
+          source_column: "siglatipomateria"
       - name: numero_materia
         description: "Número da matéria votada."
+        meta:
+          source_column: "numeromateria"
       - name: total_votos_favor
         description: "Total de votos favoráveis registrados."
+        meta:
+          source_column: "qtdvotossim"
       - name: total_votos_contra
         description: "Total de votos contrários registrados."
+        meta:
+          source_column: "qtdvotosnao"
       - name: total_votos_abstencao
         description: "Total de abstenções registradas."
+        meta:
+          source_column: "qtdvotosabstencao"
       - name: data_votacao
         description: "Data da votação."
+        meta:
+          source_column: "datahora"
       - name: partido
         description: "Sigla do partido que recebeu a orientação (upper)."
+        meta:
+          source_column: "partido"
       - name: orientacao_voto
         description: "Orientação de voto (SIM, NAO, OBSTRUCAO, LIBERADO)."
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 

@@ -122,3 +122,63 @@ models:
               - casa
               - congresso_id_fk
               - ano
+
+  - name: int_indicadores_radar_versoes
+    description: "Versões do governismo publicado pelo Radar Congresso, em formato longo. Grão: indicador × parlamentar × período × coleta."
+    columns:
+      - name: fonte
+        description: "Fonte que publica o indicador."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: parlamentar_fonte_id_nk
+        description: "Id do parlamentar na fonte externa."
+      - name: indicador
+        description: "Nome do indicador."
+      - name: periodo_tipo
+        description: "Tipo do período de referência."
+      - name: periodo_inicio
+        description: "Primeiro dia do período de referência."
+      - name: periodo_fim
+        description: "Último dia do período de referência."
+      - name: valor_original
+        description: "Valor publicado pela fonte, sem alteração."
+      - name: qt_base
+        description: "Quantidade de votações que a fonte informa como base do valor."
+      - name: data_coleta
+        description: "Data em que esta versão do valor foi coletada."
+      - name: data_fim_vigencia
+        description: "Data em que esta versão deixou de ser a publicada; nula quando vigente."
+      - name: parlamentar_casa_id
+        description: "Id do parlamentar na casa, quando a fonte o informa."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: int_indicadores_ranking_versoes
+    description: "Versões dos indicadores do Ranking dos Políticos, em formato longo. Grão: indicador × parlamentar × período × coleta."
+    columns:
+      - name: fonte
+        description: "Fonte que publica o indicador."
+      - name: casa
+        description: "Casa legislativa (CAMARA, SENADO)."
+      - name: parlamentar_fonte_id_nk
+        description: "Id do parlamentar na fonte externa."
+      - name: indicador
+        description: "Nome do indicador."
+      - name: periodo_tipo
+        description: "Tipo do período de referência."
+      - name: periodo_inicio
+        description: "Primeiro dia do período de referência."
+      - name: periodo_fim
+        description: "Último dia do período de referência."
+      - name: valor_original
+        description: "Valor publicado pela fonte, sem alteração."
+      - name: qt_base
+        description: "Quantidade de votações que a fonte informa como base do valor."
+      - name: data_coleta
+        description: "Data em que esta versão do valor foi coletada."
+      - name: data_fim_vigencia
+        description: "Data em que esta versão deixou de ser a publicada; nula quando vigente."
+      - name: parlamentar_casa_id
+        description: "Id do parlamentar na casa, quando a fonte o informa."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."

@@ -134,6 +134,8 @@ sources:
         description: "Votos dos senadores em cada matéria. Derivado do Endpoint: https://legis.senado.leg.br/dadosabertos/votacao/?dataInicio={y}-01-01&dataFim={y}-12-31&v=1"
       - name: raw_senado_processo
         description: "Votos dos senadores em cada matéria. Derivado do Endpoint: https://legis.senado.leg.br/dadosabertos/processo?idProcesso={id}&v=1"
+      - name: processos
+        description: "Todos os processos do Senado, listados por ano de 1946 em diante"
 
   - name: camara
     schema: raw_camara
@@ -155,6 +157,10 @@ sources:
         description: "Temas da proposição Legislativa. Endpoint: https://dadosabertos.camara.leg.br/api/v2/proposicoes/{id_proposicao}/temas"
       - name: raw_camara_proposicao
         description: "Proposições Legislativas. Endpoint: https://dadosabertos.camara.leg.br/api/v2/proposicoes/{id_proposicao}/"
+      - name: arquivo_proposicoes_temas
+        description: "Temas de todas as proposições, de 1945 em diante."
+      - name: arquivo_proposicoes
+        description: "Todas as proposições da Câmara, dos arquivos anuais de 1934 em diante."
 
   - name: ecidadania
     schema: raw_ecidadania

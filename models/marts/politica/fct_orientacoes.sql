@@ -29,6 +29,7 @@ final AS (
         -- A orientação órfã do Senado ainda traz a própria data da votação.
         COALESCE(v.sk_data, CAST(TO_CHAR(o.data_votacao, 'YYYYMMDD') AS INTEGER)) AS sk_data,
         COALESCE(p.sk_partido, '{{ var("null_key") }}')                           AS sk_partido,
+        COALESCE(b.sk_bancada, '{{ var("null_key") }}')                           AS sk_bancada,
         o.casa,
         o.votacao_id_nk,
         o.votacao_origem_id,
@@ -41,6 +42,10 @@ final AS (
         ON o.casa = v.casa AND o.votacao_id_nk = v.votacao_id_nk
     LEFT JOIN partidos AS p
         ON o.partido_id_senado = p.partido_id_nk
+    LEFT JOIN {{ ref('dim_bancada') }} AS b
+        ON o.casa = b.casa
+        AND o.sigla_lideranca = b.sigla_bancada
+        AND COALESCE(p.sk_partido, '{{ var("null_key") }}') = b.sk_partido
 )
 
 SELECT * FROM final

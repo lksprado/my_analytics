@@ -10,6 +10,7 @@ camara_votos AS (
         deputado_id_nk,
         partido_id_fk,
         votacao_id_fk,
+        uf,
         COALESCE(voto, 'NAO INFORMADO') AS codigo_voto
     FROM {{ ref('stg_camara_votos_deputados') }}
 ),
@@ -23,6 +24,7 @@ votos_com_partidos AS (
         t1.votacao_id_fk,
         {{ clean_string("REPLACE(t2.sigla_conformada,'*','')", "upper") }} AS partido,
         {{ clean_string("t2.nome", "upper") }}                             AS partido_nome,
+        t1.uf,
         t1.codigo_voto,
         '{{ run_started_at }}'::TIMESTAMPTZ                                AS model_run_at
     FROM camara_votos AS t1

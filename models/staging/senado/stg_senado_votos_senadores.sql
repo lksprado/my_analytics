@@ -22,6 +22,7 @@ SELECT
     codigoparlamentar::BIGINT                              AS senador_id_nk,
     {{ clean_string("descricaovotoparlamentar","upper") }} AS descricao_voto,
     {{ clean_string("siglapartidoparlamentar","upper") }}  AS sigla_partido,
+    {{ clean_string("siglaufparlamentar","upper") }}       AS uf,
     {{ clean_string("siglavotoparlamentar","upper") }}     AS sigla_voto,
     loaded_at_utc,
     '{{ run_started_at }}'::TIMESTAMPTZ                    AS model_run_at
