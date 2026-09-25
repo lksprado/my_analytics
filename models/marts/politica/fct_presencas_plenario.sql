@@ -1,6 +1,12 @@
 {{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    pre_hook="{{ apagar_periodo_vivo(\"TO_DATE(sk_data::TEXT, 'YYYYMMDD')\", 'legislatura') }}",
+    on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}
+
+-- depends_on: {{ ref('seed_legislaturas') }}
 
 WITH
 votacoes_plenario AS (
@@ -20,6 +26,10 @@ votacoes_plenario AS (
     WHERE
         o.tipo_orgao = 'PLENARIO'
         AND v.modalidade_votacao IN ('NOMINAL ABERTA', 'NOMINAL SECRETA')
+        {% if is_incremental() -%}
+            -- A janela de exercício da Câmara cresce com cada voto novo: a legislatura corrente é refeita inteira.
+            AND c.data >= {{ inicio_periodo_vivo('legislatura') }}
+        {%- endif %}
 ),
 
 registros AS (

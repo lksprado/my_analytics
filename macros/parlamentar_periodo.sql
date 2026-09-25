@@ -26,6 +26,9 @@ calendario AS (
             {{ expressoes[loop.index0] }} AS {{ chave }}{{ "," if not loop.last }}
         {% endfor %}
     FROM {{ ref('dim_calendario_legislativo') }} AS c
+    {% if is_incremental() -%}
+        WHERE c.data >= {{ inicio_periodo_vivo(granularidade_periodo_vivo(periodo)) }}
+    {%- endif %}
 ),
 
 votos AS (
@@ -265,4 +268,8 @@ final AS (
 )
 
 SELECT * FROM final
+{% endmacro %}
+
+{% macro granularidade_periodo_vivo(periodo) %}
+    {{- return({'legislatura': 'legislatura', 'ano': 'year', 'trimestre': 'quarter', 'semana': 'week'}[periodo]) -}}
 {% endmacro %}

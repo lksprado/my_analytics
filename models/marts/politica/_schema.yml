@@ -1755,7 +1755,12 @@ unit_tests:
       entidade, não pela sigla (PR orienta o PL). O cabeçalho empresta sk_proposicao e a
       orientação do governo. Parlamentar fora da dimensão vai para null_key em vez de sumir.
     model: fct_votos
+    overrides:
+      macros:
+        is_incremental: false
     given:
+      - input: ref('seed_legislaturas')
+        rows: []
       - input: ref('int_votos_unificados')
         rows:
           - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '1-1', partido: PT, partido_id_senado: 71, codigo_voto: SIM, voto: SIM}
@@ -1802,7 +1807,12 @@ unit_tests:
       último voto na legislatura; sem registro nesse intervalo, a ausência é inferida e herda a UF
       e o partido do voto anterior. Comissões ficam de fora. Senado: vale a lista de registros.
     model: fct_presencas_plenario
+    overrides:
+      macros:
+        is_incremental: false
     given:
+      - input: ref('seed_legislaturas')
+        rows: []
       - input: ref('fct_votacoes')
         rows:
           - {sk_votacao: v1, casa: CAMARA, sk_data: 20230110, sk_orgao: plen_c, modalidade_votacao: NOMINAL ABERTA, fl_governo_orientou: 1}
@@ -1851,7 +1861,12 @@ unit_tests:
       votação; a disciplina de bancada compara o voto com a orientação dela. Participação
       encerrada não vale.
     model: fct_votos
+    overrides:
+      macros:
+        is_incremental: false
     given:
+      - input: ref('seed_legislaturas')
+        rows: []
       - input: ref('int_votos_unificados')
         rows:
           - {casa: CAMARA, parlamentar_id_nk: 1, votacao_id_nk: '2-1', partido: PT, partido_id_senado: 71, codigo_voto: SIM, voto: SIM}
