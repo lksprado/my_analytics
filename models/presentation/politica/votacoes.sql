@@ -60,7 +60,7 @@ final AS (
         t3.ementa,
         t3.data_proposicao,
         t1.fl_aprovada,
-        CASE t1.fl_aprovada WHEN 1 THEN 'APROVADA' WHEN 0 THEN 'REJEITADA' ELSE 'NAO BINARIO' END
+        CASE t1.fl_aprovada WHEN 1 THEN 'APROVADA' WHEN 0 THEN 'NAO APROVADA' ELSE 'NAO BINARIO' END
             AS resultado,
         -- O placar só existe onde há registro nominal; na secreta, só o total oficial.
         CASE WHEN {{ com_placar }} THEN t1.qt_votantes END

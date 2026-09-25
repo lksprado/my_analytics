@@ -78,12 +78,12 @@ models:
               arguments:
                 values: [0, 1]
       - name: resultado
-        description: "Resultado da votação (APROVADA, REJEITADA, NAO BINARIO)."
+        description: "Resultado da votação (APROVADA, NAO APROVADA por rejeição ou falta de quórum, NAO BINARIO)."
         tests:
           - not_null
           - accepted_values:
               arguments:
-                values: ['APROVADA', 'REJEITADA', 'NAO BINARIO']
+                values: ['APROVADA', 'NAO APROVADA', 'NAO BINARIO']
       - name: qt_votantes
         description: "Votantes (SIM, NÃO ou OBSTRUÇÃO); na secreta, total oficial de SIM e NÃO; nulo sem registro nominal."
       - name: qt_votos_sim

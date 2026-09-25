@@ -79,11 +79,11 @@ Definição formal de cada métrica, nos campos do PRD (§3.4). O termo "votos c
 | Campo | Definição |
 | --- | --- |
 | Definição | Se o resultado da votação seguiu a orientação do Governo |
-| Regra | Alinhado = (orientação SIM e aprovada) ou (orientação NÃO ou OBSTRUÇÃO e rejeitada) |
+| Regra | Alinhado = (orientação SIM e aprovada) ou (orientação NÃO ou OBSTRUÇÃO e não aprovada) |
 | Grão | Votação |
 | NULL | Com motivo explícito: SEM ORIENTACAO, LIBERADO, ORIENTACAO ABSTENCAO, RESULTADO NAO BINARIO |
 | Votação sem proposição | Entra normalmente |
-| Limitações | Não é "sucesso": só compara resultado e orientação |
+| Limitações | Não é "sucesso": só compara resultado e orientação. Na Câmara, não aprovada inclui rejeição e falta de quórum, que a origem não distingue |
 
 ## aderencia_consulta_publica
 
