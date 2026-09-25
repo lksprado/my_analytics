@@ -49,6 +49,8 @@ models:
 # Uma coluna inteiramente vazia no CSV é inferida como integer — data_emissao da Jéssica quebrava o UNION de int_renda_fixa_loop.
 seeds:
   my_analytics:
+    # dbt__build: seed sempre recriada (DROP + CREATE), aceita mudança de colunas no CSV
+    +full_refresh: true
     seed_investimentos_faltantes_lucas: &investimentos_faltantes
       +column_types:
         mes_base: date
