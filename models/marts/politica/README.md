@@ -111,6 +111,7 @@ Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indic
 | Empate e prejudicado no Senado são resultado não binário | `stg_senado_votacoes` |
 | Orientação do Senado resolvida pela matéria no dia, com desempate pelo placar | `int_orientacoes_senado_filtradas` |
 | Partido resolvido para a entidade por sigla e data; rebrands juntos, siglas reutilizadas separadas | `int_partidos_siglas`, `dim_partidos` |
+| UF do senador fora de exercício: a do mandato mais recente | `int_senadores_padronizados` |
 | Tipo de liderança imputado na Câmara pela sigla nas outras orientações | `int_orientacoes_camara_corrigidas` |
 | Tipo de bancada pelo prefixo da sigla; na Câmara, siglas coladas sem prefixo são bloco | `dim_bancada` |
 | Bancada do voto: federação antes de bloco, pela vigência da seed | `fct_votos` |
