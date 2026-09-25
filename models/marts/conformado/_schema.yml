@@ -13,20 +13,104 @@ models:
       `role` e `diversos` como sazonalidade conhecida, e não como descontrole.
     columns:
       - name: data_sk
-        description: "Chave surrogate da data no formato AAAAMMDD como inteiro (ex.: 20260131), herdada de int_dates."
+        description: "Chave surrogate da data no formato AAAAMMDD como inteiro (ex.: 20260131)."
         tests:
           - not_null
           - unique
       - name: data
-        description: "Data do dia — chave natural, herdada de int_dates (date_day). As demais colunas de calendário estão descritas em int_dates, aqui com nomes em português."
-      - name: fl_data_especial
-        description: "1 quando o dia exato é uma data especial (dia + mês batem, respeitado o ano_inicio); 0 caso contrário."
+        description: "Data do dia — chave natural da dimensão."
+      - name: data_anterior
+        description: "Dia anterior."
+      - name: proxima_data
+        description: "Dia seguinte."
+      - name: data_ano_anterior
+        description: "Mesma data no ano anterior (29/02 cai em 28/02)."
+      - name: data_mesma_semana_ano_anterior
+        description: "Data 364 dias antes — mesmo dia da semana no ano anterior."
+      - name: dia_semana_num
+        description: "Dia da semana ISO: 1 = segunda … 7 = domingo."
+      - name: dia_do_mes
+        description: "Dia do mês (1-31), integer."
+      - name: dia_do_ano
+        description: "Dia do ano (1-366), integer."
+      - name: inicio_semana
+        description: "Início da semana (domingo)."
+      - name: fim_semana
+        description: "Fim da semana (sábado)."
+      - name: inicio_semana_ano_anterior
+        description: "Início da semana equivalente no ano anterior."
+      - name: fim_semana_ano_anterior
+        description: "Fim da semana equivalente no ano anterior."
+      - name: semana_do_ano
+        description: "Semana do ano."
+      - name: inicio_semana_iso
+        description: "Início da semana ISO (segunda)."
+      - name: fim_semana_iso
+        description: "Fim da semana ISO (domingo)."
+      - name: inicio_semana_iso_ano_anterior
+        description: "Início da semana ISO equivalente no ano anterior."
+      - name: fim_semana_iso_ano_anterior
+        description: "Fim da semana ISO equivalente no ano anterior."
+      - name: semana_iso_do_ano
+        description: "Semana ISO do ano."
+      - name: semana_do_ano_ano_anterior
+        description: "Semana do ano da data equivalente no ano anterior."
+      - name: semana_iso_do_ano_ano_anterior
+        description: "Semana ISO da data equivalente no ano anterior."
+      - name: mes_do_ano
+        description: "Mês do ano (1-12)."
+      - name: inicio_mes
+        description: "Primeiro dia do mês."
+      - name: fim_mes
+        description: "Último dia do mês."
+      - name: inicio_mes_ano_anterior
+        description: "Primeiro dia do mesmo mês no ano anterior."
+      - name: fim_mes_ano_anterior
+        description: "Último dia do mesmo mês no ano anterior."
+      - name: trimestre_do_ano
+        description: "Trimestre do ano (1-4)."
+      - name: inicio_trimestre
+        description: "Primeiro dia do trimestre."
+      - name: fim_trimestre
+        description: "Último dia do trimestre."
+      - name: ano
+        description: "Ano com quatro dígitos."
+      - name: inicio_ano
+        description: "Primeiro dia do ano."
+      - name: fim_ano
+        description: "Último dia do ano."
+      - name: mes_sk
+        description: "Mês no formato AAAAMM como inteiro (ex.: 202601)."
+      - name: semestre
+        description: "Semestre do ano (1 ou 2)."
+      - name: nome_dia_semana
+        description: "Nome do dia da semana em português, maiúsculo e sem acento (SEGUNDA-FEIRA … DOMINGO)."
+      - name: nome_dia_semana_abrev
+        description: "Dia da semana abreviado em português (SEG … DOM)."
+      - name: nome_mes
+        description: "Nome do mês em português, maiúsculo e sem acento (JANEIRO … DEZEMBRO)."
+      - name: nome_mes_abrev
+        description: "Mês abreviado em português (JAN … DEZ)."
+      - name: fl_fim_de_semana
+        description: "TRUE aos sábados e domingos."
+      - name: fl_feriado
+        description: "TRUE quando o dia é feriado nacional ou ponto facultativo bancário (Carnaval, Corpus Christi)."
+      - name: nome_feriado
+        description: "Nome do feriado; dois feriados no mesmo dia vêm juntos separados por ' / ' (21/04/2000: SEXTA-FEIRA SANTA / TIRADENTES). NULL fora de feriado."
+      - name: tipo_feriado
+        description: "NACIONAL ou PONTO FACULTATIVO (Carnaval e Corpus Christi, que fecham banco e bolsa). NULL fora de feriado."
+      - name: fl_dia_util
+        description: "TRUE de segunda a sexta quando não é feriado — dia útil bancário nacional."
+      - name: dia_util_mes
+        description: "Ordinal do dia útil dentro do mês (1 = primeiro dia útil); NULL em dia não útil. Ex.: o 5º dia útil é dia_util_mes = 5."
       - name: fl_mes_especial
         description: "1 quando o MÊS contém alguma data especial vigente; 0 caso contrário. É mais abrangente que fl_data_especial — todo dia de um mês especial recebe 1."
+      - name: fl_data_especial
+        description: "1 quando o dia exato é uma data especial (dia + mês batem, respeitado o ano_inicio); 0 caso contrário."
       - name: motivo
         description: "Descrição da data especial em maiúsculas (ex.: ANIVERSARIO), ou 'NORMAL' quando o dia não é especial."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: dim_dates
     description: >
@@ -35,11 +119,79 @@ models:
       feriados, dia útil, nomes em português nem datas especiais da família — para esses, usar dim_datas.
     columns:
       - name: date_sk
-        description: "Chave surrogate da data no formato AAAAMMDD como inteiro (ex.: 20260131), herdada de int_dates."
+        description: "Chave surrogate da data no formato AAAAMMDD como inteiro (ex.: 20260131)."
         tests:
           - not_null
           - unique
       - name: date_day
-        description: "Data do dia — chave natural, herdada de int_dates. As demais colunas de calendário estão descritas em int_dates."
+        description: "Data do dia — chave natural da dimensão."
+      - name: prior_date_day
+        description: "Dia anterior."
+      - name: next_date_day
+        description: "Dia seguinte."
+      - name: prior_year_date_day
+        description: "Mesma data no ano anterior (29/02 cai em 28/02)."
+      - name: prior_year_over_year_date_day
+        description: "Data 364 dias antes — mesmo dia da semana no ano anterior."
+      - name: day_of_week
+        description: "Dia da semana ISO: 1 = segunda … 7 = domingo."
+      - name: day_of_week_name
+        description: "Nome do dia da semana em inglês (Monday)."
+      - name: day_of_week_name_short
+        description: "Nome abreviado do dia da semana em inglês (Mon)."
+      - name: day_of_month
+        description: "Dia do mês (1-31), integer."
+      - name: day_of_year
+        description: "Dia do ano (1-366), integer."
+      - name: week_start_date
+        description: "Início da semana (domingo)."
+      - name: week_end_date
+        description: "Fim da semana (sábado)."
+      - name: prior_year_week_start_date
+        description: "Início da semana equivalente no ano anterior."
+      - name: prior_year_week_end_date
+        description: "Fim da semana equivalente no ano anterior."
+      - name: week_of_year
+        description: "Semana do ano."
+      - name: iso_week_start_date
+        description: "Início da semana ISO (segunda)."
+      - name: iso_week_end_date
+        description: "Fim da semana ISO (domingo)."
+      - name: prior_year_iso_week_start_date
+        description: "Início da semana ISO equivalente no ano anterior."
+      - name: prior_year_iso_week_end_date
+        description: "Fim da semana ISO equivalente no ano anterior."
+      - name: iso_week_of_year
+        description: "Semana ISO do ano."
+      - name: prior_year_week_of_year
+        description: "Semana do ano da data equivalente no ano anterior."
+      - name: prior_year_iso_week_of_year
+        description: "Semana ISO da data equivalente no ano anterior."
+      - name: month_of_year
+        description: "Mês do ano (1-12)."
+      - name: month_name
+        description: "Nome do mês em inglês (January)."
+      - name: month_name_short
+        description: "Nome abreviado do mês em inglês (Jan)."
+      - name: month_start_date
+        description: "Primeiro dia do mês."
+      - name: month_end_date
+        description: "Último dia do mês."
+      - name: prior_year_month_start_date
+        description: "Primeiro dia do mesmo mês no ano anterior."
+      - name: prior_year_month_end_date
+        description: "Último dia do mesmo mês no ano anterior."
+      - name: quarter_of_year
+        description: "Trimestre do ano (1-4)."
+      - name: quarter_start_date
+        description: "Primeiro dia do trimestre."
+      - name: quarter_end_date
+        description: "Último dia do trimestre."
+      - name: year_number
+        description: "Ano com quatro dígitos."
+      - name: year_start_date
+        description: "Primeiro dia do ano."
+      - name: year_end_date
+        description: "Último dia do ano."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

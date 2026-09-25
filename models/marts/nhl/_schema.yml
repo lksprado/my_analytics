@@ -6,61 +6,191 @@ models:
     description: "Dimensão de jogos de temporada regular e playoffs, incluindo jogos ainda não disputados. Linha sentinela game_sk = '-1'."
     columns:
       - name: game_sk
+        description: "Chave do jogo."
         tests:
           - unique
           - not_null
       - name: game_id
+        description: "Id do jogo na NHL."
         tests:
           - unique
           - not_null
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+      - name: season_label
+        description: "Temporada no formato AAAA-AA (ex.: 2024-25)."
+      - name: is_current_season
+        description: "Verdadeiro quando o jogo é da temporada corrente."
+      - name: game_type_id
+        description: "Id do tipo de jogo (2 temporada regular, 3 playoffs)."
+      - name: game_type_name
+        description: "Tipo de jogo (regular, playoffs)."
+      - name: game_number
+        description: "Número do jogo na temporada."
+      - name: game_date
+        description: "Data do jogo."
+      - name: game_start_timestamp_et
+        description: "Início do jogo no horário do leste dos EUA."
+      - name: game_start_timestamp_utc
+        description: "Início do jogo em UTC."
+      - name: game_state
+        description: "Estado do jogo na API da NHL (off = encerrado)."
+      - name: game_schedule_state
+        description: "Situação do jogo no calendário (OK = mantido)."
+      - name: regular_periods
+        description: "Quantidade de períodos regulamentares."
+      - name: total_periods
+        description: "Quantidade de períodos jogados, incluindo prorrogação e shootout."
       - name: outcome_last_period
         description: "Tipo do último período jogado: reg, ot ou so."
+      - name: special_event_name
+        description: "Nome do evento especial (ex.: Winter Classic); 'none' em jogo comum."
+      - name: is_completed
+        description: "Verdadeiro quando o jogo já foi disputado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: dim_player
     description: "Dimensão de jogadores da NHL com dados cadastrais consolidados. Linha sentinela player_sk = '-1'."
     columns:
       - name: player_sk
+        description: "Chave do jogador."
         tests:
           - unique
           - not_null
       - name: player_id
+        description: "Id do jogador na NHL."
         tests:
           - unique
           - not_null
+      - name: full_name
+        description: "Nome completo do jogador, em minúsculas."
+      - name: first_name
+        description: "Primeiro nome do jogador."
+      - name: last_name
+        description: "Sobrenome do jogador."
+      - name: is_active
+        description: "Verdadeiro quando o jogador está em atividade."
+      - name: position
+        description: "Posição (C centro, L ala esquerda, R ala direita, D defensor, G goleiro)."
+      - name: birth_country
+        description: "País de nascimento."
+      - name: birth_state_province
+        description: "Estado ou província de nascimento."
+      - name: birth_city
+        description: "Cidade de nascimento."
+      - name: birthdate
+        description: "Data de nascimento."
+      - name: draft_year
+        description: "Ano do draft; 9999 quando não draftado."
+      - name: draft_round
+        description: "Rodada do draft; 9999 quando não draftado."
+      - name: draft_overall_pick
+        description: "Posição geral de escolha no draft; 9999 quando não draftado."
+      - name: draft_pick_in_round
+        description: "Posição de escolha dentro da rodada; 9999 quando não draftado."
+      - name: current_team_abbrev_name
+        description: "Sigla do time atual."
+      - name: current_team_full_name
+        description: "Nome completo do time atual."
+      - name: current_team_place_name
+        description: "Cidade ou região do time atual."
+      - name: current_team_common_name
+        description: "Apelido do time atual (ex.: Bruins)."
+      - name: shoots_catches
+        description: "Lado do taco (L esquerdo, R direito)."
+      - name: height_centimeters
+        description: "Altura, em centímetros."
+      - name: height_inches
+        description: "Altura, em polegadas."
+      - name: weight_kilogram
+        description: "Peso, em quilogramas."
+      - name: weight_pounds
+        description: "Peso, em libras."
       - name: is_inferred
         description: "Jogador presente no boxscore mas ainda ausente da coleta de jogadores; só nome abreviado e posição são conhecidos."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: dim_team
     description: "Dimensão de times da NHL com identificadores, franquia, códigos e nomes. Linha sentinela team_sk = '-1'."
     columns:
       - name: team_sk
+        description: "Chave do time."
         tests:
           - unique
           - not_null
+      - name: team_id
+        description: "Id do time na NHL."
       - name: franchise_id
         description: "Agrupa times da mesma franquia após realocações."
+      - name: abbrev_name
+        description: "Sigla do time (ex.: BOS)."
+      - name: full_name
+        description: "Nome completo do time."
+      - name: place_name
+        description: "Cidade ou região do time."
+      - name: common_name
+        description: "Apelido do time (ex.: Bruins)."
+      - name: first_season_year
+        description: "Ano de início da primeira temporada com jogo."
+      - name: latest_season_year
+        description: "Ano de fim da temporada mais recente com jogo."
+      - name: first_season_id
+        description: "Primeira temporada com jogo (AAAAAAAA)."
+      - name: latest_season_id
+        description: "Temporada mais recente com jogo (AAAAAAAA)."
+      - name: is_active
+        description: "Verdadeiro quando o time joga a temporada corrente."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: dim_fight
     description: "Dimensão de brigas do HockeyFights, casadas ao jogo (data + times) e aos jogadores (nome abreviado no elenco do boxscore). Linha sentinela fight_id = '-1'."
     columns:
       - name: fight_id
+        description: "Chave da briga."
         tests:
           - unique
           - not_null
       - name: game_id
         description: "Nulo quando nenhum jogo da NHL bate com data e times da briga."
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+      - name: game_type_id
+        description: "Id do tipo de jogo (2 temporada regular, 3 playoffs)."
+      - name: game_date
+        description: "Data do jogo."
+      - name: period
+        description: "Período da briga (1st period, 2nd period, 3rd period, ot)."
+      - name: time_in_period
+        description: "Tempo decorrido no período, em mm:ss."
+      - name: description
+        description: "Confronto como publicado no HockeyFights (ex.: a. alberts (bos) vs. p. sharp (chi))."
       - name: player_1_id
         description: "Nulo quando o nome não bate com o elenco ou há homônimos no mesmo time e jogo."
+      - name: player_1_abbrev_name
+        description: "Nome abreviado do primeiro jogador."
+      - name: team_1_abbrev_name
+        description: "Sigla do time do primeiro jogador."
+      - name: player_1_team_full_name
+        description: "Nome completo do time do primeiro jogador."
       - name: player_2_id
         description: "Nulo quando o nome não bate com o elenco ou há homônimos no mesmo time e jogo."
+      - name: player_2_abbrev_name
+        description: "Nome abreviado do segundo jogador."
+      - name: team_2_abbrev_name
+        description: "Sigla do time do segundo jogador."
+      - name: player_2_team_full_name
+        description: "Nome completo do time do segundo jogador."
+      - name: fight_winner_full_name
+        description: "Nome do vencedor da briga segundo a votação do HockeyFights."
+      - name: rating
+        description: "Nota média da briga dada pelos usuários do HockeyFights (0 a 10)."
+      - name: vote_count
+        description: "Quantidade de votos na nota da briga."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: fct_games
     description: "Fato de jogos concluídos, uma linha por jogo e time (mandante e visitante espelhados)."
@@ -72,6 +202,7 @@ models:
               - is_home
     columns:
       - name: game_sk
+        description: "Chave do jogo."
         tests: &game_fk
           - not_null
           - relationships:
@@ -79,6 +210,7 @@ models:
                 to: ref('dim_game')
                 field: game_sk
       - name: game_date_sk
+        description: "Data do jogo (AAAAMMDD), chave da dim_datas."
         tests: &date_fk
           - not_null
           - relationships:
@@ -86,6 +218,7 @@ models:
                 to: ref('dim_datas')
                 field: data_sk
       - name: team_sk
+        description: "Chave do time da linha."
         tests: &team_fk
           - not_null
           - relationships:
@@ -93,15 +226,42 @@ models:
                 to: ref('dim_team')
                 field: team_sk
       - name: opponent_team_sk
+        description: "Chave do time adversário."
         tests: *team_fk
+      - name: is_home
+        description: "Verdadeiro quando o time da linha é o mandante."
+      - name: goals_for
+        description: "Gols marcados pelo time."
+      - name: goals_against
+        description: "Gols sofridos pelo time."
+      - name: shots_for
+        description: "Chutes a gol do time."
+      - name: shots_against
+        description: "Chutes a gol sofridos pelo time."
+      - name: hits
+        description: "Trancos (hits) aplicados pelo time."
+      - name: penalty_minutes
+        description: "Minutos de penalidade do time."
+      - name: blocked_shots
+        description: "Chutes adversários bloqueados pelo time."
+      - name: giveaways
+        description: "Perdas de posse por erro do time."
+      - name: takeaways
+        description: "Roubadas de posse pelo time."
       - name: faceoff_win_pctg
         description: "Não aditivo."
       - name: powerplay_pctg
         description: "Não aditivo."
       - name: is_win
+        description: "Verdadeiro quando o time venceu."
         tests:
           - not_null
       - name: is_regulation_loss
+        description: "Verdadeiro quando o time perdeu no tempo regulamentar."
+      - name: is_ot_loss
+        description: "Verdadeiro quando o time perdeu na prorrogação ou no shootout."
+      - name: is_tie
+        description: "Verdadeiro quando o jogo terminou empatado (antes de 2005-06)."
       - name: standing_points
         description: "Pontos na classificação: 2 vitória, 1 empate ou derrota na prorrogação/shootout (a partir de 1999-00), 0 derrota. Nulo em playoffs."
       - name: has_fight
@@ -109,7 +269,7 @@ models:
         tests:
           - not_null
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: fct_game_periods
     description: "Fato de gols e chutes por jogo, período e time."
@@ -122,15 +282,33 @@ models:
               - is_home
     columns:
       - name: game_sk
+        description: "Chave do jogo."
         tests: *game_fk
       - name: game_date_sk
+        description: "Data do jogo (AAAAMMDD), chave da dim_datas."
         tests: *date_fk
       - name: team_sk
+        description: "Chave do time da linha."
         tests: *team_fk
       - name: opponent_team_sk
+        description: "Chave do time adversário."
         tests: *team_fk
+      - name: is_home
+        description: "Verdadeiro quando o time da linha é o mandante."
+      - name: period_number
+        description: "Número do período no jogo."
+      - name: period_type
+        description: "Tipo do período (reg, ot, so)."
+      - name: goals_for
+        description: "Gols marcados pelo time."
+      - name: goals_against
+        description: "Gols sofridos pelo time."
+      - name: shots_for
+        description: "Chutes a gol do time."
+      - name: shots_against
+        description: "Chutes a gol sofridos pelo time."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: fct_skater_games
     description: "Fato de estatísticas de skaters (atacantes e defensores) por jogo, a partir do boxscore."
@@ -142,10 +320,13 @@ models:
               - player_sk
     columns:
       - name: game_sk
+        description: "Chave do jogo."
         tests: *game_fk
       - name: game_date_sk
+        description: "Data do jogo (AAAAMMDD), chave da dim_datas."
         tests: *date_fk
       - name: player_sk
+        description: "Chave do jogador."
         tests: &player_fk
           - not_null
           - relationships:
@@ -153,13 +334,37 @@ models:
                 to: ref('dim_player')
                 field: player_sk
       - name: team_sk
+        description: "Chave do time da linha."
         tests: *team_fk
       - name: opponent_team_sk
+        description: "Chave do time adversário."
         tests: *team_fk
+      - name: is_home
+        description: "Verdadeiro quando o time da linha é o mandante."
+      - name: player_type
+        description: "Tipo de skater (forward, defense)."
+      - name: position
+        description: "Posição (C centro, L ala esquerda, R ala direita, D defensor, G goleiro)."
+      - name: sweater_number
+        description: "Número da camisa no jogo."
+      - name: goals
+        description: "Gols marcados."
+      - name: assists
+        description: "Assistências."
+      - name: points
+        description: "Pontos (gols + assistências)."
+      - name: shots_on_goal
+        description: "Chutes a gol."
+      - name: hits
+        description: "Trancos (hits) aplicados."
+      - name: blocked_shots
+        description: "Chutes adversários bloqueados."
+      - name: plus_minus
+        description: "Saldo de gols com o jogador no gelo (+/-)."
       - name: toi_seconds
         description: "Nulo em jogos antigos sem tempo de gelo registrado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: fct_goalie_games
     description: "Fato de estatísticas de goleiros por jogo, a partir do boxscore. Inclui goleiros reservas que não entraram (toi_seconds = 0)."
@@ -171,17 +376,50 @@ models:
               - player_sk
     columns:
       - name: game_sk
+        description: "Chave do jogo."
         tests: *game_fk
       - name: game_date_sk
+        description: "Data do jogo (AAAAMMDD), chave da dim_datas."
         tests: *date_fk
       - name: player_sk
+        description: "Chave do jogador."
         tests: *player_fk
       - name: team_sk
+        description: "Chave do time da linha."
         tests: *team_fk
       - name: opponent_team_sk
+        description: "Chave do time adversário."
         tests: *team_fk
+      - name: is_home
+        description: "Verdadeiro quando o time da linha é o mandante."
+      - name: sweater_number
+        description: "Número da camisa no jogo."
+      - name: is_starter
+        description: "Verdadeiro quando o goleiro começou o jogo."
+      - name: toi_seconds
+        description: "Tempo no gelo, em segundos."
+      - name: shots_against
+        description: "Chutes a gol sofridos."
+      - name: saves
+        description: "Defesas."
+      - name: goals_against
+        description: "Gols sofridos."
+      - name: powerplay_shots_against
+        description: "Chutes sofridos com o adversário em power play."
+      - name: powerplay_saves
+        description: "Defesas com o adversário em power play."
+      - name: powerplay_goals_against
+        description: "Gols sofridos com o adversário em power play."
+      - name: shorthanded_goals_against
+        description: "Gols sofridos com o adversário em inferioridade numérica."
+      - name: evenstrength_shots_against
+        description: "Chutes sofridos em igualdade numérica."
+      - name: evenstrength_saves
+        description: "Defesas em igualdade numérica."
+      - name: evenstrength_goals_against
+        description: "Gols sofridos em igualdade numérica."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: fct_game_events
     description: "Fato de eventos play-by-play (a partir de 2014-15), um por evento. Jogadores por papel apontam para a dim_player; '-1' quando o papel não se aplica ao evento."
@@ -193,30 +431,71 @@ models:
               - event_id
     columns:
       - name: game_sk
+        description: "Chave do jogo."
         tests: *game_fk
       - name: game_date_sk
+        description: "Data do jogo (AAAAMMDD), chave da dim_datas."
         tests: *date_fk
+      - name: event_id
+        description: "Id do evento na NHL, único dentro do jogo."
+      - name: event_order
+        description: "Ordem cronológica do evento no jogo, começando em 1."
+      - name: period_number
+        description: "Número do período no jogo."
+      - name: period_type
+        description: "Tipo do período (reg, ot, so)."
+      - name: time_in_period_seconds
+        description: "Tempo decorrido no período, em segundos."
+      - name: event_type
+        description: "Tipo do evento (ex.: goal, shot-on-goal, hit, faceoff, penalty)."
+      - name: event_zone
+        description: "Zona do evento para o time dono (offensive, neutral, defensive)."
+      - name: x_coord
+        description: "Coordenada X do evento no rinque, em pés a partir do centro."
+      - name: y_coord
+        description: "Coordenada Y do evento no rinque, em pés a partir do centro."
       - name: event_owner_team_sk
+        description: "Chave do time que protagonizou o evento."
         tests: *team_fk
       - name: shooting_player_sk
+        description: "Chave do jogador que chutou ou marcou."
         tests: *player_fk
       - name: goalie_in_net_player_sk
+        description: "Chave do goleiro no gol no momento do chute."
         tests: *player_fk
       - name: hitting_player_sk
+        description: "Chave do jogador que aplicou o tranco."
         tests: *player_fk
       - name: hittee_player_sk
+        description: "Chave do jogador que recebeu o tranco."
         tests: *player_fk
       - name: faceoff_winning_player_sk
+        description: "Chave do jogador que venceu o faceoff."
         tests: *player_fk
       - name: faceoff_losing_player_sk
+        description: "Chave do jogador que perdeu o faceoff."
         tests: *player_fk
       - name: penalty_committed_by_player_sk
+        description: "Chave do jogador que cometeu a penalidade."
         tests: *player_fk
       - name: penalty_drawn_by_player_sk
+        description: "Chave do jogador que sofreu a penalidade."
         tests: *player_fk
+      - name: shot_type
+        description: "Tipo do chute (ex.: wrist, slap, snap, backhand)."
+      - name: reason
+        description: "Motivo do evento, como chute para fora ou paralisação (ex.: wide-of-net, offside)."
+      - name: secondary_reason
+        description: "Motivo complementar da paralisação."
+      - name: penalty_description
+        description: "Infração que gerou a penalidade."
+      - name: penalty_type_code
+        description: "Tipo da penalidade (MIN, MAJ, MIS, GAM, MAT, BEN, PS)."
+      - name: penalty_minutes
+        description: "Minutos de penalidade aplicados."
       - name: home_score
         description: "Placar do mandante após o evento; preenchido só em gols."
       - name: away_score
         description: "Placar do visitante após o evento; preenchido só em gols."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
