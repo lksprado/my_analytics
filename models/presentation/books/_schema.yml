@@ -37,9 +37,11 @@ models:
               arguments:
                 values: ['novo minimo', 'empata com o minimo', 'desconto recorde', 'ate 5% acima do minimo']
       - name: nome_livro
+        description: "Título do livro, em minúsculas e sem acentos."
       - name: autores
         description: "Autores separados por vírgula, em ordem alfabética."
       - name: categoria
+        description: "Categoria do livro (filosofia, historia, literatura etc.)."
       - name: data_observacao
         description: "Data da observação mais recente do livro."
       - name: tipo_coleta
@@ -77,9 +79,11 @@ models:
       - name: desconto_extra_vs_catalogo_pp
         description: "Desconto do livro menos o desconto mediano do catálogo, em pontos percentuais."
       - name: qtd_observacoes_anteriores
+        description: "Quantidade de observações anteriores à mais recente."
       - name: primeira_observacao
+        description: "Primeira data em que o livro foi observado."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: livros_campanhas
     description: >
@@ -89,15 +93,18 @@ models:
       um livro.
     columns:
       - name: data_varredura
+        description: "Data da varredura completa do catálogo."
         data_tests:
           - unique
           - not_null
       - name: qtd_livros
+        description: "Livros observados na varredura."
       - name: preco_medio
         description: "Média do preço praticado — sensível à mudança do mix do catálogo."
       - name: desconto_mediano_pct
         description: "Desconto mediano sobre o preço de lista, em %. Os descontos da loja são redondos, então a mediana anda em degraus."
       - name: desconto_medio_pct
+        description: "Desconto médio sobre o preço de lista, em %."
       - name: variacao_desconto_pp
         description: "Diferença do desconto mediano para a varredura anterior, em pontos percentuais."
       - name: percentil_desconto
@@ -105,9 +112,11 @@ models:
       - name: qtd_livros_novo_minimo
         description: "Livros cujo preço ficou abaixo de todo preço anterior nesta varredura."
       - name: pct_livros_novo_minimo
+        description: "% dos livros da varredura com preço abaixo de todo preço anterior."
       - name: fl_ultima_varredura
+        description: "TRUE na varredura mais recente."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: livros_precos_obt
     description: >
@@ -126,13 +135,35 @@ models:
               - data_observacao
     columns:
       - name: book_sk
+        description: "Chave do livro."
         data_tests:
           - not_null
       - name: data_sk
         description: "Chave AAAAMMDD para dim_datas."
       - name: data_observacao
+        description: "Data da observação."
         data_tests:
           - not_null
+      - name: ano
+        description: "Ano com quatro dígitos."
+      - name: mes
+        description: "Mês do ano (1-12)."
+      - name: mes_sk
+        description: "Mês no formato AAAAMM como inteiro (ex.: 202601)."
+      - name: nome_mes
+        description: "Nome do mês em português, minúsculo e sem acento."
+      - name: semana_iso
+        description: "Semana ISO do ano."
+      - name: nome_dia_semana
+        description: "Nome do dia da semana em português, minúsculo e sem acento."
+      - name: fl_dia_util
+        description: "TRUE de segunda a sexta quando não é feriado — dia útil bancário nacional."
+      - name: nome_livro
+        description: "Título do livro, em minúsculas e sem acentos."
+      - name: autor
+        description: "Autor do livro, em minúsculas e sem acentos; uma linha por autor."
+      - name: categoria
+        description: "Categoria do livro (filosofia, historia, literatura etc.)."
       - name: qtd_autores_livro
         description: "Quantas linhas (autores) o mesmo livro tem neste dia."
       - name: fl_linha_principal
@@ -146,23 +177,56 @@ models:
       - name: data_varredura_referencia
         description: "Varredura cujo contexto de campanha foi atribuído à linha."
       - name: desconto_mediano_catalogo_pct
+        description: "Desconto mediano do catálogo na varredura mais recente até a data."
       - name: percentil_desconto_catalogo
+        description: "Posição dessa varredura entre todas (0 = menor desconto, 1 = maior) — alto indica campanha em curso."
       - name: desconto_extra_vs_catalogo_pp
         description: "Desconto do livro menos o desconto mediano do catálogo, em pontos percentuais."
       - name: preco_lista
+        description: "Preço 'de' anunciado."
       - name: preco
+        description: "Preço 'por' na data da observação."
         data_tests:
           - not_null
       - name: desconto_pct
+        description: "Desconto sobre o preço de lista, em %."
       - name: fl_mudanca_preco_lista
         description: "TRUE quando o preço de lista mudou em relação à observação anterior do livro."
+      - name: ordem_observacao
+        description: "Ordem cronológica da observação dentro do livro, começando em 1."
+      - name: preco_anterior
+        description: "Preço na observação anterior do mesmo livro."
+      - name: data_observacao_anterior
+        description: "Data da observação anterior do mesmo livro."
+      - name: dias_desde_observacao_anterior
+        description: "Dias decorridos desde a observação anterior."
+      - name: variacao_preco
+        description: "Variação absoluta em relação à observação anterior, em R$."
       - name: variacao_preco_pct
         description: "Variação contra a observação anterior, em %. Oscila com as campanhas semanais — não lê como tendência."
       - name: preco_minimo_ate_entao
         description: "Menor preço antes desta linha."
+      - name: fl_queda
+        description: "TRUE se o preço caiu em relação à observação anterior."
+      - name: fl_alta
+        description: "TRUE se o preço subiu em relação à observação anterior."
       - name: fl_novo_minimo
         description: "TRUE se o preço desta linha ficou abaixo de todo preço anterior."
+      - name: fl_ultima_observacao
+        description: "TRUE na observação mais recente do livro."
       - name: fl_preco_desatualizado
         description: "TRUE se o livro não é observado há mais de 7 dias."
+      - name: primeira_observacao
+        description: "Primeira data em que o livro foi observado."
+      - name: ultima_observacao
+        description: "Última data em que o livro foi observado."
+      - name: qtd_observacoes
+        description: "Quantidade de dias em que o livro foi observado."
+      - name: preco_minimo_historico
+        description: "Menor preço já observado para o livro."
+      - name: preco_maximo_historico
+        description: "Maior preço já observado para o livro."
+      - name: preco_medio_historico
+        description: "Preço médio de todas as observações do livro."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

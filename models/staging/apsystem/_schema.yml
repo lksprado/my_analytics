@@ -6,19 +6,47 @@ models:
     columns:
       - name: generation_date
         description: "Data de referência da medição diária de energia solar."
+        meta:
+          source_column: "date"
         data_tests:
           - unique
           - not_null
+      - name: duration
+        description: "Duração da geração no dia, em horas."
+        meta:
+          source_column: "duration"
+      - name: kwh
+        description: "Energia gerada no dia, em kWh."
+        meta:
+          source_column: "total"
+      - name: co2
+        description: "CO2 evitado no dia, em kg."
+        meta:
+          source_column: "co2"
+      - name: max_kwh
+        description: "Pico de geração do dia, em kW."
+        meta:
+          source_column: "max"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_solar_hourly_energy
     description: "Série horária de geração de energia solar em kWh."
     columns:
+      - name: generation_date
+        description: "Data da medição."
+        meta:
+          source_column: "datetime"
       - name: generated_at
         description: "Data e hora da medição de geração de energia solar."
+        meta:
+          source_column: "datetime"
         data_tests:
           - unique
           - not_null
+      - name: kwh
+        description: "Energia gerada na hora, em kWh."
+        meta:
+          source_column: "energy"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

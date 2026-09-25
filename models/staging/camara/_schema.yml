@@ -1,6 +1,60 @@
 version: 2
 
 models:
+  - name: eph_camara_deputados
+    description: "Cadastro de deputados lido direto da raw, sem snapshot. Grão: um deputado."
+    columns:
+      - name: deputado_id_nk
+        description: "Id do deputado na Câmara."
+        meta:
+          source_column: "id"
+      - name: nome_civil
+        description: "Nome civil completo."
+        meta:
+          source_column: "nomecivil"
+      - name: nome_eleitoral
+        description: "Nome parlamentar adotado na posse, no último status."
+        meta:
+          source_column: "ultimostatus_nomeeleitoral"
+      - name: sexo
+        description: "Sexo (M, F)."
+        meta:
+          source_column: "sexo"
+      - name: rede_social
+        description: "Lista de URLs das redes sociais do deputado."
+        meta:
+          source_column: "redesocial"
+      - name: data_nascimento
+        description: "Data de nascimento."
+        meta:
+          source_column: "datanascimento"
+      - name: data_falecimento
+        description: "Data de falecimento; nula se vivo."
+        meta:
+          source_column: "datafalecimento"
+      - name: uf_nascimento
+        description: "UF de nascimento."
+        meta:
+          source_column: "ufnascimento"
+      - name: uf_municipio_nascimento
+        description: "Município de nascimento."
+        meta:
+          source_column: "municipionascimento"
+      - name: escolaridade
+        description: "Escolaridade declarada (ex.: SUPERIOR, SUPERIOR INCOMPLETO, ENSINO MEDIO, POSGRADUACAO)."
+        meta:
+          source_column: "escolaridade"
+      - name: email
+        description: "E-mail do último status; na falta, o do gabinete."
+        meta:
+          source_column: "ultimostatus_email, ultimostatus_gabinete_email"
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: stg_camara_deputados
     description: "Cadastro dos deputados que já entraram em exercício na Câmara, versão vigente do snapshot (SCD2). Grão: um deputado."
     columns:

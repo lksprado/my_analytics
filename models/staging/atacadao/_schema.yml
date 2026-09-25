@@ -6,26 +6,63 @@ models:
     columns:
       - name: created_date
         description: "Data da extração."
+        meta:
+          source_column: "extracted_at"
         data_tests:
           - not_null
       - name: sku
+        description: "Código do produto no Atacadão."
+        meta:
+          source_column: "sku"
         data_tests:
           - not_null
+      - name: category
+        description: "Categoria do produto no site, em minúsculas e sem acentos."
+        meta:
+          source_column: "category"
+      - name: product_name
+        description: "Nome do produto, em minúsculas e sem acentos."
+        meta:
+          source_column: "product_name"
+      - name: brand_name
+        description: "Marca do produto, em minúsculas e sem acentos."
+        meta:
+          source_column: "brand_name"
+      - name: high_price
+        description: "Preço de varejo (unidade avulsa), em R$."
+        meta:
+          source_column: "high_price"
+      - name: low_price
+        description: "Preço de atacado (compra em quantidade), em R$."
+        meta:
+          source_column: "low_price"
       - name: product_unity
         description: "Trecho do nome do produto que informa a quantidade, ex.: '500g', '2 litros', '12 un'."
+        meta:
+          source_column: "product_name"
       - name: unit_normalized
+        description: "Unidade de medida da embalagem (gram, kilogram, millilitre, litre, unit)."
+        meta:
+          source_column: "product_name"
         data_tests:
           - accepted_values:
               arguments:
                 values: ['kilogram', 'gram', 'litre', 'millilitre', 'unit']
       - name: unity_type
+        description: "Grandeza da quantidade (weight, volume, unit, unknown)."
+        meta:
+          source_column: "product_name"
         data_tests:
           - accepted_values:
               arguments:
                 values: ['weight', 'volume', 'unit', 'unknown']
       - name: unity_value
         description: "Número em product_unity, na unidade original."
+        meta:
+          source_column: "product_name"
       - name: unity_value_normalized
         description: "unity_value convertido para g, ml ou un."
+        meta:
+          source_column: "product_name"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

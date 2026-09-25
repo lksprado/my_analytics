@@ -21,40 +21,32 @@ models:
         description: "Data da observação."
         data_tests:
           - not_null
+      - name: name
+        description: "Título do livro, em minúsculas e sem acentos."
+      - name: author
+        description: "Autor do livro, em minúsculas e sem acentos; uma linha por autor."
+      - name: price_old
+        description: "Preço de lista em R$."
       - name: price_new
         description: "Preço praticado na data da observação."
         data_tests:
           - not_null
+      - name: discount
+        description: "Variação do preço promocional sobre o de lista (fração negativa = desconto)."
       - name: observation_order
         description: "Ordem cronológica da observação dentro do livro, começando em 1."
       - name: prev_price
         description: "Preço na observação anterior do mesmo livro."
       - name: prev_observed_at
         description: "Data da observação anterior do mesmo livro."
-      - name: days_since_prev_observation
-        description: "Dias decorridos desde a observação anterior — expõe lacunas de coleta."
-      - name: price_change
-        description: "Variação absoluta em relação à observação anterior."
       - name: min_price_before
         description: "Menor preço observado para o livro antes desta linha."
-      - name: is_latest_observation
-        description: "True se esta é a observação mais recente do livro — filtro que dá o estado atual."
-      - name: is_price_drop
-        description: "True se o preço caiu em relação à observação anterior."
-      - name: is_price_increase
-        description: "True se o preço subiu em relação à observação anterior."
-      - name: is_record_low
-        description: "True se, no momento desta observação, o preço era o menor já registrado para o livro."
       - name: first_observed_at
         description: "Primeira data em que o livro foi observado."
       - name: last_observed_at
         description: "Última data em que o livro foi observado."
       - name: reference_date
         description: "Data mais recente do dataset inteiro."
-      - name: days_since_last_observed
-        description: "Dias entre a última observação do livro e a data mais recente do dataset."
-      - name: is_stale_price
-        description: "True se o livro não é observado há mais de 7 dias."
       - name: total_observations
         description: "Quantidade de dias em que o livro foi observado."
       - name: min_price_ever
@@ -63,6 +55,22 @@ models:
         description: "Maior preço já registrado para o livro em todo o histórico."
       - name: avg_price_ever
         description: "Preço médio do livro em todo o histórico."
+      - name: days_since_prev_observation
+        description: "Dias decorridos desde a observação anterior — expõe lacunas de coleta."
+      - name: price_change
+        description: "Variação absoluta em relação à observação anterior."
+      - name: is_latest_observation
+        description: "True se esta é a observação mais recente do livro — filtro que dá o estado atual."
+      - name: is_price_drop
+        description: "True se o preço caiu em relação à observação anterior."
+      - name: is_price_increase
+        description: "True se o preço subiu em relação à observação anterior."
+      - name: is_record_low
+        description: "True se, no momento desta observação, o preço era o menor já registrado para o livro."
+      - name: days_since_last_observed
+        description: "Dias entre a última observação do livro e a data mais recente do dataset."
+      - name: is_stale_price
+        description: "True se o livro não é observado há mais de 7 dias."
       - name: price_vs_min_ever
         description: "Diferença absoluta entre o preço da linha e o mínimo histórico."
       - name: pct_above_min_ever
@@ -70,4 +78,4 @@ models:
       - name: is_at_record_low
         description: "True se o preço da linha empata com o mínimo histórico — na última observação, a flag de oportunidade."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
