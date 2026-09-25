@@ -25,6 +25,9 @@ final AS (
         {{ clean_string("descricao_votacao", "upper") }} AS descricao,
         (votacao_secreta = 'SIM')::INT                   AS fl_secreta,
         aprovado,
+        total_votos_favor                                AS qt_votos_sim_secreta,
+        total_votos_contra                               AS qt_votos_nao_secreta,
+        total_votos_abstencao                            AS qt_abstencao_secreta,
         '{{ run_started_at }}'::TIMESTAMPTZ              AS model_run_at
     FROM senado_votacoes
     ORDER BY data_votacao DESC

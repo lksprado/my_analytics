@@ -109,9 +109,9 @@ Definição formal de cada métrica, nos campos do PRD (§3.4). O termo "votos c
 
 | Métrica | Definição |
 | --- | --- |
-| `sim_pct` | `100 × qt_votos_sim / qt_votantes`, com votantes = SIM + NÃO + OBSTRUÇÃO; nulo sem registro nominal aberto |
+| `sim_pct` | `100 × qt_votos_sim / qt_votantes`, com votantes = SIM + NÃO + OBSTRUÇÃO; na secreta do Senado, total oficial de SIM e NÃO; nulo sem registro nominal |
 | `margem` | `qt_votos_sim − qt_votos_nao` |
-| `fl_unanimidade` | 1 quando a votação nominal aberta teve só SIM ou só NÃO |
+| `fl_unanimidade` | 1 quando a votação nominal teve só SIM ou só NÃO |
 
 ## Métricas externas
 

@@ -809,6 +809,9 @@ models:
             expression: "qt_votantes = qt_votos_sim + qt_votos_nao + qt_obstrucao"
       - dbt_utils.expression_is_true:
           arguments:
+            expression: "casa <> 'SENADO' OR qt_votantes <= 81"
+      - dbt_utils.expression_is_true:
+          arguments:
             expression: "(fl_resultado_alinhado_governo IS NULL) = (motivo_resultado_nao_classificado IS NOT NULL)"
     columns:
       - name: sk_votacao
@@ -1694,7 +1697,7 @@ unit_tests:
         rows:
           - {casa: CAMARA, votacao_id_nk: '1-1', sessao_id: '395', data_votacao: '2023-05-10', sigla_orgao: PLEN, descricao: A, proposicao_id_nk: 10, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}
           - {casa: CAMARA, votacao_id_nk: '1-2', sessao_id: '395', data_votacao: '2023-05-10', sigla_orgao: CCJC, descricao: B, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0, classe_votacao: PARECER}
-          - {casa: SENADO, votacao_id_nk: '99', sessao_id: '7', data_votacao: '2023-05-11', sigla_orgao: PLEN, descricao: C, proposicao_id_nk: 20, aprovado: 1, fl_secreta: 1, classe_votacao: AUTORIDADE}
+          - {casa: SENADO, votacao_id_nk: '99', sessao_id: '7', data_votacao: '2023-05-11', sigla_orgao: PLEN, descricao: C, proposicao_id_nk: 20, aprovado: 1, fl_secreta: 1, qt_votos_sim_secreta: 50, qt_votos_nao_secreta: 20, qt_abstencao_secreta: 2, classe_votacao: AUTORIDADE}
           - {casa: CAMARA, votacao_id_nk: '1-3', sessao_id: '396', data_votacao: '2023-05-12', sigla_orgao: PLEN, descricao: D, proposicao_id_nk: null, aprovado: 0, fl_secreta: 0, classe_votacao: MERITO}
           - {casa: CAMARA, votacao_id_nk: '1-4', sessao_id: '396', data_votacao: '2023-05-12', sigla_orgao: PLEN, descricao: E, proposicao_id_nk: null, aprovado: null, fl_secreta: 0, classe_votacao: MERITO}
           - {casa: CAMARA, votacao_id_nk: '1-5', sessao_id: '396', data_votacao: '2023-05-12', sigla_orgao: PLEN, descricao: F, proposicao_id_nk: null, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}
@@ -1739,7 +1742,7 @@ unit_tests:
       rows:
         - {votacao_id_nk: '1-1', sessao_id: '395', sk_data: 20230510, sk_proposicao: p10, sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: SIM, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_resultado_alinhado_governo: 1, motivo_resultado_nao_classificado: null, qt_votos_sim: 1, qt_votos_nao: 1, qt_obstrucao: 1, qt_abstencao: 1, qt_votantes: 3, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 2}
         - {votacao_id_nk: '1-2', sessao_id: '395', sk_data: 20230510, sk_proposicao: '0', sk_orgao: o_ccjc, sk_tipo_votacao: tv_parecer, modalidade_votacao: SEM REGISTRO NOMINAL, orientacao_governo: LIBERADO, fl_aprovada: 0, fl_nominal: 0, fl_secreta: 0, fl_governo_orientou: 0, fl_resultado_alinhado_governo: null, motivo_resultado_nao_classificado: LIBERADO, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 0}
-        - {votacao_id_nk: '99', sessao_id: '7', sk_data: 20230511, sk_proposicao: '0', sk_orgao: o_plen_s, sk_tipo_votacao: tv_autoridade_secreta, modalidade_votacao: NOMINAL SECRETA, orientacao_governo: NAO, fl_aprovada: 1, fl_nominal: 0, fl_secreta: 1, fl_governo_orientou: 1, fl_resultado_alinhado_governo: 0, motivo_resultado_nao_classificado: null, qt_votos_sim: 0, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 0, qt_presentes_sem_voto: 1, qt_ausentes: 1, qt_partidos: 0}
+        - {votacao_id_nk: '99', sessao_id: '7', sk_data: 20230511, sk_proposicao: '0', sk_orgao: o_plen_s, sk_tipo_votacao: tv_autoridade_secreta, modalidade_votacao: NOMINAL SECRETA, orientacao_governo: NAO, fl_aprovada: 1, fl_nominal: 0, fl_secreta: 1, fl_governo_orientou: 1, fl_resultado_alinhado_governo: 0, motivo_resultado_nao_classificado: null, qt_votos_sim: 50, qt_votos_nao: 20, qt_obstrucao: 0, qt_abstencao: 2, qt_votantes: 70, qt_presentes_sem_voto: 1, qt_ausentes: 1, qt_partidos: 0}
         - {votacao_id_nk: '1-3', sessao_id: '396', sk_data: 20230512, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: OBSTRUCAO, fl_aprovada: 0, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_resultado_alinhado_governo: 1, motivo_resultado_nao_classificado: null, qt_votos_sim: 0, qt_votos_nao: 1, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 1, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 1}
         - {votacao_id_nk: '1-4', sessao_id: '396', sk_data: 20230512, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: SIM, fl_aprovada: null, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 1, fl_resultado_alinhado_governo: null, motivo_resultado_nao_classificado: RESULTADO NAO BINARIO, qt_votos_sim: 1, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 1, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 1}
         - {votacao_id_nk: '1-5', sessao_id: '396', sk_data: 20230512, sk_proposicao: '0', sk_orgao: o_plen_c, sk_tipo_votacao: tv_merito_nominal, modalidade_votacao: NOMINAL ABERTA, orientacao_governo: null, fl_aprovada: 1, fl_nominal: 1, fl_secreta: 0, fl_governo_orientou: 0, fl_resultado_alinhado_governo: null, motivo_resultado_nao_classificado: SEM ORIENTACAO, qt_votos_sim: 1, qt_votos_nao: 0, qt_obstrucao: 0, qt_abstencao: 0, qt_votantes: 1, qt_presentes_sem_voto: 0, qt_ausentes: 0, qt_partidos: 1}

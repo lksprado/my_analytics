@@ -19,7 +19,7 @@ models:
             expression: "(fl_resultado_alinhado_governo IS NULL) = (resultado_alinhado_governo NOT IN ('ALINHADO', 'NAO ALINHADO'))"
       - dbt_utils.expression_is_true:
           arguments:
-            expression: "modalidade_votacao = 'NOMINAL ABERTA' OR qt_votantes IS NULL"
+            expression: "modalidade_votacao IN ('NOMINAL ABERTA', 'NOMINAL SECRETA') OR qt_votantes IS NULL"
     columns:
       - name: sk_votacao
         description: "Chave da votação."
@@ -85,7 +85,7 @@ models:
               arguments:
                 values: ['APROVADA', 'REJEITADA', 'NAO BINARIO']
       - name: qt_votantes
-        description: "Votantes (SIM, NÃO ou OBSTRUÇÃO); nulo sem registro nominal aberto."
+        description: "Votantes (SIM, NÃO ou OBSTRUÇÃO); na secreta, total oficial de SIM e NÃO; nulo sem registro nominal."
       - name: qt_votos_sim
         description: "Votos SIM."
       - name: qt_votos_nao
@@ -123,7 +123,7 @@ models:
               arguments:
                 values: ['ALINHADO', 'NAO ALINHADO', 'SEM ORIENTACAO', 'LIBERADO', 'ORIENTACAO ABSTENCAO', 'RESULTADO NAO BINARIO']
       - name: fl_unanimidade
-        description: "1 quando a votação nominal aberta teve só SIM ou só NÃO."
+        description: "1 quando a votação nominal teve só SIM ou só NÃO."
         tests:
           - accepted_values:
               arguments:

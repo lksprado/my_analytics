@@ -117,6 +117,12 @@ models:
         description: 1 quando a votação foi secreta.
       - name: aprovado
         description: "1 se aprovado, 0 se reprovado; nulo em empate, prejudicado ou sem resultado."
+      - name: qt_votos_sim_secreta
+        description: "Total oficial de votos SIM da votação secreta."
+      - name: qt_votos_nao_secreta
+        description: "Total oficial de votos NÃO da votação secreta."
+      - name: qt_abstencao_secreta
+        description: "Total oficial de abstenções da votação secreta."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -244,6 +250,12 @@ models:
         description: "1 se aprovou a proposição, 0 se não aprovou (rejeição ou falta de quórum); nulo quando o resultado não é determinável."
       - name: fl_secreta
         description: 1 quando a votação foi secreta (só no Senado).
+      - name: qt_votos_sim_secreta
+        description: "Total oficial de votos SIM da votação secreta."
+      - name: qt_votos_nao_secreta
+        description: "Total oficial de votos NÃO da votação secreta."
+      - name: qt_abstencao_secreta
+        description: "Total oficial de abstenções da votação secreta."
       - name: classe_votacao
         description: "Classe da votação (MERITO, EMENDA/DESTAQUE, URGENCIA, REQUERIMENTO PROCEDIMENTAL, PARECER, AUTORIDADE, OUTROS)."
       - name: model_run_at
