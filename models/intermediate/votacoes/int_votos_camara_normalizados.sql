@@ -15,20 +15,30 @@ camara_votos AS (
     FROM {{ ref('stg_camara_votos_deputados') }}
 ),
 
+-- MATERIALIZED: sem ele o Postgres expande a CTE e limpa a sigla a cada voto, a cada leitura da view.
+partidos AS MATERIALIZED (
+    SELECT
+        id_camara,
+        id_senado,
+        {{ clean_string("REPLACE(sigla_conformada,'*','')", "upper") }} AS partido,
+        {{ clean_string("nome", "upper") }}                             AS partido_nome
+    FROM {{ ref('seed_partidos') }}
+),
+
 votos_com_partidos AS (
     SELECT
         t1.casa,
         t1.deputado_id_nk,
         t1.partido_id_fk,
-        t2.id_senado                                                       AS partido_id_senado,
+        t2.id_senado                        AS partido_id_senado,
         t1.votacao_id_fk,
-        {{ clean_string("REPLACE(t2.sigla_conformada,'*','')", "upper") }} AS partido,
-        {{ clean_string("t2.nome", "upper") }}                             AS partido_nome,
+        t2.partido,
+        t2.partido_nome,
         t1.uf,
         t1.codigo_voto,
-        '{{ run_started_at }}'::TIMESTAMPTZ                                AS model_run_at
+        '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM camara_votos AS t1
-    LEFT JOIN {{ ref('seed_partidos') }} AS t2
+    LEFT JOIN partidos AS t2
         ON t1.partido_id_fk = t2.id_camara
 )
 

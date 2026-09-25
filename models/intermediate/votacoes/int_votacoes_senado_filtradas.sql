@@ -30,8 +30,6 @@ final AS (
         total_votos_abstencao                            AS qt_abstencao_secreta,
         '{{ run_started_at }}'::TIMESTAMPTZ              AS model_run_at
     FROM senado_votacoes
-    ORDER BY data_votacao DESC
-
 )
 
 SELECT * FROM final
