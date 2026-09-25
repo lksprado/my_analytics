@@ -26,27 +26,27 @@ models:
       - name: max_kwh
         description: "Pico de geração do dia, em kW."
       - name: cloud_cover_afternoon
-        description: "Cobertura de nuvens à tarde, em %."
+        description: "Cobertura de nuvens às 12:00, em %."
       - name: humidity_afternoon
-        description: "Umidade relativa à tarde, em %."
+        description: "Umidade relativa às 12:00, em %."
       - name: precipitation_total
-        description: "Precipitação total do dia, em mm."
+        description: "Precipitação total do dia em equivalente de água líquida, em mm."
       - name: temperature_min
         description: "Temperatura mínima do dia, em °C."
       - name: temperature_max
         description: "Temperatura máxima do dia, em °C."
       - name: temperature_afternoon
-        description: "Temperatura à tarde, em °C."
+        description: "Temperatura às 12:00, em °C."
       - name: temperature_night
-        description: "Temperatura à noite, em °C."
+        description: "Temperatura às 00:00, em °C."
       - name: temperature_morning
-        description: "Temperatura pela manhã, em °C."
+        description: "Temperatura às 06:00, em °C."
       - name: pressure_afternoon
-        description: "Pressão atmosférica à tarde, em hPa."
+        description: "Pressão atmosférica às 12:00, em hPa."
       - name: wind_max_speed
         description: "Velocidade máxima do vento no dia, em m/s."
       - name: wind_max_direction
-        description: "Direção do vento de velocidade máxima, em graus."
+        description: "Direção do vento na velocidade máxima do dia, em graus meteorológicos."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
   - name: solar_energy_hourly_generation

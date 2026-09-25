@@ -12,15 +12,15 @@ models:
           - unique
           - not_null
       - name: cloud_cover_afternoon
-        description: "Cobertura de nuvens à tarde, em %."
+        description: "Cobertura de nuvens às 12:00, em %."
         meta:
           source_column: "cloud_cover_afternoon"
       - name: humidity_afternoon
-        description: "Umidade relativa à tarde, em %."
+        description: "Umidade relativa às 12:00, em %."
         meta:
           source_column: "humidity_afternoon"
       - name: precipitation_total
-        description: "Precipitação total do dia, em mm."
+        description: "Precipitação total do dia em equivalente de água líquida, em mm."
         meta:
           source_column: "precipitation_total"
       - name: temperature_min
@@ -32,19 +32,19 @@ models:
         meta:
           source_column: "temperature_max"
       - name: temperature_afternoon
-        description: "Temperatura à tarde, em °C."
+        description: "Temperatura às 12:00, em °C."
         meta:
           source_column: "temperature_afternoon"
       - name: temperature_night
-        description: "Temperatura à noite, em °C."
+        description: "Temperatura às 00:00, em °C."
         meta:
           source_column: "temperature_night"
       - name: temperature_morning
-        description: "Temperatura pela manhã, em °C."
+        description: "Temperatura às 06:00, em °C."
         meta:
           source_column: "temperature_morning"
       - name: pressure_afternoon
-        description: "Pressão atmosférica à tarde, em hPa."
+        description: "Pressão atmosférica às 12:00, em hPa."
         meta:
           source_column: "pressure_afternoon"
       - name: wind_max_speed
@@ -52,7 +52,7 @@ models:
         meta:
           source_column: "wind_max_speed"
       - name: wind_max_direction
-        description: "Direção do vento de velocidade máxima, em graus."
+        description: "Direção do vento na velocidade máxima do dia, em graus meteorológicos."
         meta:
           source_column: "wind_max_direction"
       - name: model_run_at
