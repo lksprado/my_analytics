@@ -103,8 +103,8 @@ erDiagram
 | Modelo | Como |
 | --- | --- |
 | `stg_camara_votos_deputados` | Só o que chegou depois da última carga (voto imutável) |
-| `stg_camara_proposicao` | Só as cargas novas de cada fonte; a versão publicada concorre com a nova |
-| `fct_votos`, `fct_presencas_plenario` | Refaz a legislatura corrente; o passado fica congelado |
+| `stg_camara_proposicao`, `stg_senado_processo` | Só as cargas novas de cada fonte; a versão publicada concorre com a nova |
+| `fct_votacoes`, `fct_votos`, `fct_presencas_plenario`, `votos_parlamentares` | Refaz a legislatura corrente; o passado fica congelado |
 | `parlamentar_*`, `comportamento_*` | Refaz os períodos a partir do início da legislatura corrente (macro `periodo_vivo`) |
 
 Rodar `dbt build --full-refresh -s tag:politica` quando mudar uma seed (bancadas, partidos, tipos de voto), uma regra de cálculo ou quando a ingestão trouxer dado retroativo de legislaturas passadas.

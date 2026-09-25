@@ -2,6 +2,7 @@
     materialized='incremental',
     incremental_strategy='append',
     pre_hook="{% if is_incremental() %}DELETE FROM {{ this }} WHERE sk_votacao IN (SELECT sk_votacao FROM {{ ref('fct_votacoes') }} WHERE TO_DATE(sk_data::TEXT, 'YYYYMMDD') >= {{ inicio_periodo_vivo('legislatura') }}){% endif %}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_fct_votos_votacao ON {{ this }} (sk_votacao)",
     on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}

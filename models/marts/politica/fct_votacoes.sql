@@ -1,10 +1,21 @@
 {{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    pre_hook="{{ apagar_periodo_vivo(\"TO_DATE(sk_data::TEXT, 'YYYYMMDD')\", 'legislatura') }}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_fct_votacoes_data ON {{ this }} (sk_data)",
+    on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}
+
+-- depends_on: {{ ref('seed_legislaturas') }}
 
 WITH
 votacoes AS (
     SELECT * FROM {{ ref('int_votacoes_unificadas') }}
+    {% if is_incremental() -%}
+        -- Votos e orientações da votação chegam depois dela: a legislatura corrente é refeita inteira.
+        WHERE data_votacao >= {{ inicio_periodo_vivo('legislatura') }}
+    {%- endif %}
 ),
 
 placar AS (
@@ -20,6 +31,15 @@ placar AS (
         COUNT(*) FILTER (WHERE categoria IN ('AUSENCIA JUSTIFICADA', 'AUSENCIA NAO JUSTIFICADA')) AS qt_ausentes,
         COUNT(DISTINCT partido) FILTER (WHERE voto IN ('SIM', 'NAO', 'OBSTRUCAO'))                AS qt_partidos
     FROM {{ ref('int_votos_unificados') }}
+    {% if is_incremental() -%}
+        WHERE
+            (casa, votacao_id_nk) IN (
+                SELECT
+                    casa,
+                    votacao_id_nk
+                FROM votacoes
+            )
+    {%- endif %}
     GROUP BY casa, votacao_id_nk
 ),
 

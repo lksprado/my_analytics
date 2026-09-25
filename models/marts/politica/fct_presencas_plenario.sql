@@ -2,6 +2,7 @@
     materialized='incremental',
     incremental_strategy='append',
     pre_hook="{{ apagar_periodo_vivo(\"TO_DATE(sk_data::TEXT, 'YYYYMMDD')\", 'legislatura') }}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_fct_presencas_plenario_data ON {{ this }} (sk_data)",
     on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}

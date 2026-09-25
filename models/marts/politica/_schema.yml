@@ -1692,7 +1692,12 @@ unit_tests:
       orientação SIM, ou NÃO/OBSTRUÇÃO com rejeição; sem classificação, o motivo fica explícito.
       A modalidade separa nominal aberta, nominal secreta e sem registro nominal.
     model: fct_votacoes
+    overrides:
+      macros:
+        is_incremental: false
     given:
+      - input: ref('seed_legislaturas')
+        rows: []
       - input: ref('int_votacoes_unificadas')
         rows:
           - {casa: CAMARA, votacao_id_nk: '1-1', sessao_id: '395', data_votacao: '2023-05-10', sigla_orgao: PLEN, descricao: A, proposicao_id_nk: 10, aprovado: 1, fl_secreta: 0, classe_votacao: MERITO}

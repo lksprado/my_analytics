@@ -1,6 +1,13 @@
 {{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    pre_hook="{{ apagar_periodo_vivo('data_votacao', 'legislatura') }}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_votos_parlamentares_data ON {{ this }} (data_votacao)",
+    on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}
+
+-- depends_on: {{ ref('seed_legislaturas') }}
 
 WITH
 registros AS (
@@ -105,6 +112,9 @@ final AS (
     -- Contexto via votacoes: juntar as tabelas inteiras estoura a memória compartilhada do Postgres.
     INNER JOIN {{ ref('votacoes') }} AS t2
         ON t1.sk_votacao = t2.sk_votacao
+        {% if is_incremental() -%}
+            AND t2.data_votacao >= {{ inicio_periodo_vivo('legislatura') }}
+        {%- endif %}
     LEFT JOIN {{ ref('dim_parlamentares') }} AS t3
         ON t1.sk_parlamentar = t3.sk_parlamentar
     LEFT JOIN {{ ref('dim_partidos') }} AS t4
