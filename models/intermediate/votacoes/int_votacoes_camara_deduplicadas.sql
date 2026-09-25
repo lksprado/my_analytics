@@ -14,9 +14,9 @@ camara_votacoes AS (
 dedup AS (
     SELECT
         *,
-        -- Sobram só duplicatas exatas da origem; a ordem apenas torna a escolha estável.
+        -- Só há duplicatas exatas (mesma data): a data na partição deixa o filtro por período descer à tabela.
         ROW_NUMBER() OVER (
-            PARTITION BY votacao_id_nk
+            PARTITION BY votacao_id_nk, data_votacao
             ORDER BY datahora_votacao DESC NULLS LAST, loaded_at_utc DESC
         ) AS rn
     FROM camara_votacoes
@@ -35,7 +35,6 @@ final AS (
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM dedup
     WHERE rn = 1
-    ORDER BY data_votacao DESC
 )
 
 SELECT * FROM final

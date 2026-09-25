@@ -23,6 +23,8 @@ models:
         description: "UF de representação do parlamentar no momento do voto."
       - name: codigo_voto
         description: "Código do voto na origem."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -87,6 +89,8 @@ models:
         description: "UF de representação do parlamentar no momento do voto."
       - name: codigo_voto
         description: "Código do voto na origem."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -220,6 +224,8 @@ models:
         description: "Posição do voto (SIM, NAO, OBSTRUCAO, ABSTENCAO, BRANCO); nula quando não é voto."
       - name: categoria
         description: "Categoria do registro de voto."
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -323,7 +329,12 @@ unit_tests:
       escolha de autoridade no Senado. No Senado a descrição às vezes é a própria ementa ("MODIFICA...",
       "INSTITUI..."), e isso também é mérito. O que não se reconhece fica OUTROS.
     model: int_votacoes_unificadas
+    overrides:
+      macros:
+        is_incremental: false
     given:
+      - input: ref('seed_legislaturas')
+        rows: []
       - input: ref('int_votacoes_camara_deduplicadas')
         rows:
           - {casa: CAMARA, votacao_id_nk: c1, descricao: "APROVADO O REQUERIMENTO DE URGENCIA (ART. 155 DO RICD). SIM: 316; NAO: 86; ABSTENCAO: 1; TOTAL: 403."}

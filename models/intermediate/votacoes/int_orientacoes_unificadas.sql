@@ -1,6 +1,13 @@
 {{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    pre_hook="{{ apagar_periodo_vivo('data_votacao', 'legislatura') }}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_int_orientacoes_unificadas_votacao ON {{ this }} (casa, votacao_id_nk)",
+    on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}
+
+-- depends_on: {{ ref('seed_legislaturas') }}
 
 WITH
 orientacoes AS (
@@ -25,6 +32,15 @@ orientacoes AS (
     FROM {{ ref('int_orientacoes_senado_filtradas') }}
 ),
 
+-- MATERIALIZED: sem ele o planner pode reavaliar a view de votações a cada orientação.
+datas_votacao AS MATERIALIZED (
+    SELECT
+        casa,
+        votacao_id_nk,
+        data_votacao
+    FROM {{ ref('int_votacoes_unificadas') }}
+),
+
 -- A orientação da Câmara não traz data; ela vem da votação, para desambiguar sigla reutilizada.
 com_data AS (
     SELECT
@@ -36,8 +52,11 @@ com_data AS (
         o.sigla_lideranca,
         o.orientacao_voto
     FROM orientacoes AS o
-    LEFT JOIN {{ ref('int_votacoes_unificadas') }} AS v
+    LEFT JOIN datas_votacao AS v
         ON o.casa = v.casa AND o.votacao_id_nk = v.votacao_id_nk
+    {% if is_incremental() -%}
+        WHERE COALESCE(o.data_votacao, v.data_votacao) >= {{ inicio_periodo_vivo('legislatura') }}
+    {%- endif %}
 ),
 
 -- Na troca de sigla a origem ainda usa a antiga por dias: fica a entidade mais próxima.

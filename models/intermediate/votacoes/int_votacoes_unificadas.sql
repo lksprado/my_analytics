@@ -1,6 +1,13 @@
 {{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    pre_hook="{{ apagar_periodo_vivo('data_votacao', 'legislatura') }}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_int_votacoes_unificadas_data ON {{ this }} (data_votacao)",
+    on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}
+
+-- depends_on: {{ ref('seed_legislaturas') }}
 
 WITH
 votacoes AS (
@@ -18,6 +25,9 @@ votacoes AS (
         NULL::INT        AS qt_votos_nao_secreta,
         NULL::INT        AS qt_abstencao_secreta
     FROM {{ ref('int_votacoes_camara_deduplicadas') }}
+    {% if is_incremental() -%}
+        WHERE data_votacao >= {{ inicio_periodo_vivo('legislatura') }}
+    {%- endif %}
     UNION ALL
     -- Sem colegiado informado, a votação do Senado é do Plenário.
     SELECT
@@ -34,6 +44,9 @@ votacoes AS (
         qt_votos_nao_secreta,
         qt_abstencao_secreta
     FROM {{ ref('int_votacoes_senado_filtradas') }}
+    {% if is_incremental() -%}
+        WHERE data_votacao >= {{ inicio_periodo_vivo('legislatura') }}
+    {%- endif %}
 ),
 
 -- O objeto logo após o verbo diz o que foi votado; o resto da descrição engana.

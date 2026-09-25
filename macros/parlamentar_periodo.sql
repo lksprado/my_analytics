@@ -26,6 +26,9 @@ calendario AS (
             {{ expressoes[loop.index0] }} AS {{ chave }}{{ "," if not loop.last }}
         {% endfor %}
     FROM {{ ref('dim_calendario_legislativo') }} AS c
+    {% if is_incremental() -%}
+        WHERE c.data >= {{ inicio_periodo_vivo(granularidade_periodo_vivo(periodo)) }}
+    {%- endif %}
 ),
 
 votos AS (
@@ -46,7 +49,11 @@ votos AS (
     FROM {{ ref('votos_parlamentares') }} AS v
     INNER JOIN calendario AS c
         ON v.data_votacao = c.data
-    WHERE v.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
+    WHERE
+        v.voto IN ('SIM', 'NAO', 'OBSTRUCAO')
+        {% if is_incremental() -%}
+            AND v.data_votacao >= {{ inicio_periodo_vivo(granularidade_periodo_vivo(periodo)) }}
+        {%- endif %}
 ),
 
 presencas AS (
@@ -66,6 +73,9 @@ presencas AS (
     FROM {{ ref('fct_presencas_plenario') }} AS p
     INNER JOIN calendario AS c
         ON p.sk_data = c.data_sk
+    {% if is_incremental() -%}
+        WHERE p.sk_data >= TO_CHAR({{ inicio_periodo_vivo(granularidade_periodo_vivo(periodo)) }}, 'YYYYMMDD')::INT
+    {%- endif %}
 ),
 
 metricas_votos AS (
@@ -265,4 +275,8 @@ final AS (
 )
 
 SELECT * FROM final
+{% endmacro %}
+
+{% macro granularidade_periodo_vivo(periodo) %}
+    {{- return({'legislatura': 'legislatura', 'ano': 'year', 'trimestre': 'quarter', 'semana': 'week'}[periodo]) -}}
 {% endmacro %}

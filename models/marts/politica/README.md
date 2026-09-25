@@ -98,6 +98,17 @@ erDiagram
 - Voto e orientação se encontram pela entidade de `dim_partidos`, não pela sigla; a bancada do voto é a federação ou bloco do partido na data.
 - Indicadores externos preservam o valor da fonte e cada versão coletada; métricas do modelo e da fonte têm nomes distintos (`_modelo`, `_radar`).
 
+## Carga incremental
+
+| Modelo | Como |
+| --- | --- |
+| `stg_camara_votos_deputados` | Só o que chegou depois da última carga (voto imutável) |
+| `stg_camara_proposicao`, `stg_senado_processo` | Só as cargas novas de cada fonte; a versão publicada concorre com a nova |
+| `fct_votacoes`, `fct_votos`, `fct_presencas_plenario`, `votos_parlamentares` | Refaz a legislatura corrente; o passado fica congelado |
+| `parlamentar_*`, `comportamento_*` | Refaz os períodos a partir do início da legislatura corrente (macro `periodo_vivo`) |
+
+Rodar `dbt build --full-refresh -s tag:politica` quando mudar uma seed (bancadas, partidos, tipos de voto), uma regra de cálculo ou quando a ingestão trouxer dado retroativo de legislaturas passadas.
+
 ## Regras derivadas
 
 Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indicado.
@@ -129,7 +140,7 @@ Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indic
 | Consulta pública: vale a última extração; empate não tem resultado | `consultas_publicas` |
 | Deliberação do Senado → APROVADA, REJEITADA ou OUTRO, pré-preenchida por palavra-chave, ao lado do efeito (FAVOR, CONTRA, NEUTRO) | `seed_senado_tipos_decisao` |
 | Proposição: o status diário do Senado vale antes do processo; a Câmara vence pela data mais recente e tipo válido | `int_proposicoes_unificadas` |
-| API e arquivo anual trazem as mesmas proposições: vence o status mais recente; no empate, a API (Câmara) ou a última carga (Senado). Vínculos entre proposições vêm da fonte que os preenche | `stg_camara_proposicao`, `stg_senado_processo` |
+| API e arquivo anual trazem as mesmas proposições: vence o status mais recente; no empate, a API (Câmara, pela data do status) ou a última carga (Senado). Vínculos entre proposições vêm da fonte que os preenche | `stg_camara_proposicao`, `stg_senado_processo` |
 | Proposição sem tema próprio herda os temas da principal, um nível só | `bridge_proposicoes_temas` |
 
 ## Lacunas de fonte

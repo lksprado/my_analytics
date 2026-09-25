@@ -1,10 +1,28 @@
 {{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    pre_hook="{% if is_incremental() %}DELETE FROM {{ this }} WHERE sk_votacao IN (SELECT sk_votacao FROM {{ ref('fct_votacoes') }} WHERE TO_DATE(sk_data::TEXT, 'YYYYMMDD') >= {{ inicio_periodo_vivo('legislatura') }}){% endif %}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_fct_votos_votacao ON {{ this }} (sk_votacao)",
+    on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}
+
+-- depends_on: {{ ref('seed_legislaturas') }}
 
 WITH
 votos AS (
     SELECT * FROM {{ ref('int_votos_unificados') }}
+    {% if is_incremental() -%}
+        -- Bancada e orientação valem na data: a legislatura corrente é refeita inteira.
+        WHERE
+            (casa, votacao_id_nk) IN (
+                SELECT
+                    casa,
+                    votacao_id_nk
+                FROM {{ ref('fct_votacoes') }}
+                WHERE TO_DATE(sk_data::TEXT, 'YYYYMMDD') >= {{ inicio_periodo_vivo('legislatura') }}
+            )
+    {%- endif %}
 ),
 
 votacoes AS (
@@ -20,6 +38,9 @@ votacoes AS (
         fl_aprovada,
         fl_governo_orientou
     FROM {{ ref('fct_votacoes') }}
+    {% if is_incremental() -%}
+        WHERE TO_DATE(sk_data::TEXT, 'YYYYMMDD') >= {{ inicio_periodo_vivo('legislatura') }}
+    {%- endif %}
 ),
 
 -- Casa pela entidade partidária, não pela sigla (PR orienta o PL).

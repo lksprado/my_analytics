@@ -32,6 +32,9 @@ votos AS (
     WHERE
         {{ chave }} <> '{{ var("null_key") }}'
         AND voto IN ('SIM', 'NAO', 'OBSTRUCAO')
+        {% if is_incremental() -%}
+            AND data_votacao >= {{ inicio_periodo_vivo('quarter') }}
+        {%- endif %}
 ),
 
 -- Rice ignora obstrução; votação com um só votante do grupo fica de fora (daria Rice 1).
