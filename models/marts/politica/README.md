@@ -107,6 +107,8 @@ Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indic
 | Classe da votação (mérito, emenda, urgência...) por expressões regulares sobre a descrição | `int_votacoes_unificadas` |
 | Tipo do órgão inferido pela sigla (PLEN, MESA, CPI, comissão especial, comissão) | `dim_orgaos` |
 | Votação do Senado sem colegiado informado é do Plenário | `int_votacoes_unificadas` |
+| Voto FAVORÁVEL COM RESTRIÇÕES (comissões da Câmara) e SIM do Presidente (art. 48 RISF) contam como SIM; P-OD (obstrução declarada, Senado) como OBSTRUÇÃO; BRANCO fica fora das posições | `seed_tipos_voto` |
+| Placar da votação secreta do Senado: totais oficiais de SIM, NÃO e abstenção | `fct_votacoes` |
 | Modalidade: secreta pela origem; nominal aberta quando há voto SIM, NÃO ou OBSTRUÇÃO; o resto sem registro nominal (a Câmara não distingue a simbólica) | `fct_votacoes` |
 | Empate e prejudicado no Senado são resultado não binário | `stg_senado_votacoes` |
 | Orientação do Senado resolvida pela matéria no dia, com desempate pelo placar | `int_orientacoes_senado_filtradas` |
@@ -140,7 +142,7 @@ O que o PRD pede e o dado extraído não permite. Tudo está fora deste reposit�
 | Câmara `/proposicoes/{id}/autores`; Senado autoria e relatoria com código de parlamentar | Grão proposição × parlamentar × papel |
 | Câmara `/proposicoes/{id}/tramitacoes`; Senado movimentações | Tramitação, tempo até a conclusão e etapas |
 | Deliberação do Senado para as matérias do e-Cidadania em tramitação | Cobertura da aderência à consulta pública (hoje 25 matérias; 2.419 sem deliberação) |
-| Câmara `/deputados/{id}/historico` | Exercício real no lugar do período observado |
+| Câmara `/deputados/{id}/historico` | Exercício real no lugar do período observado; inclui os deputados em exercício sem voto nominal no Plenário (5 a 30 por legislatura), hoje fora de `fct_presencas_plenario` |
 | Câmara `/orgaos` | Nome e tipo oficial do órgão |
 | Chave de pessoa entre as casas (CPF) | Mudança de Casa |
 | e-Cidadania: ideias legislativas, apoios e eventos | Demais formas de participação popular |
