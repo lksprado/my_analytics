@@ -72,7 +72,7 @@ models:
       - name: data_proposicao
         description: "Data de apresentação da proposição votada."
       - name: fl_aprovada
-        description: "1 quando a votação foi aprovada, 0 quando rejeitada; nulo quando o resultado não é binário."
+        description: "1 quando a votação foi aprovada, 0 quando não aprovada (rejeição ou falta de quórum); nulo quando o resultado não é binário."
         tests:
           - accepted_values:
               arguments:
@@ -191,7 +191,7 @@ models:
       - name: identificacao_proposicao
         description: "Identificação da proposição votada (ex.: PL 1234/2023)."
       - name: fl_aprovada
-        description: "1 quando a votação foi aprovada."
+        description: "1 quando a votação foi aprovada, 0 quando não aprovada (rejeição ou falta de quórum); nulo quando o resultado não é binário."
       - name: nome
         description: "Nome parlamentar."
       - name: sexo

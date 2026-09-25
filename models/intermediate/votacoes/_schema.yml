@@ -40,7 +40,7 @@ models:
       - name: proposicao_id_fk
         description: "Id da proposição votada na Câmara."
       - name: aprovado
-        description: Booleano indicando se a proposição foi aprovada.
+        description: "1 se aprovou a proposição, 0 se não aprovou (rejeição ou falta de quórum); nulo quando o resultado não é determinável."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -213,7 +213,7 @@ models:
       - name: proposicao_id_nk
         description: "Id da proposição votada na casa."
       - name: aprovado
-        description: 1 se aprovada, 0 caso contrário.
+        description: "1 se aprovou a proposição, 0 se não aprovou (rejeição ou falta de quórum); nulo quando o resultado não é determinável."
       - name: fl_secreta
         description: 1 quando a votação foi secreta (só no Senado).
       - name: classe_votacao
