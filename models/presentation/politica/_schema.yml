@@ -1309,7 +1309,7 @@ models:
           - "identificacao"
         foreign_keys:
           - "sk_proposicao -> dim_proposicoes"
-        source: "raw_ecidadania.raw_ecidadania_paginas, raw_ecidadania.raw_ecidadania_mais_votados, raw_senado.raw_senado_status, raw_senado.raw_senado_processo, raw_senado.processos, seed seed_senado_deliberacoes_resultado"
+        source: "raw_ecidadania.raw_ecidadania_paginas, raw_ecidadania.raw_ecidadania_mais_votados, raw_senado.raw_senado_status, raw_senado.raw_senado_processo, raw_senado.processos, seed seed_senado_tipos_decisao"
         refresh_frequency: "mensal (dia 20), com os mais votados diários"
         historical_coverage: "extrações desde 11/2025"
     tests:
@@ -1694,7 +1694,7 @@ unit_tests:
           - {sk_proposicao: p4, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: D, situacao_atual: X, fl_tramitando: 0, codigo_deliberacao: APROVADA_NO_PLENARIO, data_deliberacao: '2026-08-01'}
           - {sk_proposicao: p5, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: E, situacao_atual: X, fl_tramitando: 1, codigo_deliberacao: null, data_deliberacao: null}
           - {sk_proposicao: p6, casa: SENADO, tipo_proposicao: PROJETO DE LEI, ementa: F, situacao_atual: X, fl_tramitando: 0, codigo_deliberacao: PREJUDICADO, data_deliberacao: '2026-08-01'}
-      - input: ref('seed_senado_deliberacoes_resultado')
+      - input: ref('stg_senado_tipos_decisao')
         rows:
           - {codigo_deliberacao: APROVADA_NO_PLENARIO, resultado_legislativo: APROVADA}
           - {codigo_deliberacao: REJEITADO_PLENARIO, resultado_legislativo: REJEITADA}

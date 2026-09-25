@@ -1931,20 +1931,3 @@ seeds:
         description: "Início da participação do partido na bancada."
       - name: fim
         description: "Fim da participação; vazio quando vigente."
-
-  - name: seed_senado_deliberacoes_resultado
-    description: "Resultado legislativo de cada tipo de deliberação do Senado. Pré-preenchida por palavra-chave; revisar à mão."
-    columns:
-      - name: codigo_deliberacao
-        description: "Código da deliberação no Senado."
-        tests:
-          - not_null
-          - unique
-      - name: resultado_legislativo
-        description: "Resultado (APROVADA, REJEITADA, OUTRO)."
-        tests:
-          - accepted_values:
-              arguments:
-                values: ['APROVADA', 'REJEITADA', 'OUTRO']
-      - name: descricao
-        description: "Descrição da deliberação no Senado."

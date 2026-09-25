@@ -125,7 +125,7 @@ Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indic
 | Escala dos componentes do Ranking detectada pelo teto do ano (`fl_componentes_normalizados`) | `score_vs_governismo` |
 | Índice de Rice sem obstrução, com ao menos dois votos SIM/NÃO do grupo | `comportamento_entidade` (macro) |
 | Consulta pública: vale a última extração; empate não tem resultado | `consultas_publicas` |
-| Deliberação do Senado → APROVADA, REJEITADA ou OUTRO, pré-preenchida por palavra-chave | `seed_senado_deliberacoes_resultado` |
+| Deliberação do Senado → APROVADA, REJEITADA ou OUTRO, pré-preenchida por palavra-chave, ao lado do efeito (FAVOR, CONTRA, NEUTRO) | `seed_senado_tipos_decisao` |
 | Proposição: o status diário do Senado vale antes do processo; a Câmara vence pela data mais recente e tipo válido | `int_proposicoes_unificadas` |
 | API e arquivo anual trazem as mesmas proposições: vence o status mais recente; no empate, a API (Câmara) ou a última carga (Senado). Vínculos entre proposições vêm da fonte que os preenche | `stg_camara_proposicao`, `stg_senado_processo` |
 | Proposição sem tema próprio herda os temas da principal, um nível só | `bridge_proposicoes_temas` |

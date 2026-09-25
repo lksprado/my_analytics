@@ -63,7 +63,7 @@ resultados AS (
         ON u.identificacao = e.identificacao
     LEFT JOIN {{ ref('dim_proposicoes') }} AS p
         ON u.sk_proposicao = p.sk_proposicao
-    LEFT JOIN {{ ref('seed_senado_deliberacoes_resultado') }} AS d
+    LEFT JOIN {{ ref('stg_senado_tipos_decisao') }} AS d
         ON p.codigo_deliberacao = d.codigo_deliberacao
 ),
 

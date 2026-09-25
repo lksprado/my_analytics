@@ -93,7 +93,7 @@ Definição formal de cada métrica, nos campos do PRD (§3.4). O termo "votos c
 | Regra | 1 quando (consulta SIM e APROVADA) ou (consulta NAO e REJEITADA); 0 no cruzamento oposto |
 | Grão | Matéria |
 | resultado_consulta | Maioria de votos na última extração: SIM, NAO ou EMPATE |
-| resultado_votacao | Deliberação da matéria mapeada por `seed_senado_deliberacoes_resultado` |
+| resultado_votacao | Deliberação da matéria mapeada por `seed_senado_tipos_decisao` |
 | NULL | Com motivo: MATERIA NAO ENCONTRADA NO SENADO, EMPATE NA CONSULTA, SEM DELIBERACAO, DELIBERACAO NAO BINARIA |
 | Limitações | A consulta representa os participantes, não a população, e não vincula os senadores. A cobertura depende da extração do processo das matérias consultadas |
 
