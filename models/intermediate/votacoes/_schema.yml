@@ -102,7 +102,7 @@ models:
       - name: fl_secreta
         description: 1 quando a votação foi secreta.
       - name: aprovado
-        description: 1 se aprovado, 0 caso contrário.
+        description: "1 se aprovado, 0 se reprovado; nulo em empate, prejudicado ou sem resultado."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 

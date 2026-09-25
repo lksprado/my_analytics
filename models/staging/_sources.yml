@@ -117,7 +117,7 @@ sources:
       warn_after: {count: 160, period: hour}
     tables:
       - name: raw_senado_senadores
-        description: "Detalhes dos senadores das legislaturas atuais obtidos da API do Senado Federal. Endpoint: https://legis.senado.leg.br/dadosabertos/senador/lista/atual?v=4"
+        description: "Senadores atualmente em exercício, obtidos da API do Senado Federal. Endpoint: https://legis.senado.leg.br/dadosabertos/senador/lista/atual?v=4"
         columns:
           - name: identificacaoparlamentar_codigoparlamentar
             tests:
@@ -133,7 +133,7 @@ sources:
       - name: raw_senado_votos_senadores
         description: "Votos dos senadores em cada matéria. Derivado do Endpoint: https://legis.senado.leg.br/dadosabertos/votacao/?dataInicio={y}-01-01&dataFim={y}-12-31&v=1"
       - name: raw_senado_processo
-        description: "Votos dos senadores em cada matéria. Derivado do Endpoint: https://legis.senado.leg.br/dadosabertos/processo?idProcesso={id}&v=1"
+        description: "Detalhes dos processos legislativos do Senado. Endpoint: https://legis.senado.leg.br/dadosabertos/processo?idProcesso={id}&v=1"
       - name: processos
         description: "Todos os processos do Senado, listados por ano de 1946 em diante"
 
