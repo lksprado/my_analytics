@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_radarcongresso_governismo_deputados
-    description: "Governismo de deputados publicado pelo Radar Congresso. Grão: deputado × trimestre."
+    description: "Governismo de deputados publicado pelo Radar Congresso. Grão: deputado x trimestre."
     columns:
       - name: radar_parlamentar_id_nk
         description: "Id do parlamentar no Radar Congresso."
@@ -19,7 +19,7 @@ models:
         meta:
           source_column: "n"
       - name: perc_governismo_legislatura
-        description: "Percentual de governismo no mandato (0–100)."
+        description: "Percentual de governismo no mandato (0-100)."
         meta:
           source_column: "total"
       - name: data_trimestre
@@ -27,14 +27,14 @@ models:
         meta:
           source_column: "trimestre"
       - name: perc_governismo_trimestre
-        description: "Percentual de governismo no trimestre (0–100)."
+        description: "Percentual de governismo no trimestre (0-100)."
         meta:
           source_column: "perc_governismo"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_radarcongresso_governismo_senadores
-    description: "Governismo de senadores publicado pelo Radar Congresso. Grão: senador × trimestre."
+    description: "Governismo de senadores publicado pelo Radar Congresso. Grão: senador x trimestre."
     columns:
       - name: radar_parlamentar_id_nk
         description: "Id do parlamentar no Radar Congresso."
@@ -51,7 +51,7 @@ models:
         meta:
           source_column: "n"
       - name: perc_governismo_legislatura
-        description: "Percentual de governismo no mandato (0–100)."
+        description: "Percentual de governismo no mandato (0-100)."
         meta:
           source_column: "total"
       - name: data_trimestre
@@ -59,7 +59,7 @@ models:
         meta:
           source_column: "trimestre"
       - name: perc_governismo_trimestre
-        description: "Percentual de governismo no trimestre (0–100)."
+        description: "Percentual de governismo no trimestre (0-100)."
         meta:
           source_column: "perc_governismo"
       - name: model_run_at
