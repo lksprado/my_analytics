@@ -107,10 +107,13 @@ Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indic
 | Classe da votação (mérito, emenda, urgência...) por expressões regulares sobre a descrição | `int_votacoes_unificadas` |
 | Tipo do órgão inferido pela sigla (PLEN, MESA, CPI, comissão especial, comissão) | `dim_orgaos` |
 | Votação do Senado sem colegiado informado é do Plenário | `int_votacoes_unificadas` |
+| Voto FAVORÁVEL COM RESTRIÇÕES (comissões da Câmara) e SIM do Presidente (art. 48 RISF) contam como SIM; P-OD (obstrução declarada, Senado) como OBSTRUÇÃO; BRANCO fica fora das posições | `seed_tipos_voto` |
+| Placar da votação secreta do Senado: totais oficiais de SIM, NÃO e abstenção | `fct_votacoes` |
 | Modalidade: secreta pela origem; nominal aberta quando há voto SIM, NÃO ou OBSTRUÇÃO; o resto sem registro nominal (a Câmara não distingue a simbólica) | `fct_votacoes` |
 | Empate e prejudicado no Senado são resultado não binário | `stg_senado_votacoes` |
 | Orientação do Senado resolvida pela matéria no dia, com desempate pelo placar | `int_orientacoes_senado_filtradas` |
 | Partido resolvido para a entidade por sigla e data; rebrands juntos, siglas reutilizadas separadas | `int_partidos_siglas`, `dim_partidos` |
+| UF do senador fora de exercício: a do mandato mais recente | `int_senadores_padronizados` |
 | Tipo de liderança imputado na Câmara pela sigla nas outras orientações | `int_orientacoes_camara_corrigidas` |
 | Tipo de bancada pelo prefixo da sigla; na Câmara, siglas coladas sem prefixo são bloco | `dim_bancada` |
 | Bancada do voto: federação antes de bloco, pela vigência da seed | `fct_votos` |
@@ -124,7 +127,7 @@ Regras que o PRD não define e o domínio aplica. Cada uma está no modelo indic
 | Escala dos componentes do Ranking detectada pelo teto do ano (`fl_componentes_normalizados`) | `score_vs_governismo` |
 | Índice de Rice sem obstrução, com ao menos dois votos SIM/NÃO do grupo | `comportamento_entidade` (macro) |
 | Consulta pública: vale a última extração; empate não tem resultado | `consultas_publicas` |
-| Deliberação do Senado → APROVADA, REJEITADA ou OUTRO, pré-preenchida por palavra-chave | `seed_senado_deliberacoes_resultado` |
+| Deliberação do Senado → APROVADA, REJEITADA ou OUTRO, pré-preenchida por palavra-chave, ao lado do efeito (FAVOR, CONTRA, NEUTRO) | `seed_senado_tipos_decisao` |
 | Proposição: o status diário do Senado vale antes do processo; a Câmara vence pela data mais recente e tipo válido | `int_proposicoes_unificadas` |
 | API e arquivo anual trazem as mesmas proposições: vence o status mais recente; no empate, a API (Câmara) ou a última carga (Senado). Vínculos entre proposições vêm da fonte que os preenche | `stg_camara_proposicao`, `stg_senado_processo` |
 | Proposição sem tema próprio herda os temas da principal, um nível só | `bridge_proposicoes_temas` |
@@ -139,7 +142,7 @@ O que o PRD pede e o dado extraído não permite. Tudo está fora deste reposit�
 | Câmara `/proposicoes/{id}/autores`; Senado autoria e relatoria com código de parlamentar | Grão proposição × parlamentar × papel |
 | Câmara `/proposicoes/{id}/tramitacoes`; Senado movimentações | Tramitação, tempo até a conclusão e etapas |
 | Deliberação do Senado para as matérias do e-Cidadania em tramitação | Cobertura da aderência à consulta pública (hoje 25 matérias; 2.419 sem deliberação) |
-| Câmara `/deputados/{id}/historico` | Exercício real no lugar do período observado |
+| Câmara `/deputados/{id}/historico` | Exercício real no lugar do período observado; inclui os deputados em exercício sem voto nominal no Plenário (5 a 30 por legislatura), hoje fora de `fct_presencas_plenario` |
 | Câmara `/orgaos` | Nome e tipo oficial do órgão |
 | Chave de pessoa entre as casas (CPF) | Mudança de Casa |
 | e-Cidadania: ideias legislativas, apoios e eventos | Demais formas de participação popular |

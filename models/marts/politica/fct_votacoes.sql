@@ -71,11 +71,12 @@ medidas AS (
             WHEN g.orientacao_voto NOT IN ('SIM', 'NAO', 'OBSTRUCAO') THEN 'ORIENTACAO ' || g.orientacao_voto
             WHEN v.aprovado IS NULL THEN 'RESULTADO NAO BINARIO'
         END                                                                            AS motivo_resultado_nao_classificado,
-        COALESCE(pl.qt_votos_sim, 0)                                                   AS qt_votos_sim,
-        COALESCE(pl.qt_votos_nao, 0)                                                   AS qt_votos_nao,
+        -- Na votação secreta o voto individual é só VOTOU: o placar vem do total oficial.
+        COALESCE(v.qt_votos_sim_secreta, pl.qt_votos_sim, 0)                           AS qt_votos_sim,
+        COALESCE(v.qt_votos_nao_secreta, pl.qt_votos_nao, 0)                           AS qt_votos_nao,
         COALESCE(pl.qt_obstrucao, 0)                                                   AS qt_obstrucao,
-        COALESCE(pl.qt_abstencao, 0)                                                   AS qt_abstencao,
-        COALESCE(pl.qt_votantes, 0)                                                    AS qt_votantes,
+        COALESCE(v.qt_abstencao_secreta, pl.qt_abstencao, 0)                           AS qt_abstencao,
+        COALESCE(v.qt_votos_sim_secreta + v.qt_votos_nao_secreta, pl.qt_votantes, 0)   AS qt_votantes,
         COALESCE(pl.qt_presentes_sem_voto, 0)                                          AS qt_presentes_sem_voto,
         COALESCE(pl.qt_ausentes, 0)                                                    AS qt_ausentes,
         COALESCE(pl.qt_partidos, 0)                                                    AS qt_partidos

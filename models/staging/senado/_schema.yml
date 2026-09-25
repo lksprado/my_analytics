@@ -578,14 +578,30 @@ models:
         description: "Sigla do tipo de decisão (ex.: APROVADA_NO_PLENARIO)."
         meta:
           source_column: "sigla"
+        tests:
+          - not_null
+          - unique
       - name: descricao_deliberacao
         description: "Descrição do tipo de decisão."
         meta:
           source_column: "descricao"
-      - name: tipo_deliberacao
-        description: "Efeito da decisão sobre o processo (FAVOR, CONTRA, NEUTRO)."
+      - name: efeito_deliberacao
+        description: "Efeito da decisão sobre o processo (FAVOR, CONTRA, NEUTRO); nulo nos códigos sem efeito classificado."
         meta:
-          source_column: "sigla"
+          source_column: "efeito"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['FAVOR', 'CONTRA', 'NEUTRO']
+      - name: resultado_legislativo
+        description: "Resultado da deliberação para a matéria (APROVADA, REJEITADA, OUTRO)."
+        meta:
+          source_column: "resultado_legislativo"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['APROVADA', 'REJEITADA', 'OUTRO']
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 

@@ -2,6 +2,8 @@
     tags=["politica"]
 ) }}
 
+{% set com_placar = "(t1.modalidade_votacao = 'NOMINAL ABERTA' OR (t1.modalidade_votacao = 'NOMINAL SECRETA' AND t1.qt_votantes > 0))" %}
+
 WITH
 votacoes AS (
     SELECT * FROM {{ ref('fct_votacoes') }}
@@ -58,22 +60,22 @@ final AS (
         t3.ementa,
         t3.data_proposicao,
         t1.fl_aprovada,
-        CASE t1.fl_aprovada WHEN 1 THEN 'APROVADA' WHEN 0 THEN 'REJEITADA' ELSE 'NAO BINARIO' END
+        CASE t1.fl_aprovada WHEN 1 THEN 'APROVADA' WHEN 0 THEN 'NAO APROVADA' ELSE 'NAO BINARIO' END
             AS resultado,
-        -- O placar só existe onde há registro nominal aberto.
-        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votantes END
+        -- O placar só existe onde há registro nominal; na secreta, só o total oficial.
+        CASE WHEN {{ com_placar }} THEN t1.qt_votantes END
             AS qt_votantes,
-        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votos_sim END
+        CASE WHEN {{ com_placar }} THEN t1.qt_votos_sim END
             AS qt_votos_sim,
-        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votos_nao END
+        CASE WHEN {{ com_placar }} THEN t1.qt_votos_nao END
             AS qt_votos_nao,
         CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_obstrucao END
             AS qt_obstrucao,
-        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_abstencao END
+        CASE WHEN {{ com_placar }} THEN t1.qt_abstencao END
             AS qt_abstencao,
         CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_partidos END
             AS qt_partidos,
-        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN t1.qt_votos_sim - t1.qt_votos_nao END
+        CASE WHEN {{ com_placar }} THEN t1.qt_votos_sim - t1.qt_votos_nao END
             AS margem,
         ROUND(100.0 * t1.qt_votos_sim / NULLIF(t1.qt_votantes, 0), 2)
             AS sim_pct,
@@ -86,7 +88,7 @@ final AS (
             ELSE t1.motivo_resultado_nao_classificado
         END
             AS resultado_alinhado_governo,
-        CASE WHEN t1.modalidade_votacao = 'NOMINAL ABERTA' THEN (t1.qt_votos_sim = 0 OR t1.qt_votos_nao = 0)::INT END
+        CASE WHEN {{ com_placar }} THEN (t1.qt_votos_sim = 0 OR t1.qt_votos_nao = 0)::INT END
             AS fl_unanimidade,
         '{{ run_started_at }}'::TIMESTAMPTZ
             AS model_run_at

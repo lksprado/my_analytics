@@ -13,7 +13,10 @@ votacoes AS (
         descricao,
         proposicao_id_fk AS proposicao_id_nk,
         aprovado,
-        0                AS fl_secreta
+        0                AS fl_secreta,
+        NULL::INT        AS qt_votos_sim_secreta,
+        NULL::INT        AS qt_votos_nao_secreta,
+        NULL::INT        AS qt_abstencao_secreta
     FROM {{ ref('int_votacoes_camara_deduplicadas') }}
     UNION ALL
     -- Sem colegiado informado, a votação do Senado é do Plenário.
@@ -26,7 +29,10 @@ votacoes AS (
         descricao,
         processo_id_nk,
         aprovado,
-        fl_secreta
+        fl_secreta,
+        qt_votos_sim_secreta,
+        qt_votos_nao_secreta,
+        qt_abstencao_secreta
     FROM {{ ref('int_votacoes_senado_filtradas') }}
 ),
 
@@ -78,6 +84,9 @@ SELECT
     proposicao_id_nk,
     aprovado,
     fl_secreta,
+    qt_votos_sim_secreta,
+    qt_votos_nao_secreta,
+    qt_abstencao_secreta,
     classe_votacao,
     '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
 FROM classificadas

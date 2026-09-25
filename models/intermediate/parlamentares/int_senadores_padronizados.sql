@@ -15,16 +15,33 @@ senadores AS (
     ORDER BY senador_id_nk
 ),
 
+-- A UF do cadastro só vem para quem está em exercício; todo mandato traz a sua.
+mandatos AS (
+    SELECT DISTINCT ON (l.senador_id_nk)
+        l.senador_id_nk,
+        m.mandato[1] AS uf
+    FROM {{ ref('stg_senado_legislaturas') }} AS l
+    CROSS JOIN LATERAL
+        REGEXP_MATCHES(
+            l.mandatos_mandato,
+            '''UfParlamentar'': ''([A-Z]{2})'', ''PrimeiraLegislaturaDoMandato'': \{''NumeroLegislatura'': ''(\d+)''',
+            'g'
+        ) AS m (mandato)
+    ORDER BY l.senador_id_nk ASC, m.mandato[2]::INT DESC
+),
+
 senadores_historico AS (
-    SELECT DISTINCT ON (senador_id_nk)
-        0                                                AS prioridade,
-        senador_id_nk                                    AS parlamentar_id_nk,
-        nome,
-        nome_completo,
-        sexo,
-        uf
-    FROM {{ ref('stg_senado_legislaturas') }}
-    ORDER BY senador_id_nk
+    SELECT DISTINCT ON (l.senador_id_nk)
+        0                    AS prioridade,
+        l.senador_id_nk      AS parlamentar_id_nk,
+        l.nome,
+        l.nome_completo,
+        l.sexo,
+        COALESCE(l.uf, m.uf) AS uf
+    FROM {{ ref('stg_senado_legislaturas') }} AS l
+    LEFT JOIN mandatos AS m
+        ON l.senador_id_nk = m.senador_id_nk
+    ORDER BY l.senador_id_nk ASC, l.loaded_at_utc DESC
 ),
 
 senadores_completo AS (

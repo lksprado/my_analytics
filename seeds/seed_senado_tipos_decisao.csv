@@ -1,37 +1,61 @@
-sigla,descricao
-APROVADA_EM_COMISSAO_TERMINATIVA,Aprovada por Comissão em decisão terminativa
-APROVADA_NO_PLENARIO,Aprovada pelo Plenário
-APROVADA_PARCIALMENTE,Aprovada parcialmente pelo Plenário
-APROVADO_CDIR,Aprovada pela Comissão Diretora
-APROVADO_NA_INTEGRA,Aprovada na íntegra
-APROVADO_PLV,Aprovada na forma de Projeto de Lei de Conversão
-APROVADO_PLV_COM_EMENDAS,"Aprovada na forma de Projeto de Lei de Conversão, com emendas"
-ARQUIVADO_FIM_LEGISLATURA,Arquivada ao final da Legislatura (art. 332 do RISF)
-CONHECIDA,Conhecida
-DEFERIDO_CDIR,Deferida pela Comissão Diretora
-DEFERIDO_PRESIDENCIA_ART_101_RISF,"Deferida pela Presidência (art. 101, inc. I, do RISF)"
-DEFERIDO_PRESIDENCIA_ART_214_RISF,"Deferida pela Presidência (art. 214, parágrafo único, III, do RISF)"
-DEFERIDO_PRESIDENCIA_ART_215_RISF,"Deferida pela Presidência (art. 215, inc. II, e art. 256, § 2, inc. I, do RISF)"
-DEFERIDO_PRESIDENCIA_ART_41_RISF,Deferida pela Presidência (art. 41 do RISF)
-DEVOLVIDO_CD_ACAO_JUD,Devolvido à Câmara dos Deputados em virtude de decisão judicial
-IMPUGNADO_PRESIDENCIA,"Impugnada pela Presidência (art. 48, inc. XI, do RISF)"
-INADIMITIDA_URGENCIA,Inadmitida quanto aos pressupostos constitucionais de relevância e urgência
-PARA_PUBLICACAO,À publicação para que produza efeitos
-PERDA_EFICACIA,"Perda de eficácia, em decorrência do término do prazo para sua votação no Congresso"
-PREJUDICADO,Prejudicada
-PUBLICADO,Publicada
-REAUTUADO,Reautuada
-REEDITADA,Reeditada
-REJEITADO_COMISSAO_NAO_TERM,Rejeitada por Comissão em decisão não terminativa (art. 254 do RISF)
-REJEITADO_COMISSAO_TERM,"Rejeitada por Comissão em decisão terminativa (art. 91, § 5º, do RISF)"
-REJEITADO_INCONSTICIONALIDADE_CCJ,"Rejeitada pela CCJ por inconstitucionalidade (art. 101, § 1º, do RISF)"
-REJEITADO_PLENARIO,Rejeitada pelo Plenário
-REJEITADO_PLENARIO_CD,Rejeitada pelo Plenário da Câmara dos Deputados
-RETIRADA_DE_ASSINATURA,Retirada de assinaturas (art. 244 do RISF)
-RETIRADO_PELO_AUTOR,Retirada pelo autor
-REVOGADO,Revogada
-SEM_EFICACIA,"Sem eficácia (art. 48, II e XI, do RISF)"
-TRANSF_IND,Transformada em Indicação
-TRANSF_PROJ_LEI_SEN,Transformada em Projeto de Lei do Senado
-TRANSF_PROJ_RES_SEN,Transformada em Projeto de Resolução do Senado
-TRANSF_PROPOSTA_DE_EC,Transformada em Proposta de Emenda à Constituição
+sigla,descricao,efeito,resultado_legislativo
+ADIMITIDO,Admitido,,OUTRO
+APROVADA_EM_COMISSAO_TERMINATIVA,Aprovada por Comissão em decisão terminativa,FAVOR,APROVADA
+APROVADA_NO_PLENARIO,Aprovada pelo Plenário,FAVOR,APROVADA
+APROVADA_PARCIALMENTE,Aprovada parcialmente pelo Plenário,FAVOR,APROVADA
+APROVADO_CDIR,Aprovada pela Comissão Diretora,FAVOR,APROVADA
+APROVADO_NA_INTEGRA,Aprovada na íntegra,FAVOR,APROVADA
+APROVADO_PLV,Aprovada na forma de Projeto de Lei de Conversão,FAVOR,APROVADA
+APROVADO_PLV_COM_EMENDAS,"Aprovada na forma de Projeto de Lei de Conversão, com emendas",FAVOR,APROVADA
+ARQUIVADO_DEFINITIVAMENTE,Arquivado definitivamente,,OUTRO
+ARQUIVADO_FIM_LEGISLATURA,Arquivada ao final da Legislatura (art. 332 do RISF),CONTRA,OUTRO
+ARQUIVADO_FINAL_SESSAO_LEG,Arquivado ao fim da sessão legislativa,,OUTRO
+ARQUIVADO_INEPCIA,Arquivado por inépcia,,OUTRO
+ARQUIVADO_POR_SER_ATENDIDA,Arquivado por ter sido atendido,,OUTRO
+CONHECIDA,Conhecida,NEUTRO,OUTRO
+DEFERIDO_CDIR,Deferida pela Comissão Diretora,FAVOR,OUTRO
+DEFERIDO_PRESIDENCIA_ART_101_RISF,"Deferida pela Presidência (art. 101, inc. I, do RISF)",FAVOR,OUTRO
+DEFERIDO_PRESIDENCIA_ART_199_RISF,Deferido pela Presidência (art. 199 do RISF),,OUTRO
+DEFERIDO_PRESIDENCIA_ART_214_RISF,"Deferida pela Presidência (art. 214, parágrafo único, III, do RISF)",FAVOR,OUTRO
+DEFERIDO_PRESIDENCIA_ART_215_RISF,"Deferida pela Presidência (art. 215, inc. II, e art. 256, § 2, inc. I, do RISF)",FAVOR,OUTRO
+DEFERIDO_PRESIDENCIA_ART_41_RISF,Deferida pela Presidência (art. 41 do RISF),FAVOR,OUTRO
+DEFERIDO_PRESIDENCIA_ART_48_RISF,Deferido pela Presidência (art. 48 do RISF),,OUTRO
+DENUNCIA_INADIMITIDA,Denúncia inadmitida,,OUTRO
+DEVOLVIDO_CD_ACAO_JUD,Devolvido à Câmara dos Deputados em virtude de decisão judicial,CONTRA,OUTRO
+ENCAMINHADO_PRESIDENCIA,Encaminhado à Presidência,,OUTRO
+IMPUGNADO_PRESIDENCIA,"Impugnada pela Presidência (art. 48, inc. XI, do RISF)",CONTRA,OUTRO
+INADIMITIDA_MATE,Matéria inadmitida,,OUTRO
+INADIMITIDA_URGENCIA,Inadmitida quanto aos pressupostos constitucionais de relevância e urgência,CONTRA,OUTRO
+INDEFERIDO_CDIR,Indeferido pela Comissão Diretora,,OUTRO
+INDEFERIDO_CEDP,Indeferido pelo Conselho de Ética e Decoro Parlamentar,,OUTRO
+INDEFERIDO_PRESIDENCIA,Indeferido pela Presidência,,OUTRO
+MANTIDA_MATE,Matéria mantida,,OUTRO
+MANTIDO_DECISAO_STF,Mantido por decisão do STF,,OUTRO
+MANTIDO_PARCIALMENTE,Mantido parcialmente,,OUTRO
+NAOCUMPRREG,Não cumprimento de requisito regimental,,OUTRO
+PARA_PUBLICACAO,À publicação para que produza efeitos,NEUTRO,OUTRO
+PERDA_EFICACIA,"Perda de eficácia, em decorrência do término do prazo para sua votação no Congresso",CONTRA,OUTRO
+PREJUDICADO,Prejudicada,CONTRA,OUTRO
+PUBLICADO,Publicada,FAVOR,OUTRO
+REAUTUADO,Reautuada,NEUTRO,OUTRO
+RECEBIDO,Recebido,,OUTRO
+REEDITADA,Reeditada,FAVOR,OUTRO
+REJEITADA_DECISAO_STF,Rejeitada por decisão do STF,,REJEITADA
+REJEITADO_CDIR,Rejeitado pela Comissão Diretora,,REJEITADA
+REJEITADO_COMISSAO_NAO_TERM,Rejeitada por Comissão em decisão não terminativa (art. 254 do RISF),CONTRA,REJEITADA
+REJEITADO_COMISSAO_TERM,"Rejeitada por Comissão em decisão terminativa (art. 91, § 5º, do RISF)",CONTRA,REJEITADA
+REJEITADO_INCONSTICIONALIDADE_CCJ,"Rejeitada pela CCJ por inconstitucionalidade (art. 101, § 1º, do RISF)",CONTRA,REJEITADA
+REJEITADO_PLENARIO,Rejeitada pelo Plenário,CONTRA,REJEITADA
+REJEITADO_PLENARIO_CD,Rejeitada pelo Plenário da Câmara dos Deputados,CONTRA,REJEITADA
+REMETIDO_CD,Remetido à Câmara dos Deputados,,OUTRO
+RETIRADA_DE_ASSINATURA,Retirada de assinaturas (art. 244 do RISF),CONTRA,OUTRO
+RETIRADO_PELO_AUTOR,Retirada pelo autor,CONTRA,OUTRO
+REVOGADO,Revogada,CONTRA,OUTRO
+SEM_EFICACIA,"Sem eficácia (art. 48, II e XI, do RISF)",CONTRA,OUTRO
+TRANSF_EM_REQ,Transformado em requerimento,,OUTRO
+TRANSF_IND,Transformada em Indicação,FAVOR,OUTRO
+TRANSF_PROJ_DECRETO_LEG,Transformado em projeto de decreto legislativo,,OUTRO
+TRANSF_PROJ_LEI_SEN,Transformada em Projeto de Lei do Senado,FAVOR,OUTRO
+TRANSF_PROJ_RES_SEN,Transformada em Projeto de Resolução do Senado,FAVOR,OUTRO
+TRANSF_PROPOSTA_DE_EC,Transformada em Proposta de Emenda à Constituição,FAVOR,OUTRO
+TRANSF_REPRESENTACAO,Transformado em representação,,OUTRO
