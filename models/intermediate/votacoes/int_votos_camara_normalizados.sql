@@ -11,7 +11,8 @@ camara_votos AS (
         partido_id_fk,
         votacao_id_fk,
         uf,
-        COALESCE(voto, 'NAO INFORMADO') AS codigo_voto
+        COALESCE(voto, 'NAO INFORMADO') AS codigo_voto,
+        loaded_at_utc
     FROM {{ ref('stg_camara_votos_deputados') }}
 ),
 
@@ -36,6 +37,7 @@ votos_com_partidos AS (
         t2.partido_nome,
         t1.uf,
         t1.codigo_voto,
+        t1.loaded_at_utc,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM camara_votos AS t1
     LEFT JOIN partidos AS t2

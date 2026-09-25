@@ -32,7 +32,7 @@ Never narrate what the SQL does, never put profiling numbers, row counts or refa
 | Layer | Materialization | Schema | Prefix | Purpose |
 | ------- | ---------------- | -------- | -------- | --------- |
 | Staging | `table` | `staging_<subpasta>` | `stg_` | Type-cast raw sources (JSON, Sheets, seeds) |
-| Intermediate | `view` | `intermediate_<subpasta>` | `int_` | Business logic |
+| Intermediate | `view` (`incremental` when heavy and re-read by facts) | `intermediate_<subpasta>` | `int_` | Business logic |
 | Marts | `table` | `marts_<subpasta>` | `fct_*` `dim_*` `bridge_*_*` | Dimension Modeling |
 | Presentation | `table` | `presentation_<subpasta>` | none | Visualization-ready |
 

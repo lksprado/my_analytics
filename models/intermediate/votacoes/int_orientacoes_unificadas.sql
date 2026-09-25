@@ -1,6 +1,13 @@
 {{ config(
+    materialized='incremental',
+    incremental_strategy='append',
+    pre_hook="{{ apagar_periodo_vivo('data_votacao', 'legislatura') }}",
+    post_hook="CREATE INDEX IF NOT EXISTS idx_int_orientacoes_unificadas_votacao ON {{ this }} (casa, votacao_id_nk)",
+    on_schema_change='append_new_columns',
     tags=["politica"]
 ) }}
+
+-- depends_on: {{ ref('seed_legislaturas') }}
 
 WITH
 orientacoes AS (
@@ -47,6 +54,9 @@ com_data AS (
     FROM orientacoes AS o
     LEFT JOIN datas_votacao AS v
         ON o.casa = v.casa AND o.votacao_id_nk = v.votacao_id_nk
+    {% if is_incremental() -%}
+        WHERE COALESCE(o.data_votacao, v.data_votacao) >= {{ inicio_periodo_vivo('legislatura') }}
+    {%- endif %}
 ),
 
 -- Na troca de sigla a origem ainda usa a antiga por dias: fica a entidade mais próxima.

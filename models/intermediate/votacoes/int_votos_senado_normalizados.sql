@@ -19,7 +19,8 @@ votos_filtrados AS (
         uf,
         data_votacao,
         identificacao,
-        COALESCE(sigla_voto, 'NAO INFORMADO') AS codigo_voto
+        COALESCE(sigla_voto, 'NAO INFORMADO') AS codigo_voto,
+        loaded_at_utc
     FROM senado_votos
     WHERE votacao_id_fk IS NOT NULL
 ),
@@ -82,6 +83,7 @@ votos_com_partidos AS (
         t1.identificacao,
         t1.uf,
         t1.codigo_voto,
+        t1.loaded_at_utc,
         '{{ run_started_at }}'::TIMESTAMPTZ                   AS model_run_at
     FROM votos_filtrados t1
     LEFT JOIN partidos_senado t2
