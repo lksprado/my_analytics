@@ -6,11 +6,50 @@ models:
     description: "Jogos de temporada regular e playoffs, unindo resumo (placar, times, status) e detalhes (estado, desfecho, evento especial)."
     columns:
       - name: game_id
+        description: "Identificador único do jogo na NHL."
         tests:
           - unique
           - not_null
+      - name: game_number
+        description: "Número do jogo na temporada."
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+      - name: game_date
+        description: "Data do jogo."
+      - name: game_type_id
+        description: "Tipo de jogo (2 temporada regular, 3 playoffs)."
+      - name: game_type_name
+        description: "Tipo de jogo (regular, playoffs)."
+      - name: game_start_timestamp_et
+        description: "Início do jogo no horário do leste dos EUA."
+      - name: home_team_id
+        description: "Identificador do time mandante."
+      - name: away_team_id
+        description: "Identificador do time visitante."
+      - name: home_score
+        description: "Gols do time mandante."
+      - name: away_score
+        description: "Gols do time visitante."
+      - name: has_happened_by_status
+        description: "Indica se o jogo está encerrado pelo status."
+      - name: has_happened_by_time
+        description: "Indica se a data do jogo já passou."
+      - name: game_state
+        description: "Estado do jogo na API da NHL em minúsculas (fut, live, final, off = encerrado oficialmente)."
+      - name: regular_periods
+        description: "Quantidade de períodos regulamentares do jogo."
+      - name: game_outcome_last_period
+        description: "Tipo do último período em minúsculas (reg, ot, so)."
+      - name: game_outcome_total_periods
+        description: "Número do último período disputado."
+      - name: special_event_name
+        description: "Nome do evento especial em minúsculas, quando houver."
+      - name: game_date_timestamp_utc
+        description: "Início do jogo em UTC."
+      - name: game_schedule_state
+        description: "Situação do jogo no calendário (OK, PPD, CNCL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_team_games
     description: "Jogos concluídos espelhados por time (mandante e visitante), com estatísticas de time e resultado do ponto de vista de cada lado."
@@ -21,10 +60,50 @@ models:
               - game_id
               - is_home
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+      - name: game_date
+        description: "Data do jogo."
+      - name: team_id
+        description: "Identificador do time na linha."
+      - name: opponent_team_id
+        description: "Identificador do time adversário."
+      - name: is_home
+        description: "Indica se o time jogou em casa."
+      - name: goals_for
+        description: "Gols marcados pelo time."
+      - name: goals_against
+        description: "Gols sofridos pelo time."
+      - name: shots_for
+        description: "Chutes a gol do time."
+      - name: shots_against
+        description: "Chutes a gol sofridos pelo time."
+      - name: hits
+        description: "Hits (cargas) do time."
+      - name: penalty_minutes
+        description: "Minutos de penalidade do time."
+      - name: blocked_shots
+        description: "Chutes bloqueados pelo time."
+      - name: giveaways
+        description: "Perdas de posse do time."
+      - name: takeaways
+        description: "Roubadas de posse do time."
+      - name: faceoff_win_pctg
+        description: "Aproveitamento de faceoffs do time (0-1)."
+      - name: powerplay_pctg
+        description: "Aproveitamento de power play do time (0-1)."
+      - name: is_win
+        description: "Indica vitória do time."
+      - name: is_regulation_loss
+        description: "Indica derrota no tempo regulamentar."
+      - name: is_ot_loss
+        description: "Indica derrota na prorrogação ou no shootout."
+      - name: is_tie
+        description: "Indica empate."
       - name: standing_points
         description: "Pontos na classificação: 2 vitória, 1 empate ou derrota na prorrogação/shootout (a partir de 1999-00), 0 derrota. Nulo em playoffs."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_team_game_periods
     description: "Gols e chutes por período espelhados por time."
@@ -36,8 +115,30 @@ models:
               - period_number
               - is_home
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+      - name: game_date
+        description: "Data do jogo."
+      - name: period_number
+        description: "Número do período (1-3 regulamentar, 4+ prorrogação/shootout)."
+      - name: period_type
+        description: "Tipo do período em minúsculas (reg, ot, so)."
+      - name: team_id
+        description: "Identificador do time na linha."
+      - name: opponent_team_id
+        description: "Identificador do time adversário."
+      - name: is_home
+        description: "Indica se o time jogou em casa."
+      - name: goals_for
+        description: "Gols marcados pelo time."
+      - name: goals_against
+        description: "Gols sofridos pelo time."
+      - name: shots_for
+        description: "Chutes a gol do time."
+      - name: shots_against
+        description: "Chutes a gol sofridos pelo time."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_player_games_played
     description: "Participação de jogadores por jogo a partir do boxscore (skaters e goleiros), com time, adversário e tempo de gelo em segundos. Até os anos 1920 um skater podia ir ao gol no mesmo jogo, então o grão inclui player_type."
@@ -49,11 +150,87 @@ models:
               - player_id
               - player_type
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+      - name: game_date
+        description: "Data do jogo."
+      - name: player_id
+        description: "Identificador do jogador na NHL."
+      - name: player_type
+        description: "Grupo do jogador no boxscore (forward, defense, goalie)."
+      - name: position
+        description: "Posição de cadastro do jogador (C, L, R, D, G); pode divergir do grupo no boxscore."
+      - name: sweater_number
+        description: "Número da camisa no jogo."
+      - name: is_home
+        description: "Indica se o time do jogador jogou em casa."
+      - name: team_id
+        description: "Identificador do time do jogador."
+      - name: opponent_team_id
+        description: "Identificador do time adversário."
+      - name: toi_seconds
+        description: "Tempo de gelo no jogo, em segundos."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_game_events
     description: "Eventos play-by-play de temporada regular e playoffs (a partir de 2014-15), com zona decodificada e tempo no período em segundos."
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+      - name: game_date
+        description: "Data do jogo."
+      - name: event_id
+        description: "Identificador do evento dentro do jogo."
+      - name: sort_order
+        description: "Ordem cronológica do evento no jogo."
+      - name: period_number
+        description: "Número do período (1-3 regulamentar, 4+ prorrogação/shootout)."
+      - name: period_type
+        description: "Tipo do período em minúsculas (reg, ot, so)."
+      - name: time_in_period_seconds
+        description: "Momento do evento no período, em segundos."
+      - name: event_type
+        description: "Tipo do evento (faceoff, shot-on-goal, hit, stoppage, blocked-shot, missed-shot, giveaway, takeaway, penalty, goal, period-start, period-end, delayed-penalty, game-end, shootout-complete, failed-shot-attempt)."
+      - name: event_zone
+        description: "Zona do evento vista do time dono do evento (offensive, neutral, defensive)."
+      - name: x_coord
+        description: "Coordenada X do evento no rinque."
+      - name: y_coord
+        description: "Coordenada Y do evento no rinque."
+      - name: event_owner_team_id
+        description: "Time responsável pelo evento."
+      - name: shooting_player_id
+        description: "Jogador que chutou."
+      - name: goalie_in_net_player_id
+        description: "Goleiro no gol no momento do chute."
+      - name: hitting_player_id
+        description: "Jogador que aplicou o hit."
+      - name: hittee_player_id
+        description: "Jogador que recebeu o hit."
+      - name: faceoff_winning_player_id
+        description: "Jogador que venceu o faceoff."
+      - name: faceoff_losing_player_id
+        description: "Jogador que perdeu o faceoff."
+      - name: penalty_committed_by_player_id
+        description: "Jogador que cometeu a penalidade."
+      - name: penalty_drawn_by_player_id
+        description: "Jogador que sofreu a penalidade."
+      - name: shot_type
+        description: "Tipo de chute (wrist, snap, slap, backhand, tip-in, deflected, wrap-around etc.)."
+      - name: reason
+        description: "Motivo do evento em kebab-case (ex.: wide-of-net, icing, offside, tv-timeout, goalpost)."
+      - name: secondary_reason
+        description: "Motivo secundário do evento."
+      - name: penalty_description
+        description: "Tipo da penalidade."
+      - name: penalty_type_code
+        description: "Código da penalidade (MIN menor, MAJ maior, BEN menor de banco, MIS má conduta, GAM má conduta de jogo, MAT match, PS pênalti)."
+      - name: penalty_minutes
+        description: "Duração da penalidade em minutos (0, 2, 4, 5, 10, 15)."
+      - name: home_score
+        description: "Placar do mandante após o gol."
+      - name: away_score
+        description: "Placar do visitante após o gol."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
