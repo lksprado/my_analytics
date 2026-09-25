@@ -4,17 +4,97 @@ models:
   - name: stg_vide_all_books_legacy
     description: "Catálogo legado de livros da Vide com autor, categoria, preços e desconto calculado."
     columns:
+      - name: name
+        description: "Título do livro, em minúsculas e sem acentos."
+        meta:
+          source_column: "book_name"
+      - name: category
+        description: "Categoria do livro (filosofia, historia, literatura etc.)."
+        meta:
+          source_column: "book_category"
+      - name: price_old
+        description: "Preço de lista em R$."
+        meta:
+          source_column: "book_price_old"
+      - name: price_new
+        description: "Preço promocional em R$."
+        meta:
+          source_column: "book_price_new"
+      - name: discount
+        description: "Variação do preço promocional sobre o de lista (fração negativa = desconto)."
+        meta:
+          source_column: "book_price_new"
+      - name: created_date
+        description: "Data da coleta."
+        meta:
+          source_column: "time"
+      - name: author
+        description: "Autor do livro, em minúsculas e sem acentos; uma linha por autor."
+        meta:
+          source_column: "book_author"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_vide_category_pages
     description: "Livros coletados das páginas de categoria da Vide com categoria inferida pelo arquivo de origem."
     columns:
+      - name: name
+        description: "Título do livro, em minúsculas e sem acentos."
+        meta:
+          source_column: "name"
+      - name: category
+        description: "Categoria do livro (filosofia, historia, literatura etc.)."
+        meta:
+          source_column: "source_filename"
+      - name: price_old
+        description: "Preço de lista em R$."
+        meta:
+          source_column: "price_old"
+      - name: price_new
+        description: "Preço promocional em R$."
+        meta:
+          source_column: "price_new"
+      - name: discount
+        description: "Variação do preço promocional sobre o de lista (fração negativa = desconto)."
+        meta:
+          source_column: "price_new"
+      - name: created_date
+        description: "Data da coleta."
+        meta:
+          source_column: "created_at"
+      - name: author
+        description: "Autor do livro, em minúsculas e sem acentos; uma linha por autor."
+        meta:
+          source_column: "author_name"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_vide_home_featured
     description: "Livros em destaque na home da Vide com autor, preços e desconto calculado por coleta diária."
     columns:
+      - name: name
+        description: "Título do livro, em minúsculas e sem acentos."
+        meta:
+          source_column: "name"
+      - name: price_old
+        description: "Preço de lista em R$."
+        meta:
+          source_column: "price_old"
+      - name: price_new
+        description: "Preço promocional em R$."
+        meta:
+          source_column: "price_new"
+      - name: discount
+        description: "Variação do preço promocional sobre o de lista (fração negativa = desconto)."
+        meta:
+          source_column: "price_new"
+      - name: created_date
+        description: "Data da coleta."
+        meta:
+          source_column: "created_at"
+      - name: author
+        description: "Autor do livro, em minúsculas e sem acentos; uma linha por autor."
+        meta:
+          source_column: "author_name"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

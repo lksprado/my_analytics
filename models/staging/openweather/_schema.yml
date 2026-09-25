@@ -6,8 +6,54 @@ models:
     columns:
       - name: weather_date
         description: "Data de referência das métricas climáticas diárias."
+        meta:
+          source_column: "date"
         data_tests:
           - unique
           - not_null
+      - name: cloud_cover_afternoon
+        description: "Cobertura de nuvens às 12:00, em %."
+        meta:
+          source_column: "cloud_cover_afternoon"
+      - name: humidity_afternoon
+        description: "Umidade relativa às 12:00, em %."
+        meta:
+          source_column: "humidity_afternoon"
+      - name: precipitation_total
+        description: "Precipitação total do dia em equivalente de água líquida, em mm."
+        meta:
+          source_column: "precipitation_total"
+      - name: temperature_min
+        description: "Temperatura mínima do dia, em °C."
+        meta:
+          source_column: "temperature_min"
+      - name: temperature_max
+        description: "Temperatura máxima do dia, em °C."
+        meta:
+          source_column: "temperature_max"
+      - name: temperature_afternoon
+        description: "Temperatura às 12:00, em °C."
+        meta:
+          source_column: "temperature_afternoon"
+      - name: temperature_night
+        description: "Temperatura às 00:00, em °C."
+        meta:
+          source_column: "temperature_night"
+      - name: temperature_morning
+        description: "Temperatura às 06:00, em °C."
+        meta:
+          source_column: "temperature_morning"
+      - name: pressure_afternoon
+        description: "Pressão atmosférica às 12:00, em hPa."
+        meta:
+          source_column: "pressure_afternoon"
+      - name: wind_max_speed
+        description: "Velocidade máxima do vento no dia, em m/s."
+        meta:
+          source_column: "wind_max_speed"
+      - name: wind_max_direction
+        description: "Direção do vento na velocidade máxima do dia, em graus meteorológicos."
+        meta:
+          source_column: "wind_max_direction"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

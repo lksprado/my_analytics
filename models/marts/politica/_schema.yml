@@ -866,7 +866,7 @@ models:
       - name: orientacao_governo
         description: "Orientação do Governo (SIM, NAO, OBSTRUCAO, LIBERADO, ABSTENCAO)."
       - name: fl_aprovada
-        description: "1 quando a votação foi aprovada, 0 quando rejeitada; nulo quando o resultado não é binário."
+        description: "1 quando a votação foi aprovada, 0 quando não aprovada (rejeição ou falta de quórum); nulo quando o resultado não é binário."
       - name: fl_nominal
         description: "1 quando a votação teve votos nominais."
       - name: fl_secreta

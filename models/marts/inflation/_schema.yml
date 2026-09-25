@@ -4,19 +4,44 @@ models:
   - name: dim_products
     description: "Dimensão conformed de produtos do Atacadão com normalização de nome, marca, unidade e quantidade."
     columns:
+      - name: product_sk
+        description: "Chave do produto."
       - name: sku
         description: "Identificador único do produto."
         data_tests:
           - unique
           - not_null
+      - name: category
+        description: "Categoria do produto no site (ex.: bebidas, mercearia, limpeza)."
+      - name: brand_name
+        description: "Marca do produto."
+      - name: product_unity
+        description: "Trecho do nome do produto que informa a quantidade, ex.: '500g', '2 litros', '12 un'."
+      - name: unity_value_normalized
+        description: "Quantidade da embalagem convertida para g, ml ou un."
+      - name: unit_normalized
+        description: "Unidade de medida da embalagem (gram, kilogram, millilitre, litre, unit)."
+      - name: unity_type
+        description: "Grandeza da quantidade (weight, volume, unknown)."
+      - name: unity_value
+        description: "Número em product_unity, na unidade original."
+      - name: product_name
+        description: "Nome do produto."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: fct_products
     description: "Preços históricos de produtos do Atacadão por data de extração."
     columns:
+      - name: created_date
+        description: "Data da extração."
       - name: product_sk
+        description: "Chave do produto."
         data_tests:
           - not_null
+      - name: high_price
+        description: "Preço de varejo (unidade avulsa), em R$."
+      - name: low_price
+        description: "Preço de atacado (compra em quantidade), em R$."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

@@ -21,7 +21,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (USD)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_dividends_interest
     description: "Dividendos e impostos pagos atuais e legadas da Avenue, ordenada por início do período."
@@ -37,4 +37,4 @@ models:
       - name: moeda_ativo
         description: "Moeda do valor (USD)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

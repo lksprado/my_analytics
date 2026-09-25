@@ -4,89 +4,1029 @@ models:
   - name: vw_stg_request_seasons_id
     description: "Parâmetros de temporadas NHL, identificando a temporada corrente com base no maior season_id."
     columns:
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+        meta:
+          source_column: "payload"
+      - name: is_current
+        description: "Indica se é a temporada corrente."
+        meta:
+          source_column: "payload"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_base_all_games_details
     description: "Base ephemeral de detalhes de jogos NHL com campos comuns já parseados do payload bruto."
+    columns:
+      - name: payload
+        description: "Payload JSON bruto do detalhe do jogo."
+        meta:
+          source_column: "payload"
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "id"
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+        meta:
+          source_column: "season"
+      - name: game_type_id
+        description: "Tipo de jogo (2 temporada regular, 3 playoffs; demais códigos: eventos especiais)."
+        meta:
+          source_column: "gameType"
+      - name: game_date
+        description: "Data do jogo."
+        meta:
+          source_column: "gameDate"
+      - name: regular_periods
+        description: "Quantidade de períodos regulamentares do jogo."
+        meta:
+          source_column: "regPeriods"
+      - name: game_outcome_total_periods
+        description: "Número do último período disputado."
+        meta:
+          source_column: "periodDescriptor.number"
+      - name: game_state
+        description: "Estado do jogo na API da NHL (FUT, LIVE, FINAL, OFF = encerrado oficialmente)."
+        meta:
+          source_column: "gameState"
+      - name: game_outcome_last_period
+        description: "Tipo do último período (REG, OT, SO)."
+        meta:
+          source_column: "gameOutcome.lastPeriodType"
+      - name: special_event_name
+        description: "Nome do evento especial (ex.: Winter Classic), quando houver."
+        meta:
+          source_column: "specialEvent.name.default"
+      - name: game_start_timestamp_utc
+        description: "Início do jogo em UTC, como texto ISO."
+        meta:
+          source_column: "startTimeUTC"
+      - name: game_schedule_state
+        description: "Situação do jogo no calendário (OK, PPD, CNCL)."
+        meta:
+          source_column: "gameScheduleState"
 
   - name: stg_all_games_details
     description: "Detalhes por jogo da NHL com metadados da partida e informações dos times mandante e visitante."
     columns:
       - name: game_id
         description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "id"
         data_tests:
           - unique
           - not_null
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+        meta:
+          source_column: "season"
+      - name: game_type_id
+        description: "Tipo de jogo (2 temporada regular, 3 playoffs; demais códigos: eventos especiais)."
+        meta:
+          source_column: "gameType"
+      - name: game_date
+        description: "Data do jogo."
+        meta:
+          source_column: "gameDate"
+      - name: game_state
+        description: "Estado do jogo na API da NHL em minúsculas (fut, live, final, off = encerrado oficialmente)."
+        meta:
+          source_column: "gameState"
+      - name: regular_periods
+        description: "Quantidade de períodos regulamentares do jogo."
+        meta:
+          source_column: "regPeriods"
+      - name: game_outcome_last_period
+        description: "Tipo do último período em minúsculas (reg, ot, so)."
+        meta:
+          source_column: "gameOutcome.lastPeriodType"
+      - name: game_outcome_total_periods
+        description: "Número do último período disputado."
+        meta:
+          source_column: "periodDescriptor.number"
+      - name: special_event_name
+        description: "Nome do evento especial em minúsculas, quando houver."
+        meta:
+          source_column: "specialEvent.name.default"
+      - name: game_date_timestamp_utc
+        description: "Início do jogo em UTC."
+        meta:
+          source_column: "startTimeUTC"
+      - name: game_schedule_state
+        description: "Situação do jogo no calendário (OK, PPD, CNCL)."
+        meta:
+          source_column: "gameScheduleState"
+      - name: away_team_id
+        description: "Identificador do time visitante."
+        meta:
+          source_column: "awayTeam.id"
+      - name: away_team_sog
+        description: "Chutes a gol do time visitante."
+        meta:
+          source_column: "awayTeam.sog"
+      - name: away_team_score
+        description: "Gols do time visitante."
+        meta:
+          source_column: "awayTeam.score"
+      - name: home_team_id
+        description: "Identificador do time mandante."
+        meta:
+          source_column: "homeTeam.id"
+      - name: home_team_sog
+        description: "Chutes a gol do time mandante."
+        meta:
+          source_column: "homeTeam.sog"
+      - name: home_team_score
+        description: "Gols do time mandante."
+        meta:
+          source_column: "homeTeam.score"
+      - name: away_team_abbrev
+        description: "Sigla de três letras do time visitante."
+        meta:
+          source_column: "awayTeam.abbrev"
+      - name: away_team_placename
+        description: "Cidade do time visitante, em minúsculas."
+        meta:
+          source_column: "awayTeam.placeName.default"
+      - name: away_team_commonname
+        description: "Nome do time visitante sem a cidade, em minúsculas."
+        meta:
+          source_column: "awayTeam.commonName.default"
+      - name: away_team_logo
+        description: "URL do logo do time visitante."
+        meta:
+          source_column: "awayTeam.logo"
+      - name: away_team_darklogo
+        description: "URL do logo do time visitante para fundo escuro."
+        meta:
+          source_column: "awayTeam.darkLogo"
+      - name: home_team_abbrev
+        description: "Sigla de três letras do time mandante."
+        meta:
+          source_column: "homeTeam.abbrev"
+      - name: home_team_placename
+        description: "Cidade do time mandante, em minúsculas."
+        meta:
+          source_column: "homeTeam.placeName.default"
+      - name: home_team_commonname
+        description: "Nome do time mandante sem a cidade, em minúsculas."
+        meta:
+          source_column: "homeTeam.commonName.default"
+      - name: home_team_logo
+        description: "URL do logo do time mandante."
+        meta:
+          source_column: "homeTeam.logo"
+      - name: home_team_darklogo
+        description: "URL do logo do time mandante para fundo escuro."
+        meta:
+          source_column: "homeTeam.darkLogo"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_games_details_goalies
     description: "Estatísticas por jogo de goleiros (mandante e visitante), com métricas de saves e gols sofridos."
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "id"
+      - name: team_side
+        description: "Lado do time do jogador no jogo (home, away)."
+      - name: player_type
+        description: "Grupo do jogador no boxscore (goalie)."
+      - name: player_id
+        description: "Identificador do jogador na NHL."
+        meta:
+          source_column: "playerId"
+      - name: player_name
+        description: "Nome abreviado do jogador."
+        meta:
+          source_column: "name.default"
+      - name: position
+        description: "Posição de cadastro do jogador (C, L, R, D, G); pode divergir do grupo no boxscore."
+        meta:
+          source_column: "position"
+      - name: sweater_number
+        description: "Número da camisa no jogo."
+        meta:
+          source_column: "sweaterNumber"
+      - name: time_on_ice
+        description: "Tempo de gelo no jogo (mm:ss)."
+        meta:
+          source_column: "toi"
+      - name: is_starter
+        description: "Indica se o goleiro foi titular."
+        meta:
+          source_column: "starter"
+      - name: goals_against
+        description: "Gols sofridos."
+        meta:
+          source_column: "goalsAgainst"
+      - name: shots_against
+        description: "Chutes a gol sofridos."
+        meta:
+          source_column: "shotsAgainst"
+      - name: saves
+        description: "Defesas."
+        meta:
+          source_column: "saveShotsAgainst"
+      - name: powerplay_goals_against
+        description: "Gols sofridos com o adversário em power play."
+        meta:
+          source_column: "powerPlayGoalsAgainst"
+      - name: powerplay_saves
+        description: "Defesas com o adversário em power play."
+        meta:
+          source_column: "powerPlayShotsAgainst"
+      - name: powerplay_shots_against
+        description: "Chutes sofridos com o adversário em power play."
+        meta:
+          source_column: "powerPlayShotsAgainst"
+      - name: shorthanded_goals_against
+        description: "Gols sofridos com o adversário em inferioridade numérica."
+        meta:
+          source_column: "shorthandedGoalsAgainst"
+      - name: evenstrenght_goals_against
+        description: "Gols sofridos em igualdade numérica."
+        meta:
+          source_column: "evenStrengthGoalsAgainst"
+      - name: evenstrenght_saves
+        description: "Defesas em igualdade numérica."
+        meta:
+          source_column: "evenStrengthShotsAgainst"
+      - name: evenstrenght_shots_against
+        description: "Chutes sofridos em igualdade numérica."
+        meta:
+          source_column: "evenStrengthShotsAgainst"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_games_details_skaters
     description: "Estatísticas por jogo de skaters (defense/forward, home/away), com gols, assists, hits e TOI."
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "id"
+      - name: team_side
+        description: "Lado do time do jogador no jogo (home, away)."
+      - name: player_type
+        description: "Grupo do skater no boxscore (forward, defense)."
+      - name: player_id
+        description: "Identificador do jogador na NHL."
+        meta:
+          source_column: "playerId"
+      - name: player_name
+        description: "Nome abreviado do jogador."
+        meta:
+          source_column: "name.default"
+      - name: position
+        description: "Posição de cadastro do jogador (C, L, R, D, G); pode divergir do grupo no boxscore."
+        meta:
+          source_column: "position"
+      - name: sweater_number
+        description: "Número da camisa no jogo."
+        meta:
+          source_column: "sweaterNumber"
+      - name: time_on_ice
+        description: "Tempo de gelo no jogo (mm:ss)."
+        meta:
+          source_column: "toi"
+      - name: goals
+        description: "Gols marcados."
+        meta:
+          source_column: "goals"
+      - name: assists
+        description: "Assistências."
+        meta:
+          source_column: "assists"
+      - name: points
+        description: "Pontos (gols + assistências)."
+        meta:
+          source_column: "points"
+      - name: shots_on_goal
+        description: "Chutes a gol."
+        meta:
+          source_column: "sog"
+      - name: hits
+        description: "Hits (cargas) aplicados."
+        meta:
+          source_column: "hits"
+      - name: blocked_shots
+        description: "Chutes bloqueados."
+        meta:
+          source_column: "blockedShots"
+      - name: plus_minus
+        description: "Saldo +/- do jogador no jogo."
+        meta:
+          source_column: "plusMinus"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_games_summary
     description: "Resumo dos jogos da NHL, incluindo placar, times, status do jogo e informações de calendário."
     columns:
       - name: game_id
         description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "id"
         data_tests:
           - unique
           - not_null
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+        meta:
+          source_column: "season"
+      - name: game_date
+        description: "Data do jogo."
+        meta:
+          source_column: "gameDate"
+      - name: game_type_id
+        description: "Tipo de jogo (1 pré-temporada, 2 temporada regular, 3 playoffs; demais códigos: All-Star, torneios internacionais e outros eventos especiais)."
+        meta:
+          source_column: "gameType"
+      - name: home_score
+        description: "Gols do time mandante."
+        meta:
+          source_column: "homeScore"
+      - name: home_team_id
+        description: "Identificador do time mandante."
+        meta:
+          source_column: "homeTeamId"
+      - name: game_state_id
+        description: "Código do estado do jogo (1 agendado; 6 e 7 já disputados, 7 = encerrado oficialmente)."
+        meta:
+          source_column: "gameStateId"
+      - name: visiting_score
+        description: "Gols do time visitante."
+        meta:
+          source_column: "visitingScore"
+      - name: visiting_team_id
+        description: "Identificador do time visitante."
+        meta:
+          source_column: "visitingTeamId"
+      - name: game_start_timestamp_et
+        description: "Início do jogo no horário do leste dos EUA."
+        meta:
+          source_column: "easternStartTime"
+      - name: game_schedule_state_id
+        description: "Código da situação do jogo no calendário (1 = agendado normalmente)."
+        meta:
+          source_column: "gameScheduleStateId"
+      - name: game_number
+        description: "Número do jogo na temporada."
+        meta:
+          source_column: "gameNumber"
+      - name: period
+        description: "Último período disputado (4+ prorrogações/shootout); nulo em jogo futuro."
+        meta:
+          source_column: "period"
+      - name: game_type_name
+        description: "Tipo de jogo (preseason, regular, playoffs)."
+        meta:
+          source_column: "gameType"
+      - name: has_happened_by_time
+        description: "Indica se a data do jogo já passou."
+        meta:
+          source_column: "gameDate"
+      - name: has_happened_by_status
+        description: "Indica se o jogo está encerrado pelo status."
+        meta:
+          source_column: "gameStateId"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_base_all_games_summary_details
     description: "Base ephemeral dos summary details por jogo, com game_id extraído do source_filename."
+    columns:
+      - name: payload
+        description: "Payload JSON bruto do resumo detalhado do jogo."
+        meta:
+          source_column: "payload"
+      - name: source_filename
+        description: "Nome do arquivo de origem da carga."
+        meta:
+          source_column: "source_filename"
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "source_filename"
 
   - name: stg_all_games_summary_details
     description: "Estatísticas consolidadas por jogo da NHL, como SOG, faceoff, power play, PIM, hits e takeaways."
     columns:
       - name: game_id
         description: "Identificador único do jogo na NHL, usado para ligação com o resumo de jogos."
+        meta:
+          source_column: "source_filename"
         data_tests:
           - unique
           - not_null
+      - name: away_sog
+        description: "Chutes a gol do time visitante."
+        meta:
+          source_column: "teamGameStats.sog"
+      - name: home_sog
+        description: "Chutes a gol do time mandante."
+        meta:
+          source_column: "teamGameStats.sog"
+      - name: away_faceoff_winning_pctg
+        description: "Aproveitamento de faceoffs do visitante (0-1)."
+        meta:
+          source_column: "teamGameStats.faceoffWinningPctg"
+      - name: home_faceoff_winning_pctg
+        description: "Aproveitamento de faceoffs do mandante (0-1)."
+        meta:
+          source_column: "teamGameStats.faceoffWinningPctg"
+      - name: away_powerplay_pctg
+        description: "Aproveitamento de power play do visitante (0-1)."
+        meta:
+          source_column: "teamGameStats.powerPlayPctg"
+      - name: home_powerplay_pctg
+        description: "Aproveitamento de power play do mandante (0-1)."
+        meta:
+          source_column: "teamGameStats.powerPlayPctg"
+      - name: away_pim
+        description: "Minutos de penalidade do visitante."
+        meta:
+          source_column: "teamGameStats.pim"
+      - name: home_pim
+        description: "Minutos de penalidade do mandante."
+        meta:
+          source_column: "teamGameStats.pim"
+      - name: away_hits
+        description: "Hits (cargas) do visitante."
+        meta:
+          source_column: "teamGameStats.hits"
+      - name: home_hits
+        description: "Hits (cargas) do mandante."
+        meta:
+          source_column: "teamGameStats.hits"
+      - name: away_blocked_shots
+        description: "Chutes bloqueados pelo visitante."
+        meta:
+          source_column: "teamGameStats.blockedShots"
+      - name: home_blocked_shots
+        description: "Chutes bloqueados pelo mandante."
+        meta:
+          source_column: "teamGameStats.blockedShots"
+      - name: away_giveaways
+        description: "Perdas de posse do visitante."
+        meta:
+          source_column: "teamGameStats.giveaways"
+      - name: home_giveaways
+        description: "Perdas de posse do mandante."
+        meta:
+          source_column: "teamGameStats.giveaways"
+      - name: away_takeaways
+        description: "Roubadas de posse do visitante."
+        meta:
+          source_column: "teamGameStats.takeaways"
+      - name: home_takeaways
+        description: "Roubadas de posse do mandante."
+        meta:
+          source_column: "teamGameStats.takeaways"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_games_summary_periods
     description: "Quebra por período das estatísticas de jogo, unindo gols e chutes por período de cada partida."
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "source_filename"
+      - name: period_number
+        description: "Número do período (1-3 regulamentar, 4+ prorrogação/shootout)."
+        meta:
+          source_column: "periodDescriptor.number"
+      - name: period_type
+        description: "Tipo do período (REG, OT, SO)."
+        meta:
+          source_column: "periodDescriptor.periodType"
+      - name: away_shots
+        description: "Chutes a gol do visitante no período."
+        meta:
+          source_column: "shotsByPeriod.away"
+      - name: home_shots
+        description: "Chutes a gol do mandante no período."
+        meta:
+          source_column: "shotsByPeriod.home"
+      - name: away_goals
+        description: "Gols do visitante no período."
+        meta:
+          source_column: "linescore.byPeriod.away"
+      - name: home_goals
+        description: "Gols do mandante no período."
+        meta:
+          source_column: "linescore.byPeriod.home"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_play_by_play
     description: "Eventos play-by-play da NHL por jogo e evento, com contexto temporal, espacial e tipo da jogada."
     columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "id"
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+        meta:
+          source_column: "season"
+      - name: is_running
+        description: "Indica se o relógio do jogo estava correndo na coleta."
+        meta:
+          source_column: "clock.running"
+      - name: is_in_intermission
+        description: "Indica se o jogo estava no intervalo na coleta."
+        meta:
+          source_column: "clock.inIntermission"
+      - name: overtime_in_use
+        description: "Indica se o jogo admite prorrogação."
+        meta:
+          source_column: "otInUse"
+      - name: game_date
+        description: "Data do jogo."
+        meta:
+          source_column: "gameDate"
+      - name: game_type_id
+        description: "Tipo de jogo (2 temporada regular, 3 playoffs; demais códigos: eventos especiais)."
+        meta:
+          source_column: "gameType"
+      - name: max_periods
+        description: "Quantidade máxima de períodos do jogo."
+        meta:
+          source_column: "maxPeriods"
+      - name: reg_periods
+        description: "Quantidade de períodos regulamentares."
+        meta:
+          source_column: "regPeriods"
+      - name: start_time_utc
+        description: "Início do jogo em UTC."
+        meta:
+          source_column: "startTimeUTC"
+      - name: shootout_in_use
+        description: "Indica se o jogo admite shootout."
+        meta:
+          source_column: "shootoutInUse"
+      - name: event_id
+        description: "Identificador do evento dentro do jogo."
+        meta:
+          source_column: "plays.eventId"
+      - name: type_code
+        description: "Código numérico de type_desc_key (ex.: 505 goal, 506 shot-on-goal)."
+        meta:
+          source_column: "plays.typeCode"
+      - name: sort_order
+        description: "Ordem cronológica do evento no jogo."
+        meta:
+          source_column: "plays.sortOrder"
+      - name: situation_code
+        description: "Situação em quadra em 4 dígitos: goleiro visitante, skaters visitantes, skaters mandantes, goleiro mandante (ex.: 1551 = 5x5; 0 = goleiro sacado). Zero à esquerda se perde no INT."
+        meta:
+          source_column: "plays.situationCode"
+      - name: period_number
+        description: "Número do período (1-3 regulamentar, 4+ prorrogação/shootout)."
+        meta:
+          source_column: "plays.periodDescriptor.number"
+      - name: x_coord
+        description: "Coordenada X do evento no rinque."
+        meta:
+          source_column: "plays.details.xCoord"
+      - name: y_coord
+        description: "Coordenada Y do evento no rinque."
+        meta:
+          source_column: "plays.details.yCoord"
+      - name: duration
+        description: "Duração da penalidade em minutos (0, 2, 4, 5, 10, 15)."
+        meta:
+          source_column: "plays.details.duration"
+      - name: drawn_by_player_id
+        description: "Jogador que sofreu a penalidade."
+        meta:
+          source_column: "plays.details.drawnByPlayerId"
+      - name: event_owner_team_id
+        description: "Time responsável pelo evento."
+        meta:
+          source_column: "plays.details.eventOwnerTeamId"
+      - name: commited_by_player_id
+        description: "Jogador que cometeu a penalidade."
+        meta:
+          source_column: "plays.details.committedByPlayerId"
+      - name: hittee_player_id
+        description: "Jogador que recebeu o hit."
+        meta:
+          source_column: "plays.details.hitteePlayerId"
+      - name: hitting_player_id
+        description: "Jogador que aplicou o hit."
+        meta:
+          source_column: "plays.details.hittingPlayerId"
+      - name: losing_player_id
+        description: "Jogador que perdeu o faceoff."
+        meta:
+          source_column: "plays.details.losingPlayerId"
+      - name: winning_player_id
+        description: "Jogador que venceu o faceoff."
+        meta:
+          source_column: "plays.details.winningPlayerId"
+      - name: away_sog
+        description: "Chutes a gol acumulados do visitante no momento do evento."
+        meta:
+          source_column: "plays.details.awaySOG"
+      - name: home_sog
+        description: "Chutes a gol acumulados do mandante no momento do evento."
+        meta:
+          source_column: "plays.details.homeSOG"
+      - name: goalie_in_net_player_id
+        description: "Goleiro no gol no momento do chute."
+        meta:
+          source_column: "plays.details.goalieInNetId"
+      - name: shooting_player_id
+        description: "Jogador que chutou."
+        meta:
+          source_column: "plays.details.shootingPlayerId"
+      - name: away_score
+        description: "Placar do visitante após o gol."
+        meta:
+          source_column: "plays.details.awayScore"
+      - name: home_score
+        description: "Placar do mandante após o gol."
+        meta:
+          source_column: "plays.details.homeScore"
+      - name: time_remaining
+        description: "Tempo restante no período na coleta (mm:ss)."
+        meta:
+          source_column: "clock.timeRemaining"
+      - name: seconds_remaining
+        description: "Segundos restantes no período na coleta."
+        meta:
+          source_column: "clock.secondsRemaining"
+      - name: game_state
+        description: "Estado do jogo na API da NHL (FUT, LIVE, FINAL, OFF = encerrado oficialmente)."
+        meta:
+          source_column: "gameState"
+      - name: outcome_last_period_type
+        description: "Tipo do último período (REG, OT, SO)."
+        meta:
+          source_column: "gameOutcome.lastPeriodType"
+      - name: game_schedule_state
+        description: "Situação do jogo no calendário (OK, PPD, CNCL)."
+        meta:
+          source_column: "gameScheduleState"
+      - name: type_desc_key
+        description: "Tipo do evento (faceoff, shot-on-goal, hit, stoppage, blocked-shot, missed-shot, giveaway, takeaway, penalty, goal, period-start, period-end, delayed-penalty, game-end, shootout-complete, failed-shot-attempt)."
+        meta:
+          source_column: "plays.typeDescKey"
+      - name: time_in_period
+        description: "Momento do evento no período (mm:ss)."
+        meta:
+          source_column: "plays.timeInPeriod"
+      - name: period_type
+        description: "Tipo do período (REG, OT, SO)."
+        meta:
+          source_column: "plays.periodDescriptor.periodType"
+      - name: home_team_defending_side
+        description: "Lado do rinque defendido pelo mandante (left, right); nulo quando não informado."
+        meta:
+          source_column: "plays.homeTeamDefendingSide"
+      - name: desc_key
+        description: "Tipo da penalidade."
+        meta:
+          source_column: "plays.details.descKey"
+      - name: penalty_type_code
+        description: "Código da penalidade (MIN menor, MAJ maior, BEN menor de banco, MIS má conduta, GAM má conduta de jogo, MAT match, PS pênalti)."
+        meta:
+          source_column: "plays.details.typeCode"
+      - name: zone_code
+        description: "Zona do evento vista do time dono do evento (O ofensiva, D defensiva, N neutra)."
+        meta:
+          source_column: "plays.details.zoneCode"
+      - name: reason
+        description: "Motivo do evento em kebab-case (ex.: wide-of-net, icing, offside, tv-timeout, goalpost)."
+        meta:
+          source_column: "plays.details.reason"
+      - name: secondary_reason
+        description: "Motivo secundário do evento."
+        meta:
+          source_column: "plays.details.secondaryReason"
+      - name: shot_type
+        description: "Tipo de chute (wrist, snap, slap, backhand, tip-in, deflected, wrap-around etc.)."
+        meta:
+          source_column: "plays.details.shotType"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_player_game_log
     description: "Log de jogos por jogador na NHL, com estatísticas por partida e ordenação sequencial na temporada."
     columns:
+      - name: player_id
+        description: "Identificador do jogador na NHL."
+        meta:
+          source_column: "source_filename"
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+        meta:
+          source_column: "seasonId"
+      - name: game_type_id
+        description: "Tipo de jogo (2 temporada regular, 3 playoffs)."
+        meta:
+          source_column: "gameTypeId"
+      - name: pim
+        description: "Minutos de penalidade."
+        meta:
+          source_column: "gameLog.pim"
+      - name: goals
+        description: "Gols marcados."
+        meta:
+          source_column: "gameLog.goals"
+      - name: shots
+        description: "Chutes a gol."
+        meta:
+          source_column: "gameLog.shots"
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        meta:
+          source_column: "gameLog.gameId"
+      - name: points
+        description: "Pontos (gols + assistências)."
+        meta:
+          source_column: "gameLog.points"
+      - name: shifts
+        description: "Turnos em quadra."
+        meta:
+          source_column: "gameLog.shifts"
+      - name: assists
+        description: "Assistências."
+        meta:
+          source_column: "gameLog.assists"
+      - name: overtime_goals
+        description: "Gols na prorrogação."
+        meta:
+          source_column: "gameLog.otGoals"
+      - name: game_date
+        description: "Data do jogo."
+        meta:
+          source_column: "gameLog.gameDate"
+      - name: plus_minus
+        description: "Saldo +/- do jogador no jogo."
+        meta:
+          source_column: "gameLog.plusMinus"
+      - name: powerplay_goals
+        description: "Gols em power play."
+        meta:
+          source_column: "gameLog.powerPlayGoals"
+      - name: powerplay_points
+        description: "Pontos em power play."
+        meta:
+          source_column: "gameLog.powerPlayPoints"
+      - name: game_winning_goals
+        description: "Gols da vitória."
+        meta:
+          source_column: "gameLog.gameWinningGoals"
+      - name: shorthanded_goals
+        description: "Gols em inferioridade numérica."
+        meta:
+          source_column: "gameLog.shorthandedGoals"
+      - name: shorthanded_points
+        description: "Pontos em inferioridade numérica."
+        meta:
+          source_column: "gameLog.shorthandedPoints"
+      - name: save_pctg
+        description: "Percentual de defesas (0-1); só goleiros."
+        meta:
+          source_column: "gameLog.savePctg"
+      - name: is_shutout
+        description: "Shutout (1 sim, 0 não); só goleiros, nulo para skaters."
+        meta:
+          source_column: "gameLog.shutouts"
+      - name: is_starter
+        description: "Titular (1 sim, 0 não); só goleiros, nulo para skaters."
+        meta:
+          source_column: "gameLog.gamesStarted"
+      - name: goals_against
+        description: "Gols sofridos; só goleiros."
+        meta:
+          source_column: "gameLog.goalsAgainst"
+      - name: shots_against
+        description: "Chutes a gol sofridos; só goleiros."
+        meta:
+          source_column: "gameLog.shotsAgainst"
+      - name: toi
+        description: "Tempo de gelo no jogo (mm:ss)."
+        meta:
+          source_column: "gameLog.toi"
+      - name: team_abbrev
+        description: "Sigla do time do jogador."
+        meta:
+          source_column: "gameLog.teamAbbrev"
+      - name: home_road_flag
+        description: "Mando do time do jogador (H casa, R fora)."
+        meta:
+          source_column: "gameLog.homeRoadFlag"
+      - name: opponent_abbrev
+        description: "Sigla do time adversário."
+        meta:
+          source_column: "gameLog.opponentAbbrev"
+      - name: game_decision
+        description: "Decisão do goleiro (W vitória, L derrota, O derrota na prorrogação/shootout); só goleiros."
+        meta:
+          source_column: "gameLog.decision"
+      - name: game_played_number
+        description: "Ordem do jogo do jogador na temporada."
+        meta:
+          source_column: "gameLog.gameId"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_players
     description: "Dimensão de jogadores NHL com dados cadastrais e estatísticas de carreira para temporada regular e playoffs."
     columns:
+      - name: id
+        description: "Identificador do jogador na NHL."
+        meta:
+          source_column: "playerId"
+      - name: abbrev_name
+        description: "Nome abreviado (inicial. sobrenome), em minúsculas."
+        meta:
+          source_column: "firstName.default"
+      - name: full_name
+        description: "Nome completo, em minúsculas."
+        meta:
+          source_column: "firstName.default"
+      - name: first_name
+        description: "Primeiro nome, em minúsculas."
+        meta:
+          source_column: "firstName.default"
+      - name: last_name
+        description: "Sobrenome, em minúsculas."
+        meta:
+          source_column: "lastName.default"
+      - name: is_active
+        description: "Indica se o jogador está em atividade."
+        meta:
+          source_column: "isActive"
+      - name: position
+        description: "Posição do jogador (C, L, R, D, G)."
+        meta:
+          source_column: "position"
+      - name: birth_city
+        description: "Cidade de nascimento, em minúsculas."
+        meta:
+          source_column: "birthCity.default"
+      - name: birthdate
+        description: "Data de nascimento."
+        meta:
+          source_column: "birthDate"
+      - name: birth_country
+        description: "País de nascimento (código ISO de três letras)."
+        meta:
+          source_column: "birthCountry"
+      - name: birth_state_province
+        description: "Estado/província de nascimento, em minúsculas."
+        meta:
+          source_column: "birthStateProvince.default"
+      - name: pim
+        description: "Minutos de penalidade na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.pim"
+      - name: goals
+        description: "Gols na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.goals"
+      - name: shots
+        description: "Chutes a gol na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.shots"
+      - name: avg_toi
+        description: "Tempo médio de gelo por jogo na carreira (mm:ss)."
+        meta:
+          source_column: "careerTotals.regularSeason.avgToi"
+      - name: points
+        description: "Pontos na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.points"
+      - name: assists
+        description: "Assistências na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.assists"
+      - name: overtime_goals
+        description: "Gols na prorrogação na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.otGoals"
+      - name: plus_minus
+        description: "Saldo +/- na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.plusMinus"
+      - name: games_played
+        description: "Jogos disputados na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.gamesPlayed"
+      - name: shooting_pctg
+        description: "Aproveitamento de chutes na carreira (0-1)."
+        meta:
+          source_column: "careerTotals.regularSeason.shootingPctg"
+      - name: powerplay_goals
+        description: "Gols em power play na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.powerPlayGoals"
+      - name: powerplay_points
+        description: "Pontos em power play na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.powerPlayPoints"
+      - name: game_winning_goals
+        description: "Gols da vitória na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.gameWinningGoals"
+      - name: shorthanded_goals
+        description: "Gols em inferioridade numérica na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.shorthandedGoals"
+      - name: shorthanded_points
+        description: "Pontos em inferioridade numérica na carreira (temporada regular)."
+        meta:
+          source_column: "careerTotals.regularSeason.shorthandedPoints"
+      - name: faceoff_win_pctg
+        description: "Aproveitamento de faceoffs na carreira (0-1)."
+        meta:
+          source_column: "careerTotals.regularSeason.faceoffWinningPctg"
+      - name: draft_year
+        description: "Ano do draft."
+        meta:
+          source_column: "draftDetails.year"
+      - name: draft_round
+        description: "Rodada do draft."
+        meta:
+          source_column: "draftDetails.round"
+      - name: draft_team_abbrev_name
+        description: "Sigla do time que draftou o jogador."
+        meta:
+          source_column: "draftDetails.teamAbbrev"
+      - name: draft_overall_pick
+        description: "Posição geral de escolha no draft."
+        meta:
+          source_column: "draftDetails.overallPick"
+      - name: draft_pick_in_round
+        description: "Posição de escolha dentro da rodada do draft."
+        meta:
+          source_column: "draftDetails.pickInRound"
+      - name: team_full_name
+        description: "Nome completo do time atual, em minúsculas."
+        meta:
+          source_column: "fullTeamName.default"
+      - name: current_team_id
+        description: "Identificador do time atual."
+        meta:
+          source_column: "currentTeamId"
+      - name: shoots_catches
+        description: "Lado do taco, ou da luva no caso do goleiro (L, R)."
+        meta:
+          source_column: "shootsCatches"
+      - name: sweater_number
+        description: "Número da camisa atual."
+        meta:
+          source_column: "sweaterNumber"
+      - name: height_inches
+        description: "Altura em polegadas."
+        meta:
+          source_column: "heightInInches"
+      - name: weight_pounds
+        description: "Peso em libras."
+        meta:
+          source_column: "weightInPounds"
+      - name: height_centimeters
+        description: "Altura em centímetros."
+        meta:
+          source_column: "heightInCentimeters"
+      - name: weight_kilogram
+        description: "Peso em quilogramas."
+        meta:
+          source_column: "weightInKilograms"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_teams
     description: "Dimensão de times NHL com team_id, franchise_id, sigla e nome completo."
     columns:
+      - name: id
+        description: "Identificador do time na NHL."
+        meta:
+          source_column: "id"
+      - name: franchise_id
+        description: "Identificador da franquia."
+        meta:
+          source_column: "franchiseId"
+      - name: abbrev_name
+        description: "Sigla de três letras do time."
+        meta:
+          source_column: "triCode"
+      - name: full_name
+        description: "Nome completo do time, em minúsculas."
+        meta:
+          source_column: "fullName"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_all_hockeyfights
     description: "Base tratada de brigas da NHL/HockeyFights, com jogadores, times, data, período e avaliação do confronto."
@@ -96,5 +1036,65 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: season_id
+        description: "Temporada no formato AAAAAAAA (ex.: 20242025)."
+        meta:
+          source_column: "season"
+      - name: game_type_id
+        description: "Tipo de jogo (2 temporada regular, 3 playoffs)."
+        meta:
+          source_column: "season_type"
+      - name: description
+        description: "Descrição da briga com jogadores e times, em minúsculas."
+        meta:
+          source_column: "fight"
+      - name: player_1_abbrev_name
+        description: "Nome abreviado do primeiro jogador, em minúsculas."
+        meta:
+          source_column: "player_1_name"
+      - name: player_2_abbrev_name
+        description: "Nome abreviado do segundo jogador, em minúsculas."
+        meta:
+          source_column: "player_2_name"
+      - name: player_1_team_full_name
+        description: "Nome completo do time do primeiro jogador, em minúsculas."
+        meta:
+          source_column: "player_1_team"
+      - name: player_2_team_full_name
+        description: "Nome completo do time do segundo jogador, em minúsculas."
+        meta:
+          source_column: "player_2_team"
+      - name: game_date
+        description: "Data do jogo."
+        meta:
+          source_column: "date"
+      - name: period
+        description: "Período da briga (1st period, 2nd period, 3rd period, ot)."
+        meta:
+          source_column: "period"
+      - name: time_in_period
+        description: "Momento da briga no período (mm:ss)."
+        meta:
+          source_column: "gametime"
+      - name: fight_winner_full_name
+        description: "Vencedor da briga segundo os votos do hockeyfights.com, em minúsculas."
+        meta:
+          source_column: "winner"
+      - name: rating
+        description: "Nota média da briga no hockeyfights.com."
+        meta:
+          source_column: "rating"
+      - name: vote_count
+        description: "Quantidade de votos da briga no hockeyfights.com."
+        meta:
+          source_column: "vote_count"
+      - name: team_1_abbrev_name
+        description: "Sigla NHL do time do primeiro jogador."
+        meta:
+          source_column: "fight"
+      - name: team_2_abbrev_name
+        description: "Sigla NHL do time do segundo jogador."
+        meta:
+          source_column: "fight"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

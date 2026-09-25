@@ -41,7 +41,7 @@ models:
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_renda_unificada
     description: >
@@ -81,7 +81,7 @@ models:
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_disponibilidades_isoladas
     description: >
@@ -112,7 +112,7 @@ models:
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_renda_fixa
     description: >
@@ -155,7 +155,7 @@ models:
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_renda_fixa_incompleta
     description: >
@@ -196,7 +196,7 @@ models:
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_renda_fixa_loop
     description: >
@@ -236,7 +236,7 @@ models:
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_renda_variavel
     description: >
@@ -264,7 +264,7 @@ models:
       - name: fonte_dado
         description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_dividendos
     description: >
@@ -282,7 +282,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_indexadores
     description: >
@@ -312,7 +312,7 @@ models:
       - name: cdi_acum
         description: "Índice acumulado (base 1) do CDI."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_consumo_consolidado
     description: >
@@ -351,7 +351,7 @@ models:
       - name: educacao
         description: '{{ doc("categoria_educacao") }}'
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: int_dre_consolidado
     description: >
@@ -396,4 +396,4 @@ models:
       - name: resultado
         description: "Resultado do mês (receita total menos despesa total)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

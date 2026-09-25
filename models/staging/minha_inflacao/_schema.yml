@@ -12,28 +12,80 @@ models:
     columns:
       - name: created_date
         description: "Último dia do mês de referência."
+        meta:
+          source_column: "Ano"
         data_tests:
           - not_null
       - name: sk_product
         description: "Hash do nome do produto sem acentos, espaços e pontuação."
+        meta:
+          source_column: "Produto"
         data_tests:
           - not_null
+      - name: category
+        description: "Categoria do produto na planilha."
+        meta:
+          source_column: "Categoria"
+      - name: product_name
+        description: "Nome do produto na planilha."
+        meta:
+          source_column: "Produto"
       - name: product_unity
         description: "Texto original da coluna 'Unidade', ex.: 'Fardo 5Kg', 'Caixa c/ 20'."
+        meta:
+          source_column: "Unidade"
       - name: unit_normalized
+        description: "Unidade de medida da embalagem (gram, kilogram, millilitre, litre, unit)."
+        meta:
+          source_column: "product_unity"
         data_tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ['kilogram', 'gram', 'litre', 'millilitre', 'unit']
       - name: unity_type
+        description: "Grandeza da quantidade (weight, volume, unit, unknown)."
+        meta:
+          source_column: "product_unity"
         data_tests:
           - accepted_values:
               arguments:
                 values: ['weight', 'volume', 'unit', 'unknown']
       - name: unity_value
         description: "Número em product_unity, na unidade original."
+        meta:
+          source_column: "product_unity"
       - name: unity_value_normalized
         description: "unity_value convertido para g, ml ou un."
+        meta:
+          source_column: "product_unity"
+      - name: quantity
+        description: "Quantidade comprada no mês."
+        meta:
+          source_column: "Qtd"
+      - name: price
+        description: "Preço unitário pago no mês, em R$."
+        meta:
+          source_column: "Preço"
+      - name: current_month
+        description: "Valor gasto no produto no mês de referência, em R$."
+        meta:
+          source_column: "Mês Atual"
+      - name: past_month
+        description: "Valor do produto no mês anterior, em R$."
+        meta:
+          source_column: "Mês passado"
+      - name: price_variation
+        description: "Variação do preço sobre o mês anterior (fração)."
+        meta:
+          source_column: "Var"
+      - name: weight
+        description: "Peso do produto no gasto total do mês (fração)."
+        meta:
+          source_column: "Peso"
+      - name: weight_variation
+        description: "Contribuição do produto para a inflação do mês (fração)."
+        meta:
+          source_column: "Var Peso"
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

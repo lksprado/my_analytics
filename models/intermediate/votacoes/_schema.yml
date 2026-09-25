@@ -19,6 +19,8 @@ models:
         description: "Sigla do partido no momento do voto."
       - name: partido_nome
         description: "Nome do partido no momento do voto."
+      - name: uf
+        description: "UF de representação do parlamentar no momento do voto."
       - name: codigo_voto
         description: "Código do voto na origem."
       - name: model_run_at
@@ -31,6 +33,8 @@ models:
         description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na API da Câmara.
+      - name: sessao_id
+        description: "Id da sessão em que a votação ocorreu."
       - name: data_votacao
         description: Data em que a votação ocorreu.
       - name: sigla_orgao
@@ -40,7 +44,7 @@ models:
       - name: proposicao_id_fk
         description: "Id da proposição votada na Câmara."
       - name: aprovado
-        description: Booleano indicando se a proposição foi aprovada.
+        description: "1 se aprovou a proposição, 0 se não aprovou (rejeição ou falta de quórum); nulo quando o resultado não é determinável."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -79,6 +83,8 @@ models:
         description: Data da sessão de votação.
       - name: identificacao
         description: Descrição ou identificação da matéria votada.
+      - name: uf
+        description: "UF de representação do parlamentar no momento do voto."
       - name: codigo_voto
         description: "Código do voto na origem."
       - name: model_run_at
@@ -91,18 +97,26 @@ models:
         description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na API do Senado.
+      - name: sessao_id
+        description: "Id da sessão em que a votação ocorreu."
       - name: processo_id_nk
         description: "Chave natural do processo legislativo associado à votação."
       - name: data_votacao
         description: Data da sessão de votação.
+      - name: sigla
+        description: "Sigla do tipo do processo votado (ex.: PL, PEC)."
+      - name: numero
+        description: "Número do processo votado."
       - name: identificacao
         description: Descrição da matéria votada.
+      - name: sigla_colegiado
+        description: "Sigla do colegiado do informe legislativo que registra o resultado (PLEN, CCJ)."
       - name: descricao
         description: Descrição da votação, maiúscula e sem acento.
       - name: fl_secreta
         description: 1 quando a votação foi secreta.
       - name: aprovado
-        description: 1 se aprovado, 0 caso contrário.
+        description: "1 se aprovado, 0 se reprovado; nulo em empate, prejudicado ou sem resultado."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -145,12 +159,22 @@ models:
         description: Ementa da proposição; só a Câmara traz.
       - name: situacao_atual
         description: "Situação atual de tramitação."
+      - name: data_situacao_atual
+        description: "Data da situação atual de tramitação."
+      - name: fl_tramitando
+        description: "1 quando a proposição está em tramitação (só Senado)."
       - name: regime
         description: "Regime de tramitação atual (só Câmara)."
       - name: autoria
         description: Autoria da proposição; só o Senado traz.
       - name: norma_gerada
         description: "Norma gerada pela proposição (só Senado)."
+      - name: relator_atual_id_nk
+        description: "Id do deputado relator atual (só Câmara)."
+      - name: codigo_deliberacao
+        description: "Código da deliberação no Senado."
+      - name: data_deliberacao
+        description: "Data da deliberação da matéria no Senado."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
     tests:
@@ -182,6 +206,8 @@ models:
         description: Sigla do partido no momento do voto.
       - name: partido_nome
         description: Nome do partido no momento do voto.
+      - name: uf
+        description: "UF de representação do parlamentar no momento do voto."
       - name: codigo_voto
         description: Código do voto como vem da origem.
       - name: voto
@@ -204,6 +230,8 @@ models:
         description: "Casa legislativa (CAMARA, SENADO)."
       - name: votacao_id_nk
         description: Chave natural da votação na casa, como texto.
+      - name: sessao_id
+        description: "Id da sessão em que a votação ocorreu."
       - name: data_votacao
         description: Data da votação.
       - name: sigla_orgao
@@ -213,7 +241,7 @@ models:
       - name: proposicao_id_nk
         description: "Id da proposição votada na casa."
       - name: aprovado
-        description: 1 se aprovada, 0 caso contrário.
+        description: "1 se aprovou a proposição, 0 se não aprovou (rejeição ou falta de quórum); nulo quando o resultado não é determinável."
       - name: fl_secreta
         description: 1 quando a votação foi secreta (só no Senado).
       - name: classe_votacao

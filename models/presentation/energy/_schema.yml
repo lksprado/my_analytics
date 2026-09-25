@@ -5,10 +5,70 @@ models:
   - name: solar_energy_daily_weather_conditions
     description: "Histórico diário de geração de energia solar cruzado com condições climáticas (temperatura, chuva, vento, nebulosidade)."
     columns:
+      - name: generation_date
+        description: "Data da geração."
+      - name: day_of_month
+        description: "Dia do mês (1-31), integer."
+      - name: day_of_year
+        description: "Dia do ano (1-366), integer."
+      - name: week_of_year
+        description: "Semana do ano."
+      - name: year_number
+        description: "Ano com quatro dígitos."
+      - name: month_name
+        description: "Nome do mês em inglês (January)."
+      - name: month_name_short
+        description: "Nome abreviado do mês em inglês (Jan)."
+      - name: duration
+        description: "Duração da geração no dia, em horas."
+      - name: kwh
+        description: "Energia gerada no dia, em kWh."
+      - name: max_kwh
+        description: "Pico de geração do dia, em kW."
+      - name: cloud_cover_afternoon
+        description: "Cobertura de nuvens às 12:00, em %."
+      - name: humidity_afternoon
+        description: "Umidade relativa às 12:00, em %."
+      - name: precipitation_total
+        description: "Precipitação total do dia em equivalente de água líquida, em mm."
+      - name: temperature_min
+        description: "Temperatura mínima do dia, em °C."
+      - name: temperature_max
+        description: "Temperatura máxima do dia, em °C."
+      - name: temperature_afternoon
+        description: "Temperatura às 12:00, em °C."
+      - name: temperature_night
+        description: "Temperatura às 00:00, em °C."
+      - name: temperature_morning
+        description: "Temperatura às 06:00, em °C."
+      - name: pressure_afternoon
+        description: "Pressão atmosférica às 12:00, em hPa."
+      - name: wind_max_speed
+        description: "Velocidade máxima do vento no dia, em m/s."
+      - name: wind_max_direction
+        description: "Direção do vento na velocidade máxima do dia, em graus meteorológicos."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
   - name: solar_energy_hourly_generation
     description: "Série horária de geração de energia solar em kWh."
     columns:
+      - name: generated_at
+        description: "Data e hora da medição de geração de energia solar."
+      - name: generation_date
+        description: "Data da geração."
+      - name: day_of_month
+        description: "Dia do mês (1-31), integer."
+      - name: day_of_year
+        description: "Dia do ano (1-366), integer."
+      - name: week_of_year
+        description: "Semana do ano."
+      - name: year_number
+        description: "Ano com quatro dígitos."
+      - name: month_name
+        description: "Nome do mês em inglês (January)."
+      - name: month_name_short
+        description: "Nome abreviado do mês em inglês (Jan)."
+      - name: kwh
+        description: "Energia gerada na hora, em kWh."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

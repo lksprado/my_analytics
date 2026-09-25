@@ -64,7 +64,7 @@ models:
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_agregada
     description: >
@@ -89,10 +89,28 @@ models:
         description: "Parcela em classe_ativo = 'DISPONIBILIDADE' (saldo em conta, cashback, Wise, caixa Avenue, bitcoin em autocustódia)."
       - name: total_investido
         description: "Parcela fora de 'DISPONIBILIDADE' — renda fixa e renda variável."
+      - name: autocustodia
+        description: "Soma das posições da pessoa em autocustódia no mês, em reais inteiros."
+      - name: avenue
+        description: "Soma das posições da pessoa na Avenue no mês, em reais inteiros."
+      - name: banco_do_brasil
+        description: "Soma das posições da pessoa no Banco do Brasil no mês, em reais inteiros."
+      - name: bradesco
+        description: "Soma das posições da pessoa no Bradesco no mês, em reais inteiros."
+      - name: daycoval
+        description: "Soma das posições da pessoa no Daycoval no mês, em reais inteiros."
+      - name: itau
+        description: "Soma das posições da pessoa no Itaú no mês, em reais inteiros."
+      - name: nubank
+        description: "Soma das posições da pessoa no Nubank no mês, em reais inteiros."
+      - name: sofisa
+        description: "Soma das posições da pessoa no Sofisa no mês, em reais inteiros."
+      - name: wise
+        description: "Soma das posições da pessoa na Wise no mês, em reais inteiros."
       - name: vlr_liquido_usd
         description: "Saldo Avenue na moeda original (posições + proventos), que a conversão para reais apaga. Juntado depois da agregação: já está no grão mês x pessoa."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: patrimonio_deusa
     description: >
@@ -133,7 +151,7 @@ models:
       - name: saldo_nubank_cashback_deusa
         description: "Saldo de cashback acumulado no Nubank."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_lucas
     description: >
@@ -196,7 +214,7 @@ models:
       - name: pessoa
         description: "Titular da posição (lucas)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_jessica
     description: >
@@ -257,7 +275,7 @@ models:
       - name: pessoa
         description: "Titular da posição (jessica)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_deusa
     description: >
@@ -319,7 +337,7 @@ models:
       - name: pessoa
         description: "Titular da posição (deusa)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_lucas_agregada
     description: >
@@ -357,7 +375,7 @@ models:
       - name: vlr_liquido_usd
         description: "Saldo Avenue no mês na moeda original (USD), reproduzido de stg_assets e stg_dividends_interest; 0 quando não há posição. NÃO somar com as colunas em reais."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_jessica_agregada
     description: >
@@ -391,7 +409,7 @@ models:
       - name: vlr_liquido_usd
         description: "Saldo Avenue no mês na moeda original (USD), reproduzido de stg_assets e stg_dividends_interest; 0 quando não há posição. NÃO somar com as colunas em reais."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_deusa_agregada
     description: >
@@ -423,7 +441,7 @@ models:
       - name: vlr_liquido_usd
         description: "Saldo Avenue no mês na moeda original (USD), reproduzido de stg_assets e stg_dividends_interest; 0 quando não há posição. NÃO somar com as colunas em reais."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_auditoria
     description: >
@@ -451,7 +469,7 @@ models:
               arguments: 
                 values: [0]
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: carteira_classificacao
     description: >
@@ -485,7 +503,7 @@ models:
       - name: camada
         description: "Camada do ativo ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: investimentos e disponibilidades chegam todos como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: ativos_sem_classificacao
     description: >
@@ -516,7 +534,7 @@ models:
       - name: vlr_atualizado_brl
         description: "Valor da posição em reais, para priorizar o que classificar primeiro."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: dividendos
     description: "Série mensal de renda passiva por pessoa, com spine de datas contínuo entre o primeiro e o último mês com dividendos (zero quando não há recebimento)."
@@ -532,7 +550,7 @@ models:
       - name: vlr_liquido_brl
         description: "Valor líquido de dividendos/proventos recebidos no mês (0 quando não há recebimento)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: risco_fgc_lucas
     description: "Exposição ao FGC por conglomerado no mês atual (Lucas), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -546,7 +564,7 @@ models:
       - name: risco_fgc
         description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: risco_fgc_deusa
     description: "Exposição ao FGC por conglomerado no mês atual (Deusa), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -560,7 +578,7 @@ models:
       - name: risco_fgc
         description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: risco_fgc_jessica
     description: "Exposição ao FGC por conglomerado no mês atual (Jéssica), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -574,7 +592,7 @@ models:
       - name: risco_fgc
         description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: verificar_fgc
     description: "Modelo de auditoria: lista emissores de CDB/LCA/LCI/LC ainda sem conglomerado FGC mapeado. Saída vazia significa que o de-para está completo."
@@ -584,7 +602,7 @@ models:
       - name: conglomerado
         description: "Conglomerado FGC vindo de stg_de_para_instituicoes_fgc (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: patrimonio_mom
     description: >
@@ -637,7 +655,7 @@ models:
       - name: vlr_carro
         description: "Variação MoM, em fração decimal, do valor de mercado do carro."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: patrimonio
     description: >
@@ -695,7 +713,7 @@ models:
       - name: vlr_carro
         description: "Valor de mercado do carro segundo a tabela Fipe, em reais."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: indicadores
     description: >
@@ -740,7 +758,7 @@ models:
       - name: cdi_acum
         description: "Índice acumulado (base 1) do CDI."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: riqueza
     description: >
@@ -832,7 +850,7 @@ models:
       - name: comparativo_cdi_deusa
         description: "'RICO' quando o índice do patrimônio de Deusa supera o do CDI no mês; 'POBRE' caso contrário."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: consumo
     description: >
@@ -866,6 +884,8 @@ models:
         description: "Semana do ano (week_of_year da dimensão de datas)."
       - name: trimestre
         description: "Trimestre do ano."
+      - name: ano
+        description: "Ano com quatro dígitos."
       - name: total_mercado
         description: '{{ doc("categoria_mercado") }}'
       - name: total_diversos
@@ -883,7 +903,7 @@ models:
       - name: total_educacao
         description: '{{ doc("categoria_educacao") }}'
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: resultado
     description: >
@@ -941,7 +961,7 @@ models:
       - name: total_educacao
         description: '{{ doc("categoria_educacao") }}'
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: luz
     description: >
@@ -968,4 +988,4 @@ models:
       - name: preco_kwh
         description: "Preço médio por kWh no período."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

@@ -10,6 +10,10 @@ models:
         description: "Titular da posição (deusa, jessica ou lucas)."
       - name: instituicao
         description: "Instituição onde o ativo está posicionado."
+      - name: emissor
+        description: "Instituição emissora do título (apenas renda fixa)."
+        meta:
+          source_column: "emissor"
       - name: classe_ativo
         description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
       - name: tipo_ativo
@@ -29,7 +33,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_investimentos_faltantes_jessica
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
@@ -40,6 +44,10 @@ models:
         description: "Titular da posição (deusa, jessica ou lucas)."
       - name: instituicao
         description: "Instituição onde o ativo está posicionado."
+      - name: emissor
+        description: "Instituição emissora do título (apenas renda fixa)."
+        meta:
+          source_column: "emissor"
       - name: classe_ativo
         description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
       - name: tipo_ativo
@@ -59,7 +67,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_investimentos_faltantes_deusa
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
@@ -70,6 +78,10 @@ models:
         description: "Titular da posição (deusa)."
       - name: instituicao
         description: "Instituição onde o ativo está posicionado."
+      - name: emissor
+        description: "Instituição emissora do título (apenas renda fixa)."
+        meta:
+          source_column: "emissor"
       - name: classe_ativo
         description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
       - name: tipo_ativo
@@ -89,7 +101,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_usd
     description: "Cotação do dólar (USD) no último dia útil de cada mês, com data de referência posicionada no final do mês."
@@ -99,7 +111,7 @@ models:
       - name: vlr_usd
         description: "Cotação de venda do dólar no último dia útil do mês, em reais."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_de_para_instituicoes_fgc
     description: "De-para entre instituição emissora e o conglomerado financeiro do FGC ao qual pertence, usado para agregar o risco por conglomerado (limite de garantia)."
@@ -109,7 +121,7 @@ models:
       - name: conglomerado
         description: "Conglomerado financeiro FGC ao qual a instituição pertence."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_datas_especiais
     description: >
@@ -127,4 +139,4 @@ models:
       - name: motivo
         description: "Descrição do evento, em maiúsculas."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

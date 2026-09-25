@@ -4,5 +4,25 @@ models:
   - name: inflation
     description: "Histórico de preços de produtos do Atacadão por data de extração, cruzando a dimensão de produtos com o fato de preços (unidade e quantidade normalizadas, preços máximo e mínimo)."
     columns:
+      - name: created_date
+        description: "Data da extração."
+      - name: product_name
+        description: "Nome do produto."
+      - name: category
+        description: "Categoria do produto no site (ex.: bebidas, mercearia, limpeza)."
+      - name: brand_name
+        description: "Marca do produto."
+      - name: product_unity
+        description: "Trecho do nome do produto que informa a quantidade, ex.: '500g', '2 litros', '12 un'."
+      - name: unity_value_normalized
+        description: "Quantidade da embalagem convertida para g, ml ou un."
+      - name: unit_normalized
+        description: "Unidade de medida da embalagem (gram, kilogram, millilitre, litre, unit)."
+      - name: unity_type
+        description: "Grandeza da quantidade (weight, volume, unknown)."
+      - name: high_price
+        description: "Preço de varejo (unidade avulsa), em R$."
+      - name: low_price
+        description: "Preço de atacado (compra em quantidade), em R$."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

@@ -35,7 +35,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_bdr
     description: "Posições de BDRs na B3 por pessoa e mês-base, com codigo_ativo, quantidades e valores de fechamento/atualizado."
@@ -69,7 +69,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_etf
     description: "Posições de ETFs na B3 por pessoa e mês-base, com codigo_ativo, CNPJ do fundo, quantidades e valores."
@@ -103,7 +103,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_fundos
     description: "Posições de fundos de investimento na B3 por pessoa e mês-base, com CNPJ, quantidades e valores."
@@ -137,7 +137,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_proventos
     description: "Proventos recebidos na B3 por pessoa, com data de pagamento, tipo de evento, quantidade, preço unitário e valor líquido."
@@ -163,7 +163,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do provento (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_renda_fixa
     description: "Posições de renda fixa na B3 por pessoa e mês-base, com emissor, indexador, vencimento e valores atualizados (MtM e curva), incluindo backfill Daycoval."
@@ -209,7 +209,7 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."
 
   - name: stg_tesouro_direto
     description: "Posições de Tesouro Direto por pessoa e mês-base, com código ISIN, indexador, vencimento e valores aplicado, bruto, líquido e atualizado."
@@ -247,4 +247,4 @@ models:
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
-        description: "Data/hora de início do `dbt run` que materializou este modelo (com fuso). Igual em todas as linhas; nas views, corresponde à última vez que o dbt recriou a view. Serve para auditar a atualidade dos dados."
+        description: "Início do dbt run que materializou o modelo."

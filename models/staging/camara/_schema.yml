@@ -1,35 +1,35 @@
 version: 2
 
 models:
-  - name: stg_camara_deputados
-    description: "Deputados da legislatura atual (SCD2)."
+  - name: eph_camara_deputados
+    description: "Cadastro de deputados lido direto da raw, sem snapshot. Grão: um deputado."
     columns:
       - name: deputado_id_nk
-        description: "Chave natural do deputado na API da Câmara."
+        description: "Id do deputado na Câmara."
         meta:
           source_column: "id"
       - name: nome_civil
-        description: "Nome civil do deputado."
+        description: "Nome civil completo."
         meta:
           source_column: "nomecivil"
       - name: nome_eleitoral
-        description: "Nome eleitoral do último status do deputado."
+        description: "Nome parlamentar adotado na posse, no último status."
         meta:
           source_column: "ultimostatus_nomeeleitoral"
       - name: sexo
-        description: "Sexo informado no cadastro (M/F)."
+        description: "Sexo (M, F)."
         meta:
           source_column: "sexo"
       - name: rede_social
-        description: "Campo único da API com links de redes sociais (texto ou JSON)."
+        description: "Lista de URLs das redes sociais do deputado."
         meta:
-          source_column: "rede_social"
+          source_column: "redesocial"
       - name: data_nascimento
         description: "Data de nascimento."
         meta:
           source_column: "datanascimento"
       - name: data_falecimento
-        description: "Data de falecimento, quando houver."
+        description: "Data de falecimento; nula se vivo."
         meta:
           source_column: "datafalecimento"
       - name: uf_nascimento
@@ -41,37 +41,91 @@ models:
         meta:
           source_column: "municipionascimento"
       - name: escolaridade
-        description: "Grau de escolaridade informado."
+        description: "Escolaridade declarada (ex.: SUPERIOR, SUPERIOR INCOMPLETO, ENSINO MEDIO, POSGRADUACAO)."
         meta:
           source_column: "escolaridade"
       - name: email
-        description: "E-mail institucional."
+        description: "E-mail do último status; na falta, o do gabinete."
+        meta:
+          source_column: "ultimostatus_email, ultimostatus_gabinete_email"
+      - name: loaded_at_utc
+        description: "Data/hora (UTC) de ingestão do registro na camada raw."
+        meta:
+          source_column: "loaded_at_utc"
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: stg_camara_deputados
+    description: "Cadastro dos deputados que já entraram em exercício na Câmara, versão vigente do snapshot (SCD2). Grão: um deputado."
+    columns:
+      - name: deputado_id_nk
+        description: "Id do deputado na Câmara."
+        meta:
+          source_column: "id"
+      - name: nome_civil
+        description: "Nome civil completo."
+        meta:
+          source_column: "nomecivil"
+      - name: nome_eleitoral
+        description: "Nome parlamentar adotado na posse, no último status."
+        meta:
+          source_column: "ultimostatus_nomeeleitoral"
+      - name: sexo
+        description: "Sexo (M, F)."
+        meta:
+          source_column: "sexo"
+      - name: rede_social
+        description: "Lista de URLs das redes sociais do deputado."
+        meta:
+          source_column: "rede_social"
+      - name: data_nascimento
+        description: "Data de nascimento."
+        meta:
+          source_column: "datanascimento"
+      - name: data_falecimento
+        description: "Data de falecimento; nula se vivo."
+        meta:
+          source_column: "datafalecimento"
+      - name: uf_nascimento
+        description: "UF de nascimento."
+        meta:
+          source_column: "ufnascimento"
+      - name: uf_municipio_nascimento
+        description: "Município de nascimento."
+        meta:
+          source_column: "municipionascimento"
+      - name: escolaridade
+        description: "Escolaridade declarada (ex.: SUPERIOR, SUPERIOR INCOMPLETO, ENSINO MEDIO, POSGRADUACAO)."
+        meta:
+          source_column: "escolaridade"
+      - name: email
+        description: "E-mail do último status; na falta, o do gabinete."
         meta:
           source_column: "ultimostatus_email, ultimostatus_gabinete_email"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_legislaturas
-    description: "Deputados por legislatura. Grão: deputado × legislatura."
+    description: "Deputados que estiveram em exercício em cada legislatura. Grão: deputado × legislatura."
     columns:
       - name: legislatura_id_nk
-        description: "Chave natural da legislatura."
+        description: "Número da legislatura, sequencial desde a primeira."
         meta:
           source_column: "idlegislatura"
       - name: deputado_id_fk
-        description: "Chave estrangeira do deputado na API da Câmara."
+        description: "Id do deputado na Câmara."
         meta:
           source_column: "id"
       - name: nome
-        description: "Nome do deputado na legislatura, conforme a API da Câmara."
+        description: "Nome parlamentar do deputado na legislatura."
         meta:
           source_column: "nome"
       - name: uf
-        description: "UF de representação do deputado na legislatura (siglauf)."
+        description: "UF pela qual o deputado foi eleito."
         meta:
           source_column: "siglauf"
       - name: partido_id_fk
-        description: "Chave estrangeira do partido na API da Câmara."
+        description: "Id do partido do deputado na Câmara."
         meta:
           source_column: "uripartido"
       - name: loaded_at_utc
@@ -80,31 +134,40 @@ models:
           source_column: "loaded_at_utc"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
+
   - name: stg_camara_votacoes
-    description: "Votações da Câmara. Grão: uma votação."
+    description: "Votações ocorridas em eventos dos órgãos da Câmara. Grão: uma votação."
     columns:
       - name: votacao_id_nk
-        description: "Id da votação na Câmara (ex.: 2265603-43)."
+        description: "Id alfanumérico da votação na Câmara (ex.: 2265603-43)."
         meta:
           source_column: "id"
+      - name: sessao_id
+        description: "Id do evento (sessão ou reunião) em que ocorreu a votação."
+        meta:
+          source_column: "urievento"
       - name: data_votacao
-        description: "Data da votação."
+        description: "Data oficialmente cadastrada da tramitação resultante da votação, sem horário."
         meta:
           source_column: "data"
       - name: datahora_votacao
-        description: "Data e hora do registro da votação."
+        description: "Momento, até os segundos, em que a tramitação foi registrada no sistema."
         meta:
           source_column: "datahoraregistro"
       - name: sigla_orgao
-        description: "Sigla do órgão que realizou a votação (ex: PLEN, CSPCCO)."
+        description: "Sigla do órgão que realizou a votação (ex.: PLEN, CCJC)."
         meta:
           source_column: "siglaorgao"
+      - name: orgao_id_fk
+        description: "Id do órgão que realizou a votação."
+        meta:
+          source_column: "uriorgao"
       - name: proposicao_objeto
-        description: "Descrição da proposição objeto da votação."
+        description: "Proposição efetivamente votada, quando cadastrada; destaques costumam faltar."
         meta:
           source_column: "proposicaoobjeto"
       - name: descricao
-        description: "Descrição da votação."
+        description: "Texto do registro da tramitação, de entrada manual padronizada mas livre."
         meta:
           source_column: "descricao"
       - name: proposicao_id_fk
@@ -112,7 +175,7 @@ models:
         meta:
           source_column: "id_proposicao"
       - name: aprovado
-        description: "1 quando a votação foi aprovada."
+        description: "1 se aprovou a proposição, 0 se não aprovou (rejeição ou falta de quórum); nulo quando o resultado não é determinável."
         meta:
           source_column: "aprovacao"
       - name: loaded_at_utc
@@ -123,26 +186,28 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_votacoes_orientacao
-    description: "Orientações das lideranças da Câmara. Grão: liderança × votação."
+    description: "Voto recomendado pelas lideranças de partidos, blocos, Governo, Maioria, Minoria e Oposição, só em votações do Plenário. Grão: liderança × votação."
     columns:
       - name: votacao_id_fk
         description: "Id da votação orientada."
         meta:
           source_column: "url_votos"
       - name: orientacao_voto
-        description: "Orientação da liderança (SIM, NÃO, LIBERADO, OBSTRUÇÃO)."
+        description: "Voto recomendado à bancada (SIM, NAO, ABSTENCAO, OBSTRUCAO, LIBERADO)."
         meta:
           source_column: "orientacaovoto"
       - name: codigo_tipo_lideranca
-        description: "Código do tipo de liderança que deu a orientação."
+        description: "Tipo da liderança que orientou (P, B)."
         meta:
           source_column: "codtipolideranca"
       - name: codigo_partido_bloco
-        description: "Código do partido ou bloco que recebeu a orientação."
+        description: "Código do partido ou bloco orientador; o código de bloco não é compatível com os ids de partido do Dados Abertos."
         meta:
           source_column: "codpartidobloco"
       - name: sigla_partido_bloco
-        description: "Sigla do partido ou bloco que recebeu a orientação."
+        description: "Sigla do partido, bloco ou liderança orientadora."
+        meta:
+          source_column: "siglapartidobloco"
       - name: loaded_at_utc
         description: "Data/hora (UTC) de ingestão do registro na camada raw."
         meta:
@@ -151,14 +216,14 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_votos_deputados
-    description: "Votos dos deputados. Grão: deputado × votação."
+    description: "Votos dos deputados em votações nominais e abertas; ausentes não aparecem. Grão: deputado × votação."
     columns:
       - name: deputado_id_nk
-        description: "Chave natural do deputado na API da Câmara."
+        description: "Id do deputado na Câmara."
         meta:
           source_column: "deputado__id"
       - name: nome
-        description: "Nome eleitoral do deputado no voto."
+        description: "Nome parlamentar do deputado no voto."
         meta:
           source_column: "deputado__nome"
       - name: uf
@@ -166,11 +231,11 @@ models:
         meta:
           source_column: "deputado__siglauf"
       - name: voto
-        description: "Voto registrado (SIM, NÃO, ABSTENCAO, OBSTRUÇÃO, ARTIGO17)."
+        description: "Voto registrado (SIM, NAO, ABSTENCAO, OBSTRUCAO, BRANCO, ARTIGO 17 = abstenção obrigatória do presidente, FAVORAVEL COM RESTRICOES em comissões)."
         meta:
           source_column: "tipovoto"
       - name: legislatura
-        description: "Número da legislatura na qual o voto foi registrado."
+        description: "Número da legislatura em que o voto foi registrado."
         meta:
           source_column: "deputado__idlegislatura"
       - name: votacao_id_fk
@@ -178,7 +243,7 @@ models:
         meta:
           source_column: "url_votos"
       - name: partido_id_fk
-        description: "Chave estrangeira do partido na API da Câmara."
+        description: "Id do partido do deputado na Câmara."
         meta:
           source_column: "deputado__uripartido"
       - name: loaded_at_utc
@@ -189,26 +254,26 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_proposicao_tema
-    description: "Temas das proposições da Câmara. Grão: proposição × tema."
+    description: "Áreas temáticas das proposições segundo a classificação oficial do Centro de Documentação e Informação da Câmara. Grão: proposição × tema."
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [proposicao_id_nk, codigo_tema]
     columns:
       - name: proposicao_id_nk
-        description: "Chave natural da proposição na API da Câmara."
+        description: "Id da proposição na Câmara."
         meta:
           source_column: "url_temas, uriproposicao"
       - name: tema
-        description: "Nome do tema."
+        description: "Nome da área temática (ex.: ADMINISTRACAO PUBLICA, ECONOMIA)."
         meta:
           source_column: "tema"
       - name: codigo_tema
-        description: "Código do tema."
+        description: "Código da área temática."
         meta:
           source_column: "codtema"
       - name: relevancia
-        description: "Não identificado. Tudo zero."
+        description: "Relevância do tema para a proposição (0 a 7); a Câmara não documenta a escala."
         meta:
           source_column: "relevancia"
       - name: origem
@@ -223,17 +288,17 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_proposicao
-    description: "Proposições da Câmara. Grão: uma proposição."
+    description: "Proposições da Câmara (projetos, emendas, requerimentos, pareceres e demais tipos) com o status de tramitação mais recente. Grão: uma proposição."
     columns:
       - name: proposicao_id_nk
-        description: "Chave natural da proposição na API da Câmara."
+        description: "Id da proposição na Câmara."
         meta:
           source_column: "id"
         data_tests:
           - unique
           - not_null
       - name: sigla_tipo
-        description: "Sigla do tipo de proposição (ex: PL, PEC, MPV)."
+        description: "Sigla do tipo de proposição (ex.: PL, PLP, PEC, MPV, PDC, REQ)."
         meta:
           source_column: "siglatipo"
       - name: codigo_tipo
@@ -241,7 +306,7 @@ models:
         meta:
           source_column: "codtipo"
       - name: numero
-        description: "Número da proposição no ano de apresentação."
+        description: "Número oficial da proposição, em série ordinal própria de cada tipo (o 1234 de PL 1234/2016)."
         meta:
           source_column: "numero"
       - name: ano
@@ -257,67 +322,67 @@ models:
         meta:
           source_column: "dataapresentacao"
       - name: palavras_chave
-        description: "Palavras-chave do que se trata a proposição."
+        description: "Palavras-chave da indexação da proposição."
         meta:
           source_column: "keywords"
       - name: data_status
-        description: "Data e hora do status de tramitação mais recente da proposição."
+        description: "Data do status de tramitação mais recente."
         meta:
           source_column: "statusproposicao_datahora, ultimostatus_data"
       - name: status_sequencia
-        description: "Número sequencial do status de tramitação."
+        description: "Número sequencial da tramitação do status atual."
         meta:
           source_column: "statusproposicao_sequencia, ultimostatus_sequencia"
       - name: status_sigla_orgao
-        description: "Sigla do órgão do status atual (ex.: PLEN, CCJC)."
+        description: "Sigla do órgão onde está o status atual (ex.: PLEN, CCJC)."
         meta:
           source_column: "statusproposicao_siglaorgao, ultimostatus_siglaorgao"
       - name: status_regime
-        description: "Regime de tramitação atual (ex.: URGENCIA, PRIORIDADE)."
+        description: "Regime de tramitação atual (ex.: ORDINARIO, PRIORIDADE, URGENCIA, ESPECIAL)."
         meta:
           source_column: "statusproposicao_regime, ultimostatus_regime"
       - name: status_descricao_tramitacao
-        description: "Tipo de tramitação do status atual."
+        description: "Tipo da tramitação do status atual (ex.: APRESENTACAO DE PROPOSICAO)."
         meta:
           source_column: "statusproposicao_descricaotramitacao, ultimostatus_descricaotramitacao"
       - name: status_codigo_tipo_tramitacao
-        description: "Código numérico do tipo de tramitação do status atual."
+        description: "Código do tipo da tramitação do status atual."
         meta:
           source_column: "statusproposicao_codtipotramitacao, ultimostatus_idtipotramitacao"
       - name: status_descricao_situacao
-        description: "Situação atual da proposição (ex.: TRAMITANDO, ARQUIVADA)."
+        description: "Situação atual da proposição (ex.: AGUARDANDO DELIBERACAO, ARQUIVADA)."
         meta:
           source_column: "statusproposicao_descricaosituacao, ultimostatus_descricaosituacao"
       - name: status_codigo_situacao
-        description: "Código numérico da situação atual da proposição."
+        description: "Código da situação atual da proposição."
         meta:
           source_column: "statusproposicao_codsituacao, ultimostatus_idsituacao"
       - name: status_despacho
-        description: "Texto do despacho do status atual de tramitação."
+        description: "Texto do despacho mais recente."
         meta:
           source_column: "statusproposicao_despacho, ultimostatus_despacho"
       - name: status_ambito
-        description: "Âmbito de tramitação do status atual."
+        description: "Âmbito da tramitação do status atual (ex.: REGIMENTAL); nulo nos registros de ARQUIVO."
         meta:
           source_column: "statusproposicao_ambito"
       - name: status_apreciacao
-        description: "Forma de apreciação exigida no status atual da proposição."
+        description: "Forma de apreciação: conclusiva pelas comissões ou pelo Plenário."
         meta:
           source_column: "statusproposicao_apreciacao, ultimostatus_apreciacao"
       - name: relator_id_fk
-        description: "Chave natural do último relator da proposição."
+        description: "Id do deputado relator mais recente."
         meta:
           source_column: "statusproposicao_uriultimorelator, ultimostatus_urirelator"
       - name: proposicao_principal_id_fk
-        description: "Chave natural da proposição principal."
+        description: "Id da proposição principal, quando esta é acessória ou apensada."
         meta:
           source_column: "uripropprincipal"
       - name: proposicao_anterior_id_fk
-        description: "Chave natural da proposição anterior."
+        description: "Id da proposição anterior."
         meta:
           source_column: "uripropanterior"
       - name: proposicao_posterior_id_fk
-        description: "Chave natural da proposição posterior."
+        description: "Id da proposição posterior."
         meta:
           source_column: "uripropposterior"
       - name: origem
