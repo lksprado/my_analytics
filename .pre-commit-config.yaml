@@ -8,19 +8,28 @@ repos:
       - id: no-commit-to-branch
         args: [--branch, main]
 
+  # A v1.2.1 não tem hook de parse e o docs generate --no-compile não regrava o manifest.json.
+  - repo: local
+    hooks:
+      - id: dbt-parse
+        name: dbt parse
+        entry: dbt parse
+        language: python
+        additional_dependencies: ["dbt-core==1.11.2", "dbt-postgres==1.10.0"]
+        pass_filenames: false
+
+  # check-model-has-all-columns compara o YAML com o banco, não com o SQL:
+  # mudou coluna, rode `dbt run -s <modelo>` antes de commitar.
   - repo: https://github.com/dbt-checkpoint/dbt-checkpoint
     rev: v1.2.1
     hooks:
-      - id: dbt-parse
+      # O ambiente do hook não herda o .venv; sem isto o commit fora dele falha com "dbt: not found".
       - id: dbt-docs-generate
         args: ["--cmd-flags", "++no-compile"]
+        additional_dependencies: ["dbt-core==1.11.2", "dbt-postgres==1.10.0"]
       - id: check-script-semicolon
-      - id: check-script-has-no-table-name
+        files: ^(models|macros|tests|analyses|snapshots)/
       - id: check-model-has-all-columns
-        name: Check columns - core
-        files: ^models/core
-      - id: check-model-has-all-columns
-        name: Check columns - mart
-        files: ^models/mart
+        files: ^models/marts/
       - id: check-model-columns-have-desc
-        files: ^models/mart
+        files: ^models/marts/
