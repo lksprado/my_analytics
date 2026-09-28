@@ -3,7 +3,7 @@ version: 2
 models:
 
   - name: int_votos_camara_normalizados
-    description: "Registros de voto dos deputados. Grão: deputado × votação."
+    description: "Registros de voto dos deputados. Grão: deputado x votação."
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -51,7 +51,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_camara_corrigidas
-    description: "Orientações das lideranças da Câmara. Grão: liderança × votação."
+    description: "Orientações das lideranças da Câmara. Grão: liderança x votação."
     columns:
       - name: votacao_id_fk
         description: Chave natural da votação à qual a orientação se refere.
@@ -67,7 +67,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: int_votos_senado_normalizados
-    description: "Registros de voto dos senadores. Grão: senador × votação."
+    description: "Registros de voto dos senadores. Grão: senador x votação."
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -131,7 +131,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_senado_filtradas
-    description: "Orientações das lideranças do Senado. Grão: liderança × votação."
+    description: "Orientações das lideranças do Senado. Grão: liderança x votação."
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -153,7 +153,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: int_proposicoes_unificadas
-    description: "Proposições da Câmara e do Senado. Grão: proposição × casa."
+    description: "Proposições da Câmara e do Senado. Grão: proposição x casa."
     columns:
       - name: casa
         description: "Casa legislativa (CAMARA, SENADO)."
@@ -195,7 +195,7 @@ models:
               - proposicao_id_nk
 
   - name: int_votos_unificados
-    description: "Registros de voto das duas casas. Grão: parlamentar × votação."
+    description: "Registros de voto das duas casas. Grão: parlamentar x votação."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -268,7 +268,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: int_orientacoes_unificadas
-    description: "Orientações das lideranças das duas casas. Grão: liderança × votação."
+    description: "Orientações das lideranças das duas casas. Grão: liderança x votação."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -306,7 +306,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: int_partidos_siglas
-    description: "Siglas partidárias com vigência. Grão: sigla × entidade partidária."
+    description: "Siglas partidárias com vigência. Grão: sigla x entidade partidária."
     columns:
       - name: sigla
         description: Sigla normalizada (maiúscula, sem acento).

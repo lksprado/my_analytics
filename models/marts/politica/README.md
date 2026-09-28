@@ -1,6 +1,6 @@
 # Mart política
 
-Modelo dimensional das votações, proposições, consultas públicas e indicadores externos da Câmara e do Senado. As definições formais das métricas ficam em `models/presentation/politica/METRICAS.md`, e a autoridade do domínio é o `PRD.md`.
+Modelo dimensional das votações, proposições, consultas públicas e indicadores externos da Câmara e do Senado. As definições formais das métricas ficam em `models/presentation/politica/_METRICAS.md`, e a autoridade do domínio é o `_PRD.md`.
 
 ## Entidades
 

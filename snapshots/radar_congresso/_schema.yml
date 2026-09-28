@@ -13,11 +13,11 @@ snapshots:
       - name: "n"
         description: "Votos em votações orientadas pelo Governo no mandato."
       - name: total
-        description: "Percentual de governismo no mandato (0–100)."
+        description: "Percentual de governismo no mandato (0-100)."
       - name: trimestre
         description: "Data de referência do trimestre."
       - name: perc_governismo
-        description: "Percentual de governismo no trimestre (0–100)."
+        description: "Percentual de governismo no trimestre (0-100)."
 
   - name: snap_radarcongresso_governismo_senadores
     description: "Governismo de senadores publicado pelo Radar Congresso (SCD2)."
@@ -31,11 +31,11 @@ snapshots:
       - name: "n"
         description: "Votos em votações orientadas pelo Governo no mandato."
       - name: total
-        description: "Percentual de governismo no mandato (0–100)."
+        description: "Percentual de governismo no mandato (0-100)."
       - name: trimestre
         description: "Data de referência do trimestre."
       - name: perc_governismo
-        description: "Percentual de governismo no trimestre (0–100)."
+        description: "Percentual de governismo no trimestre (0-100)."
 
   - name: snap_radarcongresso_parlamentares
     description: "De-para entre o id do Radar Congresso e o id da casa (SCD2)."

@@ -4,7 +4,7 @@ models:
 
   - name: int_ativos_consolidados
     description: >
-      Todo o patrimônio financeiro de Lucas, Jéssica e Deusa mês a mês, posição a posição —
+      Todo o patrimônio financeiro de Lucas, Jéssica e Deusa mês a mês, posição a posição -
       investimentos em renda fixa e renda variável somados aos saldos disponíveis em conta.
       É a visão única de ativos que a camada marts consome.
     columns:
@@ -45,7 +45,7 @@ models:
 
   - name: int_renda_unificada
     description: >
-      A parcela investida do patrimônio de Lucas, Jéssica e Deusa mês a mês — renda fixa e renda
+      A parcela investida do patrimônio de Lucas, Jéssica e Deusa mês a mês - renda fixa e renda
       variável no mesmo grão, sem os saldos em conta.
     columns:
       - name: mes_base
@@ -116,8 +116,8 @@ models:
 
   - name: int_renda_fixa
     description: >
-      As posições em renda fixa de Lucas, Jéssica e Deusa mês a mês — títulos públicos e privados
-      das fontes automatizadas somados aos lançados à mão — já com o conglomerado FGC do emissor
+      As posições em renda fixa de Lucas, Jéssica e Deusa mês a mês - títulos públicos e privados
+      das fontes automatizadas somados aos lançados à mão - já com o conglomerado FGC do emissor
       resolvido.
     columns:
       - name: mes_base
@@ -159,7 +159,7 @@ models:
 
   - name: int_renda_fixa_incompleta
     description: >
-      As posições em renda fixa que chegam pelas fontes automatizadas — renda fixa B3, tesouro
+      As posições em renda fixa que chegam pelas fontes automatizadas - renda fixa B3, tesouro
       direto e Avenue. Cobre só o que as extrações enxergam; o que falta vem de
       int_renda_fixa_loop.
     columns:
@@ -240,7 +240,7 @@ models:
 
   - name: int_renda_variavel
     description: >
-      As posições em renda variável de Lucas, Jéssica e Deusa mês a mês — ações, BDRs, ETFs,
+      As posições em renda variável de Lucas, Jéssica e Deusa mês a mês - ações, BDRs, ETFs,
       fundos e a carteira de equities da Avenue.
     columns:
       - name: mes_base

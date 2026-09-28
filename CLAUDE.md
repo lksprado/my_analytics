@@ -62,8 +62,8 @@ Naming convention is `_schema.yml` (leading underscore). Descriptions are succin
 
 ### Domínio política
 
-`models/presentation/politica/PRD.md` is the authority. Do not invent business rules: metric definitions live in
-`models/presentation/politica/METRICAS.md`, and any rule the PRD does not define goes to the "Regras derivadas" table
+`models/presentation/politica/_PRD.md` is the authority. Do not invent business rules: metric definitions live in
+`models/presentation/politica/_METRICAS.md`, and any rule the PRD does not define goes to the "Regras derivadas" table
 in `models/marts/politica/README.md`. Model metrics and external metrics keep distinct names (`_modelo`, `_radar`).
 
 ## Dependencies

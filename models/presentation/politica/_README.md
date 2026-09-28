@@ -1,6 +1,6 @@
 # Presentation política
 
-Tabelas largas, prontas para visualização, sobre votações, proposições, consultas públicas e indicadores externos. Nenhuma exige join. A definição formal de cada métrica está em `METRICAS.md`, e a autoridade do domínio é o `PRD.md`.
+Tabelas largas, prontas para visualização, sobre votações, proposições, consultas públicas e indicadores externos. Nenhuma exige join. A definição formal de cada métrica está em `_METRICAS.md`, e a autoridade do domínio é o `_PRD.md`.
 
 ## Convenções
 

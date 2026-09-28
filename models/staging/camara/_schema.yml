@@ -106,7 +106,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_legislaturas
-    description: "Deputados que estiveram em exercício em cada legislatura. Grão: deputado × legislatura."
+    description: "Deputados que estiveram em exercício em cada legislatura. Grão: deputado x legislatura."
     columns:
       - name: legislatura_id_nk
         description: "Número da legislatura, sequencial desde a primeira."
@@ -186,7 +186,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_votacoes_orientacao
-    description: "Voto recomendado pelas lideranças de partidos, blocos, Governo, Maioria, Minoria e Oposição, só em votações do Plenário. Grão: liderança × votação."
+    description: "Voto recomendado pelas lideranças de partidos, blocos, Governo, Maioria, Minoria e Oposição, só em votações do Plenário. Grão: liderança x votação."
     columns:
       - name: votacao_id_fk
         description: "Id da votação orientada."
@@ -216,7 +216,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_votos_deputados
-    description: "Votos dos deputados em votações nominais e abertas; ausentes não aparecem. Grão: deputado × votação."
+    description: "Votos dos deputados em votações nominais e abertas; ausentes não aparecem. Grão: deputado x votação."
     columns:
       - name: deputado_id_nk
         description: "Id do deputado na Câmara."
@@ -254,7 +254,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_camara_proposicao_tema
-    description: "Áreas temáticas das proposições segundo a classificação oficial do Centro de Documentação e Informação da Câmara. Grão: proposição × tema."
+    description: "Áreas temáticas das proposições segundo a classificação oficial do Centro de Documentação e Informação da Câmara. Grão: proposição x tema."
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

@@ -142,10 +142,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: bridge_proposicoes_temas
-    description: "Temas de cada proposição, próprios ou herdados da principal, sem peso. Grão: proposição × tema."
+    description: "Temas de cada proposição, próprios ou herdados da principal, sem peso. Grão: proposição x tema."
     config:
       meta:
-        grain: "proposição × tema"
+        grain: "proposição x tema"
         primary_key:
           - "sk_proposicao"
           - "sk_tema"
@@ -191,10 +191,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: bridge_votacoes_proposicoes
-    description: "Proposições relacionadas a cada votação, com o tipo da relação. Grão: votação × proposição × tipo de relação."
+    description: "Proposições relacionadas a cada votação, com o tipo da relação. Grão: votação x proposição x tipo de relação."
     config:
       meta:
-        grain: "votação × proposição × tipo de relação"
+        grain: "votação x proposição x tipo de relação"
         primary_key:
           - "sk_votacao"
           - "sk_proposicao"
@@ -239,10 +239,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: bridge_proposicoes_relacionadas
-    description: "Relações entre proposições da Câmara (principal, anterior, posterior). Grão: proposição × relacionada × tipo."
+    description: "Relações entre proposições da Câmara (principal, anterior, posterior). Grão: proposição x relacionada x tipo."
     config:
       meta:
-        grain: "proposição × relacionada × tipo"
+        grain: "proposição x relacionada x tipo"
         primary_key:
           - "sk_proposicao"
           - "proposicao_relacionada_id_nk"
@@ -287,10 +287,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: dim_tipo_voto
-    description: "Tipos de registro de voto. Grão: casa × código de voto da origem."
+    description: "Tipos de registro de voto. Grão: casa x código de voto da origem."
     config:
       meta:
-        grain: "casa × código de voto da origem"
+        grain: "casa x código de voto da origem"
         primary_key:
           - "sk_tipo_voto"
         foreign_keys: []
@@ -402,10 +402,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: dim_sessao_legislativa
-    description: "Sessões legislativas (ano legislativo). Grão: legislatura × sessão."
+    description: "Sessões legislativas (ano legislativo). Grão: legislatura x sessão."
     config:
       meta:
-        grain: "legislatura × sessão legislativa"
+        grain: "legislatura x sessão legislativa"
         primary_key:
           - "sk_sessao_legislativa"
         foreign_keys:
@@ -444,10 +444,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: dim_governo
-    description: "Governos do Executivo federal. Grão: presidente × mandato."
+    description: "Governos do Executivo federal. Grão: presidente x mandato."
     config:
       meta:
-        grain: "presidente × mandato"
+        grain: "presidente x mandato"
         primary_key:
           - "sk_governo"
         foreign_keys: []
@@ -578,10 +578,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: dim_bancada
-    description: "Lideranças que orientam votações: partidos, federações, blocos, Governo, Maioria, Minoria e Oposição. Grão: casa × sigla da liderança × partido."
+    description: "Lideranças que orientam votações: partidos, federações, blocos, Governo, Maioria, Minoria e Oposição. Grão: casa x sigla da liderança x partido."
     config:
       meta:
-        grain: "casa × sigla da liderança × partido"
+        grain: "casa x sigla da liderança x partido"
         primary_key:
           - "sk_bancada"
         foreign_keys:
@@ -626,10 +626,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: bridge_bancadas_partidos
-    description: "Composição das federações e blocos, com vigência. Grão: bancada × partido × início."
+    description: "Composição das federações e blocos, com vigência. Grão: bancada x partido x início."
     config:
       meta:
-        grain: "bancada × partido × início"
+        grain: "bancada x partido x início"
         primary_key:
           - "sk_bancada"
           - "sk_partido"
@@ -722,10 +722,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: dim_orgaos
-    description: "Órgãos que votam. Grão: casa × sigla do órgão."
+    description: "Órgãos que votam. Grão: casa x sigla do órgão."
     config:
       meta:
-        grain: "casa × sigla do órgão"
+        grain: "casa x sigla do órgão"
         primary_key:
           - "sk_orgao"
         foreign_keys: []
@@ -752,10 +752,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: dim_tipo_votacao
-    description: "Tipos de votação (junk dimension). Grão: classe × nominal × secreta."
+    description: "Tipos de votação (junk dimension). Grão: classe x nominal x secreta."
     config:
       meta:
-        grain: "classe × nominal × secreta"
+        grain: "classe x nominal x secreta"
         primary_key:
           - "sk_tipo_votacao"
         foreign_keys: []
@@ -908,10 +908,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_votos
-    description: "Registros de voto da Câmara e do Senado, incluindo abstenções, presenças e ausências. Grão: parlamentar × votação."
+    description: "Registros de voto da Câmara e do Senado, incluindo abstenções, presenças e ausências. Grão: parlamentar x votação."
     config:
       meta:
-        grain: "parlamentar × votação"
+        grain: "parlamentar x votação"
         primary_key:
           - "sk_voto"
         foreign_keys:
@@ -1061,10 +1061,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_presencas_plenario
-    description: "Presença e ausência nas votações nominais do Plenário em que o parlamentar estava em exercício. Grão: parlamentar × votação."
+    description: "Presença e ausência nas votações nominais do Plenário em que o parlamentar estava em exercício. Grão: parlamentar x votação."
     config:
       meta:
-        grain: "parlamentar × votação nominal do Plenário em exercício"
+        grain: "parlamentar x votação nominal do Plenário em exercício"
         primary_key:
           - "sk_presenca"
         foreign_keys:
@@ -1155,10 +1155,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_orientacoes
-    description: "Orientações de voto das lideranças. Grão: liderança × votação."
+    description: "Orientações de voto das lideranças. Grão: liderança x votação."
     config:
       meta:
-        grain: "liderança × votação"
+        grain: "liderança x votação"
         primary_key:
           - "casa"
           - "votacao_origem_id"
@@ -1227,10 +1227,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: dim_indicador_externo
-    description: "Indicadores publicados por fontes externas, com unidade, escala e metodologia. Grão: fonte × indicador."
+    description: "Indicadores publicados por fontes externas, com unidade, escala e metodologia. Grão: fonte x indicador."
     config:
       meta:
-        grain: "fonte × indicador"
+        grain: "fonte x indicador"
         primary_key:
           - "sk_indicador_externo"
         foreign_keys: []
@@ -1271,10 +1271,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_indicadores_externos
-    description: "Valores publicados por fontes externas, preservados sem alteração e versionados pela data de coleta. Grão: indicador × parlamentar × período × coleta."
+    description: "Valores publicados por fontes externas, preservados sem alteração e versionados pela data de coleta. Grão: indicador x parlamentar x período x coleta."
     config:
       meta:
-        grain: "indicador × parlamentar × período × coleta"
+        grain: "indicador x parlamentar x período x coleta"
         primary_key:
           - "sk_indicador_valor"
         foreign_keys:
@@ -1352,10 +1352,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_consultas_publicas
-    description: "Votos da consulta pública do e-Cidadania por matéria em cada extração. Grão: matéria × data de extração."
+    description: "Votos da consulta pública do e-Cidadania por matéria em cada extração. Grão: matéria x data de extração."
     config:
       meta:
-        grain: "matéria × data de extração"
+        grain: "matéria x data de extração"
         primary_key:
           - "sk_consulta"
         foreign_keys:
@@ -1440,10 +1440,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_ranking_politicos_anual
-    description: "Ranking dos Políticos por ano. Grão: parlamentar × ano."
+    description: "Ranking dos Políticos por ano. Grão: parlamentar x ano."
     config:
       meta:
-        grain: "parlamentar × ano"
+        grain: "parlamentar x ano"
         primary_key:
           - "sk_parlamentar"
           - "ano"
@@ -1491,10 +1491,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_governismo_legislatura
-    description: "Governismo calculado. Grão: parlamentar × legislatura."
+    description: "Governismo calculado. Grão: parlamentar x legislatura."
     config:
       meta:
-        grain: "parlamentar × legislatura"
+        grain: "parlamentar x legislatura"
         primary_key:
           - "sk_parlamentar"
           - "legislatura"
@@ -1525,7 +1525,7 @@ models:
       - name: qt_votos_governismo
         description: "Votos em votações orientadas pelo Governo."
       - name: governismo_pct_modelo
-        description: "Governismo calculado pelo modelo (0–100)."
+        description: "Governismo calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1535,10 +1535,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_governismo_trimestre
-    description: "Governismo calculado. Grão: parlamentar × trimestre."
+    description: "Governismo calculado. Grão: parlamentar x trimestre."
     config:
       meta:
-        grain: "parlamentar × trimestre"
+        grain: "parlamentar x trimestre"
         primary_key:
           - "sk_parlamentar"
           - "legislatura"
@@ -1573,7 +1573,7 @@ models:
       - name: qt_votos_governismo
         description: "Votos em votações orientadas pelo Governo."
       - name: governismo_pct_modelo
-        description: "Governismo calculado pelo modelo (0–100)."
+        description: "Governismo calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1583,10 +1583,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_radarcongresso_governismo_legislatura
-    description: "Governismo publicado pelo Radar Congresso. Grão: parlamentar × legislatura."
+    description: "Governismo publicado pelo Radar Congresso. Grão: parlamentar x legislatura."
     config:
       meta:
-        grain: "parlamentar × legislatura"
+        grain: "parlamentar x legislatura"
         primary_key:
           - "sk_parlamentar"
           - "legislatura"
@@ -1622,7 +1622,7 @@ models:
       - name: qt_votos_radar
         description: "Votos considerados pelo Radar no mandato."
       - name: governismo_pct_radar
-        description: "Governismo publicado pelo Radar no mandato (0–100)."
+        description: "Governismo publicado pelo Radar no mandato (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1632,10 +1632,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: fct_radarcongresso_governismo_trimestre
-    description: "Governismo publicado pelo Radar Congresso. Grão: parlamentar × trimestre."
+    description: "Governismo publicado pelo Radar Congresso. Grão: parlamentar x trimestre."
     config:
       meta:
-        grain: "parlamentar × trimestre"
+        grain: "parlamentar x trimestre"
         primary_key:
           - "sk_parlamentar"
           - "ano"
@@ -1675,7 +1675,7 @@ models:
       - name: data_trimestre
         description: "Data de referência do trimestre no Radar."
       - name: governismo_pct_radar
-        description: "Governismo publicado pelo Radar no trimestre (0–100)."
+        description: "Governismo publicado pelo Radar no trimestre (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
