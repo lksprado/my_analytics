@@ -133,7 +133,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_legislaturas
-    description: "Senadores que entraram em exercício em mandatos que abrangem cada legislatura. Grão: senador × legislatura."
+    description: "Senadores que entraram em exercício em mandatos que abrangem cada legislatura. Grão: senador x legislatura."
     columns:
       - name: senador_id_nk
         description: "Código do parlamentar no Senado."
@@ -448,7 +448,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_votos_senadores
-    description: "Votos nominais e registros de comparecimento dos senadores; votações secretas só marcam quem votou. Grão: senador × votação."
+    description: "Votos nominais e registros de comparecimento dos senadores; votações secretas só marcam quem votou. Grão: senador x votação."
     columns:
       - name: codigo_materia
         description: "Código legado da matéria no sistema MATE."
@@ -526,7 +526,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_senado_votos_orientacao
-    description: "Orientação de voto das lideranças partidárias em votações do Plenário. Grão: partido × votação."
+    description: "Orientação de voto das lideranças partidárias em votações do Plenário. Grão: partido x votação."
     columns:
       - name: votacao_id_fk
         description: "Código da votação no Sistema de Votação Eletrônica (SVE)."

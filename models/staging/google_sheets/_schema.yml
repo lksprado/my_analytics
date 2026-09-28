@@ -43,25 +43,25 @@ models:
       - name: vlr_carro
         description: "Valor de mercado do carro segundo a Fipe"
       - name: minha_inflacao
-        description: "Inflação pessoal do mês. Vem da planilha em percentual e é dividida por 100 — fração decimal NUMERIC(18,3)."
+        description: "Inflação pessoal do mês. Vem da planilha em percentual e é dividida por 100 - fração decimal NUMERIC(18,3)."
       - name: ipca
-        description: "IPCA do mês. Vem da planilha em percentual e é dividido por 100 — fração decimal NUMERIC(18,3)."
+        description: "IPCA do mês. Vem da planilha em percentual e é dividido por 100 - fração decimal NUMERIC(18,3)."
       - name: igpm
-        description: "IGP-M do mês. Vem da planilha em percentual e é dividido por 100 — fração decimal NUMERIC(18,3)."
+        description: "IGP-M do mês. Vem da planilha em percentual e é dividido por 100 - fração decimal NUMERIC(18,3)."
       - name: selic
-        description: "Taxa Selic do mês. Vem da planilha em percentual e é dividida por 100 — fração decimal NUMERIC(18,3)."
+        description: "Taxa Selic do mês. Vem da planilha em percentual e é dividida por 100 - fração decimal NUMERIC(18,3)."
       - name: cdi
-        description: "CDI do mês. Vem da planilha em percentual e é dividido por 100 — fração decimal NUMERIC(18,3)."
+        description: "CDI do mês. Vem da planilha em percentual e é dividido por 100 - fração decimal NUMERIC(18,3)."
       - name: minha_inflacao_acum
-        description: "Índice acumulado (base 1) da inflação pessoal, lido pronto da planilha — só troca vírgula por ponto."
+        description: "Índice acumulado (base 1) da inflação pessoal, lido pronto da planilha - só troca vírgula por ponto."
       - name: ipca_acum
-        description: "Índice acumulado (base 1) do IPCA, lido pronto da planilha — só troca vírgula por ponto."
+        description: "Índice acumulado (base 1) do IPCA, lido pronto da planilha - só troca vírgula por ponto."
       - name: igpm_acum
-        description: "Índice acumulado (base 1) do IGP-M, lido pronto da planilha — só troca vírgula por ponto."
+        description: "Índice acumulado (base 1) do IGP-M, lido pronto da planilha - só troca vírgula por ponto."
       - name: selic_acum
-        description: "Índice acumulado (base 1) da Selic, lido pronto da planilha — só troca vírgula por ponto."
+        description: "Índice acumulado (base 1) da Selic, lido pronto da planilha - só troca vírgula por ponto."
       - name: cdi_acum
-        description: "Índice acumulado (base 1) do CDI, lido pronto da planilha — só troca vírgula por ponto."
+        description: "Índice acumulado (base 1) do CDI, lido pronto da planilha - só troca vírgula por ponto."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -286,7 +286,7 @@ models:
               arguments:
                 values: ['RENDA FIXA', 'RENDA VARIAVEL', 'DISPONIBILIDADE']
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). Parte da chave de join com a carteira — e a parte que efetivamente identifica a posição."
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). Parte da chave de join com a carteira - e a parte que efetivamente identifica a posição."
         data_tests:
           - not_null
       - name: ativo
@@ -298,7 +298,7 @@ models:
       - name: camada
         description: >
           Camada de alocação atribuída manualmente na planilha, em MAIÚSCULAS. Só estes quatro
-          valores são aceitos — o teste abaixo falha em qualquer outro, inclusive na variação em
+          valores são aceitos - o teste abaixo falha em qualquer outro, inclusive na variação em
           minúsculas. 'NAO CLASSIFICADO' não entra aqui: é o default que o downstream aplica a
           quem ainda não tem linha nesta aba, não algo que se digite.
           Significado de cada camada: {{ doc('camada_investimento') }}

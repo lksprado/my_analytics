@@ -32,15 +32,15 @@ models:
       - name: precipitation_total
         description: "Precipitação total do dia em equivalente de água líquida, em mm."
       - name: temperature_min
-        description: "Temperatura mínima do dia, em °C."
+        description: "Temperatura mínima do dia, em graus Celsius."
       - name: temperature_max
-        description: "Temperatura máxima do dia, em °C."
+        description: "Temperatura máxima do dia, em graus Celsius."
       - name: temperature_afternoon
-        description: "Temperatura às 12:00, em °C."
+        description: "Temperatura às 12:00, em graus Celsius."
       - name: temperature_night
-        description: "Temperatura às 00:00, em °C."
+        description: "Temperatura às 00:00, em graus Celsius."
       - name: temperature_morning
-        description: "Temperatura às 06:00, em °C."
+        description: "Temperatura às 06:00, em graus Celsius."
       - name: pressure_afternoon
         description: "Pressão atmosférica às 12:00, em hPa."
       - name: wind_max_speed

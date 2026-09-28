@@ -3,7 +3,7 @@ version: 2
 models:
   - name: fct_book_pricing
     description: >
-      Preços dos livros — uma linha por livro por dia observado. O estado atual
+      Preços dos livros - uma linha por livro por dia observado. O estado atual
       de cada livro é `WHERE is_latest_observation`. Colunas `*_ever`,
       `last_observed_at`, `reference_date`, `days_since_last_observed`,
       `is_stale_price`, `price_vs_min_ever`, `pct_above_min_ever` e
@@ -29,7 +29,7 @@ models:
         data_tests:
           - not_null
       - name: is_latest_observation
-        description: "True se esta é a observação mais recente do livro — filtro que dá o estado atual."
+        description: "True se esta é a observação mais recente do livro - filtro que dá o estado atual."
       - name: price_old
         description: "Preço de tabela, sem desconto, em R$."
       - name: price_new
@@ -45,7 +45,7 @@ models:
       - name: prev_observed_at
         description: "Data da observação anterior do mesmo livro."
       - name: days_since_prev_observation
-        description: "Dias decorridos desde a observação anterior — expõe lacunas de coleta."
+        description: "Dias decorridos desde a observação anterior - expõe lacunas de coleta."
       - name: price_change
         description: "Variação absoluta em relação à observação anterior."
       - name: min_price_before
@@ -79,7 +79,7 @@ models:
       - name: pct_above_min_ever
         description: "Quanto o preço da linha está acima do mínimo histórico, em %."
       - name: is_at_record_low
-        description: "True se o preço da linha empata com o mínimo histórico — na última observação, a flag de oportunidade."
+        description: "True se o preço da linha empata com o mínimo histórico - na última observação, a flag de oportunidade."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
   - name: dim_book

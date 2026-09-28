@@ -99,7 +99,7 @@ models:
       - name: margem
         description: "Votos SIM menos votos NÃO."
       - name: sim_pct
-        description: "Percentual de SIM sobre os votantes (0–100)."
+        description: "Percentual de SIM sobre os votantes (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -132,10 +132,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: votos_parlamentares
-    description: "Todos os registros de voto, mais as ausências inferidas no Plenário da Câmara. Grão: parlamentar × votação."
+    description: "Todos os registros de voto, mais as ausências inferidas no Plenário da Câmara. Grão: parlamentar x votação."
     config:
       meta:
-        grain: "parlamentar × votação"
+        grain: "parlamentar x votação"
         primary_key:
           - "sk_voto"
         foreign_keys:
@@ -345,10 +345,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: proposicoes_temas
-    description: "Proposições por tema, sem peso: a proposição aparece em cada tema. Totais por tema não se somam entre temas. Grão: proposição × tema."
+    description: "Proposições por tema, sem peso: a proposição aparece em cada tema. Totais por tema não se somam entre temas. Grão: proposição x tema."
     config:
       meta:
-        grain: "proposição × tema"
+        grain: "proposição x tema"
         primary_key:
           - "sk_proposicao"
           - "sk_tema"
@@ -399,10 +399,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: comportamento_partidario
-    description: "Comportamento das bancadas: coesão, governismo e disciplina. Grão: casa × partido × legislatura × presidente × trimestre."
+    description: "Comportamento das bancadas: coesão, governismo e disciplina. Grão: casa x partido x legislatura x presidente x trimestre."
     config:
       meta:
-        grain: "casa × partido × legislatura × presidente × trimestre"
+        grain: "casa x partido x legislatura x presidente x trimestre"
         primary_key:
           - "casa"
           - "sk_partido"
@@ -452,7 +452,7 @@ models:
       - name: qt_votos_alinhados_governo
         description: "Votos da bancada alinhados ao Governo."
       - name: governismo_pct_modelo
-        description: "Governismo da bancada calculado pelo modelo (0–100)."
+        description: "Governismo da bancada calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -463,7 +463,7 @@ models:
       - name: qt_votos_disciplinados
         description: "Votos da bancada que seguiram o partido."
       - name: disciplina_pct
-        description: "Disciplina da bancada (0–100)."
+        description: "Disciplina da bancada (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -484,10 +484,10 @@ models:
               - trimestre
 
   - name: comportamento_bancada
-    description: "Comportamento das federações e blocos: coesão, governismo e disciplina de bancada. Grão: casa × bancada × legislatura × presidente × trimestre."
+    description: "Comportamento das federações e blocos: coesão, governismo e disciplina de bancada. Grão: casa x bancada x legislatura x presidente x trimestre."
     config:
       meta:
-        grain: "casa × bancada × legislatura × presidente × trimestre"
+        grain: "casa x bancada x legislatura x presidente x trimestre"
         primary_key:
           - "casa"
           - "sk_bancada"
@@ -539,7 +539,7 @@ models:
       - name: qt_votos_alinhados_governo
         description: "Votos da bancada alinhados ao Governo."
       - name: governismo_pct_modelo
-        description: "Governismo da bancada calculado pelo modelo (0–100)."
+        description: "Governismo da bancada calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -550,7 +550,7 @@ models:
       - name: qt_votos_disciplinados
         description: "Votos que seguiram a orientação da federação ou bloco."
       - name: disciplina_pct
-        description: "Disciplina em relação à orientação da federação ou bloco (0–100)."
+        description: "Disciplina em relação à orientação da federação ou bloco (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -571,10 +571,10 @@ models:
               - trimestre
 
   - name: parlamentar_legislatura
-    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × legislatura."
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar x legislatura."
     config:
       meta:
-        grain: "parlamentar × legislatura"
+        grain: "parlamentar x legislatura"
         primary_key:
           - "sk_parlamentar"
           - "legislatura"
@@ -631,7 +631,7 @@ models:
       - name: qt_presencas
         description: "Votações nominais do Plenário com presença registrada."
       - name: presenca_pct
-        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        description: "Percentual de presença nas votações nominais do Plenário (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -648,7 +648,7 @@ models:
       - name: qt_votacoes_participadas
         description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
       - name: participacao_pct
-        description: "Percentual de participação nas votações elegíveis (0–100)."
+        description: "Percentual de participação nas votações elegíveis (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -659,7 +659,7 @@ models:
       - name: qt_votos_alinhados_governo
         description: "Votos alinhados à orientação do Governo."
       - name: governismo_pct_modelo
-        description: "Governismo calculado pelo modelo (0–100)."
+        description: "Governismo calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -670,7 +670,7 @@ models:
       - name: qt_votos_disciplinados
         description: "Votos que seguiram a orientação do partido."
       - name: disciplina_pct
-        description: "Disciplina partidária (0–100)."
+        description: "Disciplina partidária (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -681,7 +681,7 @@ models:
       - name: qt_votos_disciplinados_bancada
         description: "Votos que seguiram a orientação da federação ou bloco."
       - name: disciplina_bancada_pct
-        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
+        description: "Disciplina em relação à federação ou bloco do partido (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -692,7 +692,7 @@ models:
       - name: qt_votos_vencedores
         description: "Votos do lado vencedor."
       - name: votos_vencedores_pct
-        description: "Percentual de votos do lado vencedor (0–100)."
+        description: "Percentual de votos do lado vencedor (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -702,10 +702,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: parlamentar_ano
-    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × ano civil."
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar x ano civil."
     config:
       meta:
-        grain: "parlamentar × ano"
+        grain: "parlamentar x ano"
         primary_key:
           - "sk_parlamentar"
           - "ano"
@@ -762,7 +762,7 @@ models:
       - name: qt_presencas
         description: "Votações nominais do Plenário com presença registrada."
       - name: presenca_pct
-        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        description: "Percentual de presença nas votações nominais do Plenário (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -779,7 +779,7 @@ models:
       - name: qt_votacoes_participadas
         description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
       - name: participacao_pct
-        description: "Percentual de participação nas votações elegíveis (0–100)."
+        description: "Percentual de participação nas votações elegíveis (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -790,7 +790,7 @@ models:
       - name: qt_votos_alinhados_governo
         description: "Votos alinhados à orientação do Governo."
       - name: governismo_pct_modelo
-        description: "Governismo calculado pelo modelo (0–100)."
+        description: "Governismo calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -801,7 +801,7 @@ models:
       - name: qt_votos_disciplinados
         description: "Votos que seguiram a orientação do partido."
       - name: disciplina_pct
-        description: "Disciplina partidária (0–100)."
+        description: "Disciplina partidária (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -812,7 +812,7 @@ models:
       - name: qt_votos_disciplinados_bancada
         description: "Votos que seguiram a orientação da federação ou bloco."
       - name: disciplina_bancada_pct
-        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
+        description: "Disciplina em relação à federação ou bloco do partido (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -823,7 +823,7 @@ models:
       - name: qt_votos_vencedores
         description: "Votos do lado vencedor."
       - name: votos_vencedores_pct
-        description: "Percentual de votos do lado vencedor (0–100)."
+        description: "Percentual de votos do lado vencedor (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -833,10 +833,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: parlamentar_trimestre
-    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × trimestre."
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar x trimestre."
     config:
       meta:
-        grain: "parlamentar × trimestre"
+        grain: "parlamentar x trimestre"
         primary_key:
           - "sk_parlamentar"
           - "ano"
@@ -899,7 +899,7 @@ models:
       - name: qt_presencas
         description: "Votações nominais do Plenário com presença registrada."
       - name: presenca_pct
-        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        description: "Percentual de presença nas votações nominais do Plenário (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -916,7 +916,7 @@ models:
       - name: qt_votacoes_participadas
         description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
       - name: participacao_pct
-        description: "Percentual de participação nas votações elegíveis (0–100)."
+        description: "Percentual de participação nas votações elegíveis (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -927,7 +927,7 @@ models:
       - name: qt_votos_alinhados_governo
         description: "Votos alinhados à orientação do Governo."
       - name: governismo_pct_modelo
-        description: "Governismo calculado pelo modelo (0–100)."
+        description: "Governismo calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -938,7 +938,7 @@ models:
       - name: qt_votos_disciplinados
         description: "Votos que seguiram a orientação do partido."
       - name: disciplina_pct
-        description: "Disciplina partidária (0–100)."
+        description: "Disciplina partidária (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -949,7 +949,7 @@ models:
       - name: qt_votos_disciplinados_bancada
         description: "Votos que seguiram a orientação da federação ou bloco."
       - name: disciplina_bancada_pct
-        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
+        description: "Disciplina em relação à federação ou bloco do partido (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -960,7 +960,7 @@ models:
       - name: qt_votos_vencedores
         description: "Votos do lado vencedor."
       - name: votos_vencedores_pct
-        description: "Percentual de votos do lado vencedor (0–100)."
+        description: "Percentual de votos do lado vencedor (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -970,10 +970,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: parlamentar_semana
-    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar × semana ISO."
+    description: "Participação, governismo e disciplina do parlamentar no período. Grão: parlamentar x semana ISO."
     config:
       meta:
-        grain: "parlamentar × semana ISO"
+        grain: "parlamentar x semana ISO"
         primary_key:
           - "sk_parlamentar"
           - "inicio_semana"
@@ -1030,7 +1030,7 @@ models:
       - name: qt_presencas
         description: "Votações nominais do Plenário com presença registrada."
       - name: presenca_pct
-        description: "Percentual de presença nas votações nominais do Plenário (0–100)."
+        description: "Percentual de presença nas votações nominais do Plenário (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1047,7 +1047,7 @@ models:
       - name: qt_votacoes_participadas
         description: "Votações elegíveis em que o parlamentar votou SIM, NÃO ou OBSTRUÇÃO."
       - name: participacao_pct
-        description: "Percentual de participação nas votações elegíveis (0–100)."
+        description: "Percentual de participação nas votações elegíveis (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1058,7 +1058,7 @@ models:
       - name: qt_votos_alinhados_governo
         description: "Votos alinhados à orientação do Governo."
       - name: governismo_pct_modelo
-        description: "Governismo calculado pelo modelo (0–100)."
+        description: "Governismo calculado pelo modelo (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1069,7 +1069,7 @@ models:
       - name: qt_votos_disciplinados
         description: "Votos que seguiram a orientação do partido."
       - name: disciplina_pct
-        description: "Disciplina partidária (0–100)."
+        description: "Disciplina partidária (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1080,7 +1080,7 @@ models:
       - name: qt_votos_disciplinados_bancada
         description: "Votos que seguiram a orientação da federação ou bloco."
       - name: disciplina_bancada_pct
-        description: "Disciplina em relação à federação ou bloco do partido (0–100)."
+        description: "Disciplina em relação à federação ou bloco do partido (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1091,7 +1091,7 @@ models:
       - name: qt_votos_vencedores
         description: "Votos do lado vencedor."
       - name: votos_vencedores_pct
-        description: "Percentual de votos do lado vencedor (0–100)."
+        description: "Percentual de votos do lado vencedor (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1101,10 +1101,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: indicadores_externos
-    description: "Valores publicados por Radar Congresso e Ranking dos Políticos, com proveniência e versão da coleta. Grão: indicador × parlamentar × período × coleta."
+    description: "Valores publicados por Radar Congresso e Ranking dos Políticos, com proveniência e versão da coleta. Grão: indicador x parlamentar x período x coleta."
     config:
       meta:
-        grain: "indicador × parlamentar × período × coleta"
+        grain: "indicador x parlamentar x período x coleta"
         primary_key:
           - "sk_indicador_valor"
         foreign_keys:
@@ -1156,10 +1156,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: score_vs_governismo
-    description: "Ranking dos Políticos × governismo. Grão: parlamentar × ano."
+    description: "Ranking dos Políticos x governismo. Grão: parlamentar x ano."
     config:
       meta:
-        grain: "parlamentar × ano"
+        grain: "parlamentar x ano"
         primary_key:
           - "sk_parlamentar"
           - "ano"
@@ -1217,7 +1217,7 @@ models:
       - name: qt_votos_alinhados_governo
         description: "Votos alinhados ao Governo no ano."
       - name: governismo_pct_modelo
-        description: "Governismo calculado pelo modelo no ano (0–100)."
+        description: "Governismo calculado pelo modelo no ano (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1226,7 +1226,7 @@ models:
       - name: qt_votos_disciplina
         description: "Votos do ano em votações com orientação do próprio partido."
       - name: disciplina_pct
-        description: "Disciplina partidária no ano (0–100)."
+        description: "Disciplina partidária no ano (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1242,10 +1242,10 @@ models:
               - ano
 
   - name: score_vs_governismo_por_partido
-    description: "Ranking dos Políticos × governismo por bancada, entre parlamentares com pontuação no ano. Grão: casa × partido × ano."
+    description: "Ranking dos Políticos x governismo por bancada, entre parlamentares com pontuação no ano. Grão: casa x partido x ano."
     config:
       meta:
-        grain: "casa × partido × ano"
+        grain: "casa x partido x ano"
         primary_key:
           - "casa"
           - "sk_partido"
@@ -1275,14 +1275,14 @@ models:
       - name: nota_base_presenca_media
         description: "Média da nota de presença."
       - name: governismo_pct_modelo
-        description: "Governismo da bancada, ponderado por votos (0–100)."
+        description: "Governismo da bancada, ponderado por votos (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
                 max_value: 100
       - name: disciplina_pct
-        description: "Disciplina da bancada, ponderada por votos (0–100)."
+        description: "Disciplina da bancada, ponderada por votos (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1397,9 +1397,9 @@ models:
       - name: ano
         description: Ano.
       - name: mes_do_ano
-        description: "Mês do ano (1–12)."
+        description: "Mês do ano (1-12)."
       - name: dia_do_ano
-        description: "Dia do ano (1–366)."
+        description: "Dia do ano (1-366)."
       - name: nome_dia_semana
         description: "Nome do dia da semana."
       - name: nome_dia_semana_abrev
@@ -1416,7 +1416,7 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: comparativo_governismo_legislatura
-    description: "Governismo calculado × publicado pelo Radar Congresso, na legislatura corrente. Grão: parlamentar."
+    description: "Governismo calculado x publicado pelo Radar Congresso, na legislatura corrente. Grão: parlamentar."
     config:
       meta:
         grain: "um parlamentar"
@@ -1459,21 +1459,21 @@ models:
       - name: qt_votos_alinhados_radar
         description: "Votos alinhados ao Governo, segundo o Radar."
       - name: governismo_pct_radar
-        description: "Governismo publicado pelo Radar (0–100)."
+        description: "Governismo publicado pelo Radar (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
                 max_value: 100
       - name: governismo_pct_modelo_legislatura_completa
-        description: "Governismo do modelo na legislatura inteira (0–100)."
+        description: "Governismo do modelo na legislatura inteira (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
                 max_value: 100
       - name: governismo_pct_modelo
-        description: "Governismo do modelo na janela do Radar (0–100)."
+        description: "Governismo do modelo na janela do Radar (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1499,10 +1499,10 @@ models:
         description: "Início do dbt run que materializou o modelo."
 
   - name: comparativo_governismo_trimestre
-    description: "Governismo calculado × publicado pelo Radar Congresso. Grão: parlamentar × trimestre."
+    description: "Governismo calculado x publicado pelo Radar Congresso. Grão: parlamentar x trimestre."
     config:
       meta:
-        grain: "parlamentar × trimestre"
+        grain: "parlamentar x trimestre"
         primary_key:
           - "sk_parlamentar"
           - "ano"
@@ -1543,14 +1543,14 @@ models:
       - name: qt_votos_modelo
         description: "Votos em votações orientadas no trimestre, no cálculo do modelo."
       - name: governismo_pct_modelo
-        description: "Governismo do modelo no trimestre (0–100)."
+        description: "Governismo do modelo no trimestre (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
                 max_value: 100
       - name: governismo_pct_radar
-        description: "Governismo publicado pelo Radar no trimestre (0–100)."
+        description: "Governismo publicado pelo Radar no trimestre (0-100)."
         tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -1579,10 +1579,10 @@ models:
               - trimestre
 
   - name: comparativo_governismo_resumo
-    description: "Concordância entre cálculo próprio e Radar Congresso. Grão: casa × trimestre."
+    description: "Concordância entre cálculo próprio e Radar Congresso. Grão: casa x trimestre."
     config:
       meta:
-        grain: "casa × trimestre"
+        grain: "casa x trimestre"
         primary_key:
           - "casa"
           - "ano"
@@ -1603,9 +1603,9 @@ models:
       - name: qt_parlamentares_ambas_fontes
         description: "Subconjunto que também tem cálculo próprio no trimestre."
       - name: governismo_pct_modelo_medio
-        description: "Governismo médio do modelo (0–100)."
+        description: "Governismo médio do modelo (0-100)."
       - name: governismo_pct_radar_medio
-        description: "Governismo médio segundo o Radar (0–100)."
+        description: "Governismo médio segundo o Radar (0-100)."
       - name: correlacao
         description: "Correlação de Pearson entre as duas fontes."
       - name: erro_absoluto_medio
@@ -1625,10 +1625,10 @@ models:
               - trimestre
 
   - name: comparativo_governismo_por_partido
-    description: "Concordância entre cálculo próprio e Radar Congresso. Grão: casa × partido."
+    description: "Concordância entre cálculo próprio e Radar Congresso. Grão: casa x partido."
     config:
       meta:
-        grain: "casa × partido"
+        grain: "casa x partido"
         primary_key:
           - "casa"
           - "sk_partido"
@@ -1649,9 +1649,9 @@ models:
       - name: qt_parlamentares_ambas_fontes
         description: "Subconjunto com os dois cálculos."
       - name: governismo_pct_modelo_medio
-        description: "Governismo médio do modelo (0–100)."
+        description: "Governismo médio do modelo (0-100)."
       - name: governismo_pct_radar_medio
-        description: "Governismo médio segundo o Radar (0–100)."
+        description: "Governismo médio segundo o Radar (0-100)."
       - name: diferenca_pp_media
         description: "Média da diferença com sinal, em pontos percentuais."
       - name: erro_absoluto_medio

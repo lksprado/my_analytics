@@ -5,7 +5,7 @@ models:
     description: >
       Base da camada de carteira: toda posição de todo titular, mês a mês. Lê
       int_ativos_consolidados (que já une renda fixa, renda variável e disponibilidades no mesmo
-      grão) e acrescenta o que o intermediate deliberadamente não faz — mes_final/trimestre/ano
+      grão) e acrescenta o que o intermediate deliberadamente não faz - mes_final/trimestre/ano
       pela dimensão de datas, a camada lida da planilha e fl_mes_atual.
       Os três carteira_<pessoa>, os três risco_fgc_<pessoa>, carteira_agregada,
       carteira_classificacao e ativos_sem_classificacao são todos recortes deste modelo; o
@@ -57,7 +57,7 @@ models:
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição — B3, AVENUE,
+          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
           PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
           onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
           {{ doc('fonte_dado') }}
@@ -69,7 +69,7 @@ models:
   - name: carteira_agregada
     description: >
       Carteira agregada por mês x pessoa, com uma coluna por instituição resolvida por pivot
-      dinâmico — instituição nova entra como coluna sem edição manual. Substitui o antigo
+      dinâmico - instituição nova entra como coluna sem edição manual. Substitui o antigo
       int_carteira_agregada, que lia dois modelos intermediários hoje extintos.
       O corte entre investido e disponível é por classe_ativo, e não pelo modelo de origem como
       antes: desde que o refactor do intermediate moveu o caixa da Avenue para as
@@ -84,11 +84,11 @@ models:
       - name: pessoa
         description: "Titular (lucas, jessica ou deusa). Fica no grão da linha, não no pivot."
       - name: total_geral
-        description: "Soma de todas as posições da pessoa no mês, em reais inteiros (bigint — SUM sobre integer em PostgreSQL devolve bigint)."
+        description: "Soma de todas as posições da pessoa no mês, em reais inteiros (bigint - SUM sobre integer em PostgreSQL devolve bigint)."
       - name: total_disponibilidades
         description: "Parcela em classe_ativo = 'DISPONIBILIDADE' (saldo em conta, cashback, Wise, caixa Avenue, bitcoin em autocustódia)."
       - name: total_investido
-        description: "Parcela fora de 'DISPONIBILIDADE' — renda fixa e renda variável."
+        description: "Parcela fora de 'DISPONIBILIDADE' - renda fixa e renda variável."
       - name: autocustodia
         description: "Soma das posições da pessoa em autocustódia no mês, em reais inteiros."
       - name: avenue
@@ -115,13 +115,13 @@ models:
   - name: patrimonio_deusa
     description: >
       Patrimônio de Deusa mês a mês, vindo da planilha dela. Mesmo shape de `patrimonio`, mas
-      OUTRO patrimônio: outra planilha, outra carteira, outros objetivos — os dois aparecem lado a
+      OUTRO patrimônio: outra planilha, outra carteira, outros objetivos - os dois aparecem lado a
       lado em `riqueza` porque enfrentam o mesmo benchmark, e NUNCA devem ser somados.
       Ao contrário do casal, a planilha dela não abre patrimônio líquido por titular, só o total
       mais os saldos por conta; por isso ela não entra em `patrimonio` e a variação MoM dela é
       calculada dentro de `riqueza`, sem um patrimonio_mom próprio.
       Existe como mart porque a extração do relatório de meio de mês precisa do total líquido da
-      planilha para imprimir a reconciliação contra marts_financas.carteira_deusa — e as extrações leem
+      planilha para imprimir a reconciliação contra marts_financas.carteira_deusa - e as extrações leem
       exclusivamente a camada marts.
     columns:
       - name: mes_base
@@ -156,7 +156,7 @@ models:
   - name: carteira_lucas
     description: >
       Carteira consolidada do Lucas por mês, com instituição, classe, tipo, camada, indexador,
-      vencimento e valor atualizado. É um recorte do mart base `carteira` por pessoa = 'lucas' —
+      vencimento e valor atualizado. É um recorte do mart base `carteira` por pessoa = 'lucas' -
       renda fixa, renda variável e disponibilidades em conta (Bradesco, cashback Nubank, Wise e
       Bitcoin) já unidas e enriquecidas lá. Mesmo layout de carteira_jessica e carteira_deusa; os
       três substituíram o antigo carteira_lucas_jessica.
@@ -205,7 +205,7 @@ models:
         description: "Moeda do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição — B3, AVENUE,
+          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
           PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
           onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
           {{ doc('fonte_dado') }}
@@ -266,7 +266,7 @@ models:
         description: "Moeda do ativo (BRL ou USD)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição — B3, AVENUE,
+          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
           PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
           onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
           {{ doc('fonte_dado') }}
@@ -328,7 +328,7 @@ models:
         description: "Moeda do ativo (BRL ou USD)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição — B3, AVENUE,
+          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
           PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
           onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
           {{ doc('fonte_dado') }}
@@ -343,7 +343,7 @@ models:
     description: >
       Recorte do Lucas sobre carteira_agregada: totais mensais de valor atualizado com
       uma coluna por instituição. carteira_agregada resolve o pivot com a lista de
-      instituições dinâmica, mas ESTE mart lista as colunas uma a uma — instituição nova
+      instituições dinâmica, mas ESTE mart lista as colunas uma a uma - instituição nova
       passa a existir lá e entra em total_geral aqui, porém só vira coluna própria depois
       de acrescentada ao SELECT. Vale `soma das colunas por instituição = total_geral`
       apenas enquanto a lista estiver completa; carteira_auditoria é a checagem.
@@ -357,9 +357,9 @@ models:
       - name: total_geral
         description: "Soma de total_investido e total_disponibilidades, equivalente à soma das colunas por instituição."
       - name: total_disponibilidades
-        description: "Total do saldo em conta no mês — a parcela em classe_ativo = 'DISPONIBILIDADE'."
+        description: "Total do saldo em conta no mês - a parcela em classe_ativo = 'DISPONIBILIDADE'."
       - name: total_investido
-        description: "Total das posições de investimento no mês — tudo fora de 'DISPONIBILIDADE'."
+        description: "Total das posições de investimento no mês - tudo fora de 'DISPONIBILIDADE'."
       - name: bradesco
         description: "Total do mês na instituição BRADESCO (investimentos + saldo em conta), em reais."
       - name: nubank
@@ -380,7 +380,7 @@ models:
   - name: carteira_jessica_agregada
     description: >
       Recorte da Jéssica sobre carteira_agregada: totais mensais de valor atualizado com
-      uma coluna por instituição. Mesmo caveat de carteira_lucas_agregada — as colunas por
+      uma coluna por instituição. Mesmo caveat de carteira_lucas_agregada - as colunas por
       instituição são listadas manualmente no SELECT, então instituição nova entra em
       total_geral antes de virar coluna própria.
     columns:
@@ -395,7 +395,7 @@ models:
       - name: total_disponibilidades
         description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): o saldo Banco do Brasil da Jéssica."
       - name: total_investido
-        description: "Total das posições de investimento no mês — tudo fora de 'DISPONIBILIDADE'."
+        description: "Total das posições de investimento no mês - tudo fora de 'DISPONIBILIDADE'."
       - name: banco_do_brasil
         description: "Total do mês na instituição BANCO DO BRASIL (saldo em conta), em reais."
       - name: sofisa
@@ -414,7 +414,7 @@ models:
   - name: carteira_deusa_agregada
     description: >
       Recorte da Deusa sobre carteira_agregada: totais mensais de valor atualizado com
-      uma coluna por instituição. Mesmo caveat de carteira_lucas_agregada — as colunas por
+      uma coluna por instituição. Mesmo caveat de carteira_lucas_agregada - as colunas por
       instituição são listadas manualmente no SELECT, então instituição nova entra em
       total_geral antes de virar coluna própria.
     columns:
@@ -429,7 +429,7 @@ models:
       - name: total_disponibilidades
         description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): Bradesco, Nubank, cashback Nubank e Banco do Brasil da Deusa, mais o caixa da Avenue."
       - name: total_investido
-        description: "Total das posições de investimento no mês — tudo fora de 'DISPONIBILIDADE'."
+        description: "Total das posições de investimento no mês - tudo fora de 'DISPONIBILIDADE'."
       - name: banco_do_brasil
         description: "Total do mês na instituição BANCO DO BRASIL, em reais."
       - name: bradesco
@@ -448,7 +448,7 @@ models:
       Modelo de auditoria da carteira: para cada mês x pessoa, compara o total somado linha a
       linha em carteira_lucas / carteira_jessica / carteira_deusa com o total_geral do
       respectivo mart agregado. As duas rotas partem do mesmo mart base `carteira`, então `dif`
-      deve ser zero em todos os meses — diferente de zero
+      deve ser zero em todos os meses - diferente de zero
       denuncia divergência entre o caminho detalhado e o agregado (pivot, filtro por pessoa
       ou join do saldo em USD).
       É INNER JOIN: mês x pessoa que exista em só um dos lados some da saída em vez de
@@ -476,13 +476,13 @@ models:
       Metade de ESCRITA do loop de classificação: publica a posição do mês corrente no mesmo
       layout da aba "classificacao" da planilha, para ser colada de volta nela. O Lucas preenche
       ou edita a camada lá; o ETL do Google lê a aba de volta para raw.carteira_classificacao, que
-      vira stg_carteira_classificacao e alimenta a coluna camada do mart base `carteira` —
+      vira stg_carteira_classificacao e alimenta a coluna camada do mart base `carteira` -
       fechando o loop.
       Publica TUDO do mês atual, classificado ou não, porque é o retrato que substitui a aba.
       Quem quer só a pendência usa ativos_sem_classificacao.
       As colunas são exatamente as de stg_carteira_classificacao, na mesma ordem. Ficaram de fora
       indexador e tipo_ativo, que saíram do cadastro, e entrou codigo_ativo, que é o que
-      identifica a posição no join de volta — com ele o saldo em conta e o cashback Nubank da
+      identifica a posição no join de volta - com ele o saldo em conta e o cashback Nubank da
       Deusa deixaram de colapsar numa linha só no SELECT DISTINCT, como acontecia quando a chave
       era pessoa + instituicao + ativo e as duas posições eram 'SALDO EM CONTA' no NUBANK.
     columns:
@@ -491,7 +491,7 @@ models:
       - name: instituicao
         description: "Instituição/corretora onde o ativo é mantido, na grafia padronizada pela macro normaliza_instituicao. Parte da chave do join de volta."
       - name: classe_ativo
-        description: "RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE — contexto para a classificação manual."
+        description: "RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE - contexto para a classificação manual."
       - name: codigo_ativo
         description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). É a chave do join de volta; não editar na planilha."
       - name: ativo
@@ -501,7 +501,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: camada
-        description: "Camada do ativo ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: investimentos e disponibilidades chegam todos como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
+        description: "Camada do ativo ou 'NAO CLASSIFICADO' se ainda não classificado - os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: investimentos e disponibilidades chegam todos como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -509,7 +509,7 @@ models:
     description: >
       A pendência do loop de classificação: posições do mês corrente que ainda não têm linha na
       aba "classificacao" e por isso caem no default 'NAO CLASSIFICADO' dentro do mart base
-      `carteira`. Complemento de carteira_classificacao, que publica o retrato inteiro do mês —
+      `carteira`. Complemento de carteira_classificacao, que publica o retrato inteiro do mês -
       aqui sai só o que falta digitar, e por isso cabe numa mensagem.
       O anti-join é por pessoa + codigo_ativo + instituicao, a mesma chave do join de camada. O
       recorte é fl_mes_atual e não uma data fixa: meses antigos sempre terão pendência, porque a
@@ -524,7 +524,7 @@ models:
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO, CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte — o valor a cadastrar na planilha."
+        description: "Código do ativo na fonte - o valor a cadastrar na planilha."
       - name: ativo
         description: "Nome do ativo, para identificá-lo na hora de classificar."
       - name: data_vencimento
@@ -600,19 +600,19 @@ models:
       - name: emissor
         description: "Emissor de renda fixa sem conglomerado FGC associado."
       - name: conglomerado
-        description: "Conglomerado FGC vindo de stg_de_para_instituicoes_fgc (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
+        description: "Conglomerado FGC vindo de stg_de_para_instituicoes_fgc (sempre nulo nesta saída - é justamente o que precisa ser mapeado)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: patrimonio_mom
     description: >
       Variação mês a mês (MoM) de cada saldo de stg_patrimonio. Um registro por mês-base.
-      CUIDADO: as colunas têm exatamente os mesmos nomes de `patrimonio`, mas NÃO são saldos — são
+      CUIDADO: as colunas têm exatamente os mesmos nomes de `patrimonio`, mas NÃO são saldos - são
       variações, expressas em FRAÇÃO DECIMAL com 3 casas (0.045 = +4,5%), calculadas como
       valor / LAG(valor) - 1 sobre mes_base. O primeiro mês da série e qualquer mês cujo antecessor
       seja zero ou nulo vêm nulos. Somar ou comparar estas colunas com as de `patrimonio` mistura
       unidades diferentes.
-      A variação mistura aporte, rentabilidade e consumo — antes de lê-la como desempenho, confira
+      A variação mistura aporte, rentabilidade e consumo - antes de lê-la como desempenho, confira
       os fatos relevantes das categorias de gasto em `_docs_financas.md`: uma saída de caixa
       planejada derruba o saldo sem que tenha havido perda.
     columns:
@@ -661,7 +661,7 @@ models:
     description: >
       Fotografia mensal do patrimônio do casal: um registro por mês-base, com o bruto e o líquido
       totais, o líquido de cada titular e o saldo de cada conta/instituição, em reais. Vem de
-      stg_patrimonio, cuja origem é a planilha (raw.patrimonio) — é declarado manualmente,
+      stg_patrimonio, cuja origem é a planilha (raw.patrimonio) - é declarado manualmente,
       não derivado das posições de carteira, e por isso pode divergir de carteira_lucas /
       carteira_jessica em meses em que as duas fontes não fecharam juntas. Para variação use patrimonio_mom, que tem os
       mesmos nomes de coluna com unidade diferente.
@@ -720,7 +720,7 @@ models:
       Indexadores macro (inflação pessoal, IPCA, IGP-M, Selic, CDI) no grão mensal, com a taxa do
       mês e o índice acumulado base 1 lado a lado. Espelha int_indexadores na camada marts, que é
       a única que as extrações dos relatórios leem.
-      LATÊNCIA: os valores são digitados na planilha depois da publicação oficial dos índices —
+      LATÊNCIA: os valores são digitados na planilha depois da publicação oficial dos índices -
       o IPCA sai por volta do dia 10 do mês seguinte. Um mês recente com taxas NULL não é erro de
       carga, é índice ainda não publicado ou ainda não preenchido, e é exatamente o sinal que o
       portão `pronto_indicadores` do relatório de meio de mês consome. Diferente de riqueza, que
@@ -767,12 +767,12 @@ models:
       int_indexadores, classificando cada mês por indexador.
       Cobre DOIS patrimônios independentes: o do casal (com abertura de Lucas e Jéssica, vinda de
       patrimonio_mom) e o de Deusa (vindo de patrimonio_deusa, que traz só o total
-      líquido — por isso ela não tem abertura por conta e não entra em marts_financas.patrimonio). São
+      líquido - por isso ela não tem abertura por conta e não entra em marts_financas.patrimonio). São
       planilhas, carteiras e objetivos distintos: aparecem no mesmo modelo porque enfrentam o mesmo
       benchmark, e NUNCA devem ser somados.
       NÃO É RENTABILIDADE: o índice compõe a variação do patrimônio, que inclui os aportes do
       período. Um mês de aporte alto sobe o índice sem que nenhum ativo tenha rendido. Comparar
-      este índice ao CDI portanto SUPERESTIMA o desempenho da carteira — serve para responder "meu
+      este índice ao CDI portanto SUPERESTIMA o desempenho da carteira - serve para responder "meu
       patrimônio cresceu mais que a inflação?", não "minha carteira bateu o CDI?".
       ALINHAMENTO: o índice da linha do mês M reflete o nível de patrimônio DE M, igual ao
       `*_acum` dos indexadores, que já embute a taxa do próprio mês. A janela de composição vai até
@@ -781,7 +781,7 @@ models:
       BASES DIFERENTES: os índices daqui não compartilham base. O do casal é composto desde
       2023-11, o de Deusa desde a primeira variação da planilha dela, e os dos indexadores chegam
       prontos de stg_patrimonio com base própria. Só a variação DENTRO de uma janela é comparável
-      entre séries — o nível absoluto não é. Quem plota reindexa no primeiro mês exibido.
+      entre séries - o nível absoluto não é. Quem plota reindexa no primeiro mês exibido.
       Os rótulos RICO(S)/POBRE(S) das colunas comparativo_* são internos; em relatório, escreva
       "acima do CDI" / "abaixo do IPCA".
     columns:
@@ -796,7 +796,7 @@ models:
       - name: patrimonio_liquido_deusa_acum
         description: >
           Índice acumulado do patrimônio líquido de Deusa, composto via EXP(SUM(LN(1+variação MoM)))
-          a partir de patrimonio_deusa. Base própria, diferente da do casal — não compare
+          a partir de patrimonio_deusa. Base própria, diferente da do casal - não compare
           nível, só variação dentro de uma janela. O join é LEFT: mês sem fechamento da planilha dela
           não derruba a linha do casal, e o índice repete o valor anterior.
       - name: minha_inflacao_acum
@@ -908,10 +908,10 @@ models:
   - name: resultado
     description: >
       DRE mensal do casal, em reais: um registro por mês de débito/competência, com receita aberta
-      por origem, despesa aberta pelas oito categorias e o resultado do período (receita − despesa),
+      por origem, despesa aberta pelas oito categorias e o resultado do período (receita - despesa),
       somando Lucas e Jéssica a partir de int_dre_consolidado.
       ATENÇÃO: contém meses futuros pré-lançados, com as despesas fixas recorrentes já agendadas.
-      Esses meses não são realizados — filtre por mês de referência antes de calcular médias, taxa
+      Esses meses não são realizados - filtre por mês de referência antes de calcular médias, taxa
       de poupança ou variação.
       {{ doc('ciclo_fatura') }}
     columns:
@@ -925,7 +925,7 @@ models:
       - name: motivo
         description: >
           Datas especiais do mês, separadas por ' / ', ou 'NORMAL' quando não há nenhuma.
-          Serve para explicar picos sazonais em role e diversos — não afeta os valores.
+          Serve para explicar picos sazonais em role e diversos - não afeta os valores.
       - name: trimestre
         description: "Trimestre do ano."
       - name: ano
@@ -969,7 +969,7 @@ models:
       período, consumo médio diário e preço médio por kWh. Serve para separar efeito preço
       (preco_kwh) de efeito consumo (kwh_dia) quando a categoria apartamento sobe.
       É o DETALHAMENTO de uma parcela da categoria `apartamento` em `resultado`/`consumo`, não uma
-      categoria à parte — nunca some os dois.
+      categoria à parte - nunca some os dois.
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência da conta."

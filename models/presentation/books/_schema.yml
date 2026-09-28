@@ -30,7 +30,7 @@ models:
         description: >
           novo minimo (abaixo de todo preço anterior), empata com o minimo,
           desconto recorde (maior % de desconto já visto, com preço acima do mínimo porque
-          a lista subiu) ou ate 5% acima do minimo — nesta ordem de precedência.
+          a lista subiu) ou ate 5% acima do minimo - nesta ordem de precedência.
         data_tests:
           - not_null
           - accepted_values:
@@ -75,7 +75,7 @@ models:
       - name: desconto_mediano_catalogo_pct
         description: "Desconto mediano do catálogo na varredura mais recente até a data."
       - name: percentil_desconto_catalogo
-        description: "Posição dessa varredura entre todas (0 = menor desconto, 1 = maior) — alto indica campanha em curso."
+        description: "Posição dessa varredura entre todas (0 = menor desconto, 1 = maior) - alto indica campanha em curso."
       - name: desconto_extra_vs_catalogo_pp
         description: "Desconto do livro menos o desconto mediano do catálogo, em pontos percentuais."
       - name: qtd_observacoes_anteriores
@@ -87,7 +87,7 @@ models:
 
   - name: livros_campanhas
     description: >
-      Uma linha por varredura completa do catálogo — o termômetro de campanha da loja.
+      Uma linha por varredura completa do catálogo - o termômetro de campanha da loja.
       Varredura é o dia com pelo menos metade do maior volume diário já coletado; os
       demais dias são a coleta de ~30 destaques e ficam de fora. Coautores contam como
       um livro.
@@ -100,7 +100,7 @@ models:
       - name: qtd_livros
         description: "Livros observados na varredura."
       - name: preco_medio
-        description: "Média do preço praticado — sensível à mudança do mix do catálogo."
+        description: "Média do preço praticado - sensível à mudança do mix do catálogo."
       - name: desconto_mediano_pct
         description: "Desconto mediano sobre o preço de lista, em %. Os descontos da loja são redondos, então a mediana anda em degraus."
       - name: desconto_medio_pct
@@ -122,7 +122,7 @@ models:
     description: >
       One big table dos preços da editora ao longo do tempo: fct_book_pricing com livro,
       calendário (dim_datas, só colunas de calendário) e contexto de campanha.
-      Grão: livro × autor × dia observado — coautores repetem a linha; filtre
+      Grão: livro x autor x dia observado - coautores repetem a linha; filtre
       `fl_linha_principal` para contar ou somar livros. Colunas `*_historico`,
       `qtd_observacoes`, `primeira/ultima_observacao` e `fl_preco_desatualizado` são
       vistas de hoje (iguais em todas as linhas do livro); as demais valem para a data.
@@ -157,7 +157,7 @@ models:
       - name: nome_dia_semana
         description: "Nome do dia da semana em português, minúsculo e sem acento."
       - name: fl_dia_util
-        description: "TRUE de segunda a sexta quando não é feriado — dia útil bancário nacional."
+        description: "TRUE de segunda a sexta quando não é feriado - dia útil bancário nacional."
       - name: nome_livro
         description: "Título do livro, em minúsculas e sem acentos."
       - name: autor
@@ -179,7 +179,7 @@ models:
       - name: desconto_mediano_catalogo_pct
         description: "Desconto mediano do catálogo na varredura mais recente até a data."
       - name: percentil_desconto_catalogo
-        description: "Posição dessa varredura entre todas (0 = menor desconto, 1 = maior) — alto indica campanha em curso."
+        description: "Posição dessa varredura entre todas (0 = menor desconto, 1 = maior) - alto indica campanha em curso."
       - name: desconto_extra_vs_catalogo_pp
         description: "Desconto do livro menos o desconto mediano do catálogo, em pontos percentuais."
       - name: preco_lista
@@ -203,7 +203,7 @@ models:
       - name: variacao_preco
         description: "Variação absoluta em relação à observação anterior, em R$."
       - name: variacao_preco_pct
-        description: "Variação contra a observação anterior, em %. Oscila com as campanhas semanais — não lê como tendência."
+        description: "Variação contra a observação anterior, em %. Oscila com as campanhas semanais - não lê como tendência."
       - name: preco_minimo_ate_entao
         description: "Menor preço antes desta linha."
       - name: fl_queda
