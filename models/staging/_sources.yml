@@ -196,3 +196,12 @@ sources:
     tables:
       - name: raw_ranking_deputados
       - name: raw_ranking_senadores
+
+
+  - name: google_books
+    schema: raw_google_books
+    loaded_at_field: loaded_at_utc
+    freshness:
+      warn_after: {count: 160, period: hour}
+    tables:
+      - name: livros
