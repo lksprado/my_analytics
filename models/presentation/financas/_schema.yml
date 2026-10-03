@@ -403,40 +403,6 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-  - name: carteira_classificacao
-    description: >
-      Metade de ESCRITA do loop de classificação: publica a posição do mês corrente no mesmo
-      layout da aba "classificacao" da planilha, para ser colada de volta nela. O Lucas preenche
-      ou edita a camada lá; o ETL do Google lê a aba de volta para raw.carteira_classificacao, que
-      vira stg_carteira_classificacao e alimenta a coluna camada do mart base `carteira` -
-      fechando o loop.
-      Publica TUDO do mês atual, classificado ou não, porque é o retrato que substitui a aba.
-      Quem quer só a pendência usa ativos_sem_classificacao.
-      As colunas são exatamente as de stg_carteira_classificacao, na mesma ordem. Ficaram de fora
-      indexador e tipo_ativo, que saíram do cadastro, e entrou codigo_ativo, que é o que
-      identifica a posição no join de volta - com ele o saldo em conta e o cashback Nubank da
-      Deusa deixaram de colapsar numa linha só no SELECT DISTINCT, como acontecia quando a chave
-      era pessoa + instituicao + ativo e as duas posições eram 'SALDO EM CONTA' no NUBANK.
-    columns:
-      - name: pessoa
-        description: "Dono do ativo (deusa, jessica ou lucas)."
-      - name: instituicao
-        description: "Instituição/corretora onde o ativo é mantido, na grafia padronizada pela macro normaliza_instituicao. Parte da chave do join de volta."
-      - name: classe_ativo
-        description: "RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE - contexto para a classificação manual."
-      - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue, código sintético da conta corrente). É a chave do join de volta; não editar na planilha."
-      - name: ativo
-        description: "Nome do ativo, para leitura humana na planilha ('SALDO EM CONTA' para as disponibilidades)."
-      - name: data_vencimento
-        description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
-      - name: moeda_ativo
-        description: "Moeda de origem do ativo (BRL ou USD)."
-      - name: camada
-        description: "Camada do ativo ou 'NAO CLASSIFICADO' se ainda não classificado - os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: investimentos e disponibilidades chegam todos como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
-      - name: model_run_at
-        description: "Início do dbt run que materializou o modelo."
-
   - name: ativos_sem_classificacao
     description: >
       A pendência do loop de classificação: posições do mês corrente que ainda não têm linha na
