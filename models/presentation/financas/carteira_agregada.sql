@@ -18,8 +18,8 @@
     o guard em execute. O ref() fica fora do guard para o DAG ver a dependência. -#}
 {%- set rel_carteira = ref('carteira') -%}
 {%- set default_instituicoes = [
-    'AUTOCUSTODIA', 'AVENUE', 'BANCO DO BRASIL', 'BRADESCO', 'DAYCOVAL',
-    'DESCONHECIDO', 'ITAU', 'NUBANK', 'SOFISA', 'WISE'
+    'AUTOCUSTODIA', 'AVENUE', 'BANCO DO BRASIL', 'BRADESCO', 'DAYCOVAL', 'ITAU',
+    'NUBANK', 'SOFISA', 'WISE'
 ] -%}
 
 {%- if execute -%}

@@ -26,7 +26,7 @@ deusa_mom AS (
             / NULLIF(LAG(total_patrimonio_liquido) OVER (ORDER BY mes_base), 0)
             - 1
         )::NUMERIC(18, 3) AS patrimonio_liquido_deusa
-    FROM {{ ref('patrimonio_deusa') }}
+    FROM {{ ref('stg_patrimonio_deusa') }}
 ),
 
 -- LEFT JOIN: mês sem fechamento de Deusa não derruba a linha do casal; o índice

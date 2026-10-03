@@ -2,11 +2,18 @@ version: 2
 
 models:
 
-  - name: int_ativos_consolidados
+  - name: int_investimentos_consolidados
     description: >
-      Todo o patrimônio financeiro de Lucas, Jéssica e Deusa mês a mês, posição a posição -
-      investimentos em renda fixa e renda variável somados aos saldos disponíveis em conta.
-      É a visão única de ativos que a camada marts consome.
+      Ponto único de consolidação da carteira: uma linha por posição de Lucas, Jéssica e Deusa por mês,
+      unindo a trilha relatório e a trilha seed.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - mes_base
+              - pessoa
+              - instituicao
+              - codigo_ativo
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."
@@ -16,14 +23,12 @@ models:
         description: "Corretora, banco ou custodiante da posição, com nome padronizado."
       - name: emissor
         description: "Instituição emissora do título."
-      - name: conglomerado_fgc
-        description: "Conglomerado financeiro do emissor, para efeito do limite do FGC."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
@@ -39,14 +44,22 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
       - name: fonte_dado
-        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE ou SEED). {{ doc('fonte_dado') }}"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-  - name: int_renda_unificada
+  - name: int_relatorio_unificado
     description: >
-      A parcela investida do patrimônio de Lucas, Jéssica e Deusa mês a mês - renda fixa e renda
-      variável no mesmo grão, sem os saldos em conta.
+      Trilha relatório: todas as posições extraídas dos relatórios da B3 e da Avenue (renda fixa, renda
+      variável e caixa), sem planilha nem seed. Uma linha por posição, pessoa e mês.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - mes_base
+              - pessoa
+              - instituicao
+              - codigo_ativo
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."
@@ -56,14 +69,12 @@ models:
         description: "Corretora, banco ou custodiante da posição, com nome padronizado."
       - name: emissor
         description: "Instituição emissora do título."
-      - name: conglomerado_fgc
-        description: "Conglomerado financeiro do emissor, para efeito do limite do FGC."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
@@ -79,46 +90,13 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
       - name: fonte_dado
-        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-  - name: int_disponibilidades_isoladas
+  - name: int_relatorio_renda_fixa
     description: >
-      O dinheiro disponível de Lucas, Jéssica e Deusa mês a mês: saldo em conta corrente,
-      cashback, Wise, Avenue e autocustódia de bitcoin. É a parte do patrimônio que não está
-      investida.
-    columns:
-      - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
-      - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
-      - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
-      - name: conglomerado_fgc
-        description: "Conglomerado financeiro do emissor, para efeito do limite do FGC."
-      - name: classe_ativo
-        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
-      - name: tipo_ativo
-        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
-      - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue)."
-      - name: ativo
-        description: "Nome do ativo."
-      - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
-      - name: moeda_ativo
-        description: "Moeda de origem do ativo."
-      - name: fonte_dado
-        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
-      - name: model_run_at
-        description: "Início do dbt run que materializou o modelo."
-
-  - name: int_renda_fixa
-    description: >
-      As posições em renda fixa de Lucas, Jéssica e Deusa mês a mês - títulos públicos e privados
-      das fontes automatizadas somados aos lançados à mão - já com o conglomerado FGC do emissor
-      resolvido.
+      Trilha relatório: as posições em renda fixa da B3 (títulos privados e tesouro direto) e da Avenue.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."
@@ -128,14 +106,12 @@ models:
         description: "Corretora, banco ou custodiante da posição, com nome padronizado."
       - name: emissor
         description: "Instituição emissora do título."
-      - name: conglomerado_fgc
-        description: "Conglomerado financeiro do emissor, para efeito do limite do FGC."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
@@ -153,15 +129,69 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
       - name: fonte_dado
-        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-  - name: int_renda_fixa_incompleta
+  - name: int_relatorio_renda_variavel
     description: >
-      As posições em renda fixa que chegam pelas fontes automatizadas - renda fixa B3, tesouro
-      direto e Avenue. Cobre só o que as extrações enxergam; o que falta vem de
-      int_renda_fixa_loop.
+      Trilha relatório: as posições em renda variável da B3 (ações, BDRs, ETFs, fundos) e as equities da
+      Avenue.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+      - name: ativo
+        description: "Nome do ativo."
+      - name: vlr_atualizado_brl
+        description: "Valor atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: int_relatorio_disponibilidades
+    description: >
+      Trilha relatório: o saldo em conta na Avenue, por pessoa e mês.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+      - name: ativo
+        description: "Nome do ativo."
+      - name: vlr_atualizado_brl
+        description: "Valor atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda de origem do ativo."
+      - name: fonte_dado
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: int_investimentos_faltantes_unificados
+    description: >
+      Trilha seed: posições reais que nenhum relatório traz, cadastradas à mão nas seeds de
+      investimentos faltantes de cada titular.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."
@@ -176,7 +206,7 @@ models:
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
@@ -194,14 +224,56 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo."
       - name: fonte_dado
-        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (SEED). {{ doc('fonte_dado') }}"
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-  - name: int_renda_fixa_loop
+  - name: int_planilha_investimentos_selecionados
     description: >
-      As posições em renda fixa que nenhuma extração alcança e por isso são cadastradas à mão nas
-      seeds de investimentos faltantes. Mesmo layout de int_renda_fixa_incompleta, para completá-la.
+      Saldos de investimento declarados na planilha do casal e na de Deusa, uma linha por mês e uma
+      coluna por pessoa e instituição.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base."
+      - name: bradesco_investimentos_lucas
+        description: "Saldo em investimentos Bradesco (Lucas), em reais."
+      - name: nubank_investimentos_lucas
+        description: "Saldo em investimentos Nubank (Lucas), em reais."
+      - name: avenue_lucas
+        description: "Saldo na Avenue (Lucas), em reais."
+      - name: daycoval_lucas
+        description: "Saldo em investimentos Daycoval (Lucas), em reais."
+      - name: sofisa_investimentos_jessica
+        description: "Saldo em investimentos Sofisa (Jéssica), em reais."
+      - name: itau_investimentos_jessica
+        description: "Saldo em investimentos Itaú (Jéssica), em reais."
+      - name: nubank_investimentos_jessica
+        description: "Saldo em investimentos Nubank (Jéssica), em reais."
+      - name: avenue_jessica
+        description: "Saldo na Avenue (Jéssica), em reais."
+      - name: bradesco_investimentos_deusa
+        description: "Saldo em investimentos Bradesco (Deusa), em reais."
+      - name: banco_brasil_investimentos_deusa
+        description: "Saldo em investimentos Banco do Brasil (Deusa), em reais."
+      - name: nubank_investimentos_deusa
+        description: "Saldo em investimentos Nubank (Deusa), em reais."
+      - name: avenue_deusa
+        description: "Saldo na Avenue (Deusa), em reais."
+      - name: fonte_dado
+        description: "Procedência da linha (GOOGLE SHEETS)."
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
+  - name: int_planilha_investimentos_selecionados_alongados
+    description: >
+      Saldos de investimento declarados na planilha do casal e na de Deusa, uma linha por mês, pessoa e instituição.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - mes_base
+              - pessoa
+              - instituicao
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."
@@ -209,62 +281,13 @@ models:
         description: "Titular (deusa, jessica ou lucas)."
       - name: instituicao
         description: "Corretora, banco ou custodiante da posição, com nome padronizado."
-      - name: emissor
-        description: "Instituição emissora do título."
-      - name: classe_ativo
-        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
-      - name: tipo_ativo
-        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
-      - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue)."
-      - name: ativo
-        description: "Nome do ativo."
-      - name: indexador
-        description: "Indexador de rentabilidade do título."
-      - name: data_emissao
-        description: "Data de emissão do título."
-      - name: data_vencimento
-        description: "Data de vencimento do título."
-      - name: vencimento_em_dias
-        description: "Dias restantes até o vencimento; nulo se já vencido ou sem vencimento."
-      - name: fl_vencido
-        description: "Indica se o título já venceu."
-      - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
-      - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+      - name: vlr_declarado_brl
+        description: "Saldo declarado na planilha, em reais."
       - name: fonte_dado
-        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (GOOGLE SHEETS)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-  - name: int_renda_variavel
-    description: >
-      As posições em renda variável de Lucas, Jéssica e Deusa mês a mês - ações, BDRs, ETFs,
-      fundos e a carteira de equities da Avenue.
-    columns:
-      - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
-      - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
-      - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
-      - name: classe_ativo
-        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
-      - name: tipo_ativo
-        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
-      - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue)."
-      - name: ativo
-        description: "Nome do ativo."
-      - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
-      - name: moeda_ativo
-        description: "Moeda de origem do ativo."
-      - name: fonte_dado
-        description: "Procedência da linha: B3, AVENUE, PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo, onde a origem ainda é conhecida. {{ doc('fonte_dado') }}"
-      - name: model_run_at
-        description: "Início do dbt run que materializou o modelo."
 
   - name: int_dividendos
     description: >

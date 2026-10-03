@@ -15,13 +15,14 @@ renamed AS (
 
         REGEXP_REPLACE(bb_saldo, '[^0-9]', '', 'g')::INT               AS saldo_banco_brasil_deusa,
 
-        REGEXP_REPLACE(bb_investimento, '[^0-9]', '', 'g')::INT        AS saldo_banco_brasil_investimentos_deusa,
+        REGEXP_REPLACE(bb_investimento, '[^0-9]', '', 'g')::INT        AS banco_brasil_investimentos_deusa,
         REGEXP_REPLACE(bradesco_saldo, '[^0-9]', '', 'g')::INT         AS saldo_bradesco_deusa,
 
-        REGEXP_REPLACE(bradesco_investimentos, '[^0-9]', '', 'g')::INT AS saldo_bradesco_investimentos_deusa,
+        REGEXP_REPLACE(bradesco_investimentos, '[^0-9]', '', 'g')::INT AS bradesco_investimentos_deusa,
         REGEXP_REPLACE(nubank_saldo, '[^0-9]', '', 'g')::INT           AS saldo_nubank_deusa,
-        REGEXP_REPLACE(nubank_investimentos, '[^0-9]', '', 'g')::INT   AS saldo_nubank_investimentos_deusa,
+        REGEXP_REPLACE(nubank_investimentos, '[^0-9]', '', 'g')::INT   AS nubank_investimentos_deusa,
         REGEXP_REPLACE(nubank_cashback, '[^0-9]', '', 'g')::INT        AS saldo_nubank_cashback_deusa,
+        REGEXP_REPLACE(avenue, '[^0-9]', '', 'g')::INT                 AS avenue_deusa,
         TO_DATE(
             CASE
                 WHEN mes LIKE 'jan.%' THEN '01/' || RIGHT(mes, 2)
@@ -46,12 +47,13 @@ nulls_treated AS (
         mes_base,
         COALESCE(total_patrimonio_liquido, 0)               AS total_patrimonio_liquido,
         COALESCE(saldo_banco_brasil_deusa, 0)               AS saldo_banco_brasil_deusa,
-        COALESCE(saldo_banco_brasil_investimentos_deusa, 0) AS saldo_banco_brasil_investimentos_deusa,
+        COALESCE(banco_brasil_investimentos_deusa, 0)       AS banco_brasil_investimentos_deusa,
         COALESCE(saldo_bradesco_deusa, 0)                   AS saldo_bradesco_deusa,
-        COALESCE(saldo_bradesco_investimentos_deusa, 0)     AS saldo_bradesco_investimentos_deusa,
+        COALESCE(bradesco_investimentos_deusa, 0)           AS bradesco_investimentos_deusa,
         COALESCE(saldo_nubank_deusa, 0)                     AS saldo_nubank_deusa,
-        COALESCE(saldo_nubank_investimentos_deusa, 0)       AS saldo_nubank_investimentos_deusa,
+        COALESCE(nubank_investimentos_deusa, 0)             AS nubank_investimentos_deusa,
         COALESCE(saldo_nubank_cashback_deusa, 0)            AS saldo_nubank_cashback_deusa,
+        COALESCE(avenue_deusa, 0)                           AS avenue_deusa,
         '{{ run_started_at }}'::TIMESTAMPTZ AS model_run_at
     FROM renamed
 )

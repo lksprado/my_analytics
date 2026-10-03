@@ -5,13 +5,12 @@
 }}
 
 WITH
-variavel AS (
+renda_variavel AS (
     SELECT
         mes_base,
         pessoa,
         instituicao,
         NULL::TEXT    AS emissor,
-        NULL::TEXT    AS conglomerado_fgc,
         classe_ativo,
         tipo_ativo,
         codigo_ativo,
@@ -23,16 +22,15 @@ variavel AS (
         vlr_atualizado_brl,
         moeda_ativo,
         fonte_dado
-    FROM {{ ref('int_renda_variavel') }}
+    FROM {{ ref('int_relatorio_renda_variavel') }}
 ),
 
-fixa AS (
+renda_fixa AS (
     SELECT
         mes_base,
         pessoa,
         instituicao,
         emissor,
-        conglomerado_fgc,
         classe_ativo,
         tipo_ativo,
         codigo_ativo,
@@ -44,13 +42,35 @@ fixa AS (
         vlr_atualizado_brl,
         moeda_ativo,
         fonte_dado
-    FROM {{ ref('int_renda_fixa') }}
+    FROM {{ ref('int_relatorio_renda_fixa') }}
+),
+
+disponibilidades AS (
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        NULL::TEXT      AS emissor,
+        classe_ativo,
+        tipo_ativo,
+        codigo_ativo,
+        ativo,
+        NULL::TEXT      AS indexador,
+        NULL::DATE      AS data_vencimento,
+        NULL::INT       AS vencimento_em_dias,
+        NULL::BOOLEAN   AS fl_vencido,
+        vlr_atualizado_brl,
+        moeda_ativo,
+        fonte_dado
+    FROM {{ ref('int_relatorio_disponibilidades') }}
 ),
 
 unioned AS (
-    SELECT * FROM variavel
+    SELECT * FROM renda_variavel
     UNION ALL
-    SELECT * FROM fixa
+    SELECT * FROM renda_fixa
+    UNION ALL
+    SELECT * FROM disponibilidades
 )
 
 SELECT

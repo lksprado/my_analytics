@@ -23,7 +23,7 @@ avenue AS (
         NULL::DATE             AS data_vencimento,
         market_value * vlr_usd AS vlr_atualizado_brl,
         moeda_ativo,
-        'AVENUE'               AS fonte_dado
+        'RELATORIO AVENUE'     AS fonte_dado
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -78,7 +78,7 @@ b3 AS (
         data_vencimento,
         COALESCE(vlr_atualizado_curva, vlr_atualizado_mtm)                                                                      AS vlr_atualizado_brl,
         moeda_ativo,
-        'B3'                                                                                                                    AS fonte_dado
+        'RELATORIO B3'                                                                                                          AS fonte_dado
     FROM {{ ref('stg_renda_fixa') }}
 ),
 
@@ -96,7 +96,7 @@ b3_td AS (
         data_vencimento,
         vlr_atualizado_brl,
         moeda_ativo,
-        'B3'                             AS fonte_dado
+        'RELATORIO B3'                   AS fonte_dado
     FROM {{ ref('stg_tesouro_direto') }}
 ),
 unioned AS (
@@ -143,4 +143,14 @@ final AS (
     FROM unioned
     WHERE vlr_atualizado_brl IS NOT NULL
 )
-SELECT * FROM final ORDER BY mes_base, pessoa
+
+SELECT *
+FROM final
+-- Remove as aplicações do Renda Fácil; filtra após normaliza_instituicao, que o WHERE de final não enxerga.
+WHERE NOT (
+    mes_base >= '2026-03-01'
+    AND pessoa = 'deusa'
+    AND instituicao = 'BANCO DO BRASIL'
+    AND codigo_ativo LIKE 'CDB%'
+)
+ORDER BY mes_base, pessoa
