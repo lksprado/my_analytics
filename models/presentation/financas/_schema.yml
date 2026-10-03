@@ -4,13 +4,22 @@ models:
   - name: carteira
     description: >
       Base da camada de carteira: toda posição de todo titular, mês a mês. Lê
-      int_ativos_consolidados (que já une renda fixa, renda variável e disponibilidades no mesmo
-      grão) e acrescenta o que o intermediate deliberadamente não faz - mes_final/trimestre/ano
-      pela dimensão de datas, a camada lida da planilha e fl_mes_atual.
+      int_investimentos_consolidados (que já une relatórios e seeds no mesmo grão), une os saldos em
+      conta declarados na planilha e acrescenta o que o intermediate deliberadamente não faz -
+      conglomerado_fgc, mes_final/trimestre/ano pela dimensão de datas, a camada lida da planilha e
+      fl_mes_atual.
       Os três carteira_<pessoa>, os três risco_fgc_<pessoa>, carteira_agregada,
       carteira_classificacao e ativos_sem_classificacao são todos recortes deste modelo; o
       enriquecimento acontece uma vez só.
       {{ doc('politica_investimentos') }}
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - mes_base
+              - pessoa
+              - instituicao
+              - codigo_ativo
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
@@ -52,15 +61,17 @@ models:
       - name: fl_vencido
         description: "Indica se o título já passou da data de vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
+        description: "Valor de mercado atualizado da posição, em reais inteiros."
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
-          PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
-          onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
+          Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED ou GOOGLE SHEETS).
           {{ doc('fonte_dado') }}
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['RELATORIO B3', 'RELATORIO AVENUE', 'SEED', 'GOOGLE SHEETS']
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: model_run_at
@@ -86,7 +97,7 @@ models:
       - name: total_geral
         description: "Soma de todas as posições da pessoa no mês, em reais inteiros (bigint - SUM sobre integer em PostgreSQL devolve bigint)."
       - name: total_disponibilidades
-        description: "Parcela em classe_ativo = 'DISPONIBILIDADE' (saldo em conta, cashback, Wise, caixa Avenue, bitcoin em autocustódia)."
+        description: "Parcela em classe_ativo = 'DISPONIBILIDADE' (saldo em conta, cashback, Wise, bitcoin em autocustódia e caixa da Avenue)."
       - name: total_investido
         description: "Parcela fora de 'DISPONIBILIDADE' - renda fixa e renda variável."
       - name: autocustodia
@@ -112,54 +123,12 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-  - name: patrimonio_deusa
-    description: >
-      Patrimônio de Deusa mês a mês, vindo da planilha dela. Mesmo shape de `patrimonio`, mas
-      OUTRO patrimônio: outra planilha, outra carteira, outros objetivos - os dois aparecem lado a
-      lado em `riqueza` porque enfrentam o mesmo benchmark, e NUNCA devem ser somados.
-      Ao contrário do casal, a planilha dela não abre patrimônio líquido por titular, só o total
-      mais os saldos por conta; por isso ela não entra em `patrimonio` e a variação MoM dela é
-      calculada dentro de `riqueza`, sem um patrimonio_mom próprio.
-      Existe como mart porque a extração do relatório de meio de mês precisa do total líquido da
-      planilha para imprimir a reconciliação contra marts_financas.carteira_deusa - e as extrações leem
-      exclusivamente a camada marts.
-    columns:
-      - name: mes_base
-        description: "Primeiro dia do mês de referência."
-      - name: mes_final
-        description: "Último dia do mês de referência."
-      - name: trimestre
-        description: "Trimestre do ano."
-      - name: ano
-        description: "Ano."
-      - name: fl_mes_atual
-        description: "Indica se a linha pertence ao mês mais recente preenchido na planilha."
-      - name: total_patrimonio_liquido
-        description: "Patrimônio líquido total declarado na planilha. É o número conciliado contra a soma de marts_financas.carteira_deusa no relatório de meio de mês; as duas fontes têm cortes próprios e a diferença é impressa, não escondida."
-      - name: saldo_banco_brasil_deusa
-        description: "Saldo em conta corrente no Banco do Brasil."
-      - name: saldo_banco_brasil_investimentos_deusa
-        description: "Saldo investido no Banco do Brasil."
-      - name: saldo_bradesco_deusa
-        description: "Saldo em conta corrente no Bradesco."
-      - name: saldo_bradesco_investimentos_deusa
-        description: "Saldo investido no Bradesco."
-      - name: saldo_nubank_deusa
-        description: "Saldo em conta corrente no Nubank."
-      - name: saldo_nubank_investimentos_deusa
-        description: "Saldo investido no Nubank."
-      - name: saldo_nubank_cashback_deusa
-        description: "Saldo de cashback acumulado no Nubank."
-      - name: model_run_at
-        description: "Início do dbt run que materializou o modelo."
-
   - name: carteira_lucas
     description: >
       Carteira consolidada do Lucas por mês, com instituição, classe, tipo, camada, indexador,
       vencimento e valor atualizado. É um recorte do mart base `carteira` por pessoa = 'lucas' -
-      renda fixa, renda variável e disponibilidades em conta (Bradesco, cashback Nubank, Wise e
-      Bitcoin) já unidas e enriquecidas lá. Mesmo layout de carteira_jessica e carteira_deusa; os
-      três substituíram o antigo carteira_lucas_jessica.
+      renda fixa, renda variável e disponibilidades (contas, cashback, Wise, bitcoin e caixa da Avenue) já unidos e enriquecidos lá. Mesmo layout de
+      carteira_jessica e carteira_deusa; os três substituíram o antigo carteira_lucas_jessica.
       {{ doc('politica_investimentos') }}
     columns:
       - name: mes_base
@@ -200,14 +169,12 @@ models:
       - name: fl_vencido
         description: "Indica se o título já passou da data de vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
+        description: "Valor de mercado atualizado da posição, em reais inteiros."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
-          PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
-          onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
+          Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED ou GOOGLE SHEETS).
           {{ doc('fonte_dado') }}
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
@@ -219,8 +186,7 @@ models:
   - name: carteira_jessica
     description: >
       Carteira consolidada da Jéssica por mês; mesmo layout e mesma origem de carteira_lucas
-      (o mart base `carteira`), filtrando pessoa = 'jessica'. A disponibilidade em conta dela é o
-      saldo do Banco do Brasil.
+      (o mart base `carteira`), filtrando pessoa = 'jessica'.
       {{ doc('politica_investimentos') }}
     columns:
       - name: mes_base
@@ -261,14 +227,12 @@ models:
       - name: fl_vencido
         description: "Indica se o título já passou da data de vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
+        description: "Valor de mercado atualizado da posição, em reais inteiros."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL ou USD)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
-          PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
-          onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
+          Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED ou GOOGLE SHEETS).
           {{ doc('fonte_dado') }}
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
@@ -280,9 +244,7 @@ models:
   - name: carteira_deusa
     description: >
       Carteira consolidada da Deusa por mês; mesmo layout e mesma origem de carteira_lucas
-      (o mart base `carteira`), filtrando pessoa = 'deusa'. As disponibilidades em conta
-      dela (Bradesco, Nubank, cashback Nubank e Banco do Brasil) vêm da planilha dela, por
-      int_disponibilidades_isoladas.
+      (o mart base `carteira`), filtrando pessoa = 'deusa'.
       {{ doc('politica_investimentos') }}
     columns:
       - name: mes_base
@@ -323,14 +285,12 @@ models:
       - name: fl_vencido
         description: "Indica se o título já passou da data de vencimento."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais inteiros (integer). Os centavos são arredondados uma única vez, em int_renda_fixa_incompleta, onde os ramos da carteira convergem."
+        description: "Valor de mercado atualizado da posição, em reais inteiros."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL ou USD)."
       - name: fonte_dado
         description: >
-          Procedência da linha: de qual extração veio o valor da posição - B3, AVENUE,
-          PLANILHA GOOGLE ou SEED. Atribuído no CTE-folha de cada ramo do intermediate,
-          onde a origem ainda é conhecida, e preservado pelos UNION ALL até aqui.
+          Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED ou GOOGLE SHEETS).
           {{ doc('fonte_dado') }}
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
@@ -346,7 +306,7 @@ models:
       instituições dinâmica, mas ESTE mart lista as colunas uma a uma - instituição nova
       passa a existir lá e entra em total_geral aqui, porém só vira coluna própria depois
       de acrescentada ao SELECT. Vale `soma das colunas por instituição = total_geral`
-      apenas enquanto a lista estiver completa; carteira_auditoria é a checagem.
+      apenas enquanto a lista estiver completa.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência (chave de junção com carteira_lucas e com a dimensão de datas)."
@@ -357,13 +317,13 @@ models:
       - name: total_geral
         description: "Soma de total_investido e total_disponibilidades, equivalente à soma das colunas por instituição."
       - name: total_disponibilidades
-        description: "Total do saldo em conta no mês - a parcela em classe_ativo = 'DISPONIBILIDADE'."
+        description: "Total do mês em classe_ativo = 'DISPONIBILIDADE': contas Bradesco e Nubank, cashback Nubank, Wise, bitcoin e caixa da Avenue."
       - name: total_investido
         description: "Total das posições de investimento no mês - tudo fora de 'DISPONIBILIDADE'."
       - name: bradesco
-        description: "Total do mês na instituição BRADESCO (investimentos + saldo em conta), em reais."
+        description: "Total do mês na instituição BRADESCO (investimentos e saldo em conta), em reais."
       - name: nubank
-        description: "Total do mês na instituição NUBANK (investimentos + cashback), em reais."
+        description: "Total do mês na instituição NUBANK (investimentos, conta e cashback), em reais."
       - name: autocustodia
         description: "Total do mês em AUTOCUSTODIA (bitcoin em carteira própria), em reais."
       - name: daycoval
@@ -393,7 +353,7 @@ models:
       - name: total_geral
         description: "Soma de total_investido e total_disponibilidades, equivalente à soma das colunas por instituição."
       - name: total_disponibilidades
-        description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): o saldo Banco do Brasil da Jéssica."
+        description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): contas Banco do Brasil e Nubank e caixa da Avenue."
       - name: total_investido
         description: "Total das posições de investimento no mês - tudo fora de 'DISPONIBILIDADE'."
       - name: banco_do_brasil
@@ -427,7 +387,7 @@ models:
       - name: total_geral
         description: "Soma de total_investido e total_disponibilidades, equivalente à soma das colunas por instituição."
       - name: total_disponibilidades
-        description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): Bradesco, Nubank, cashback Nubank e Banco do Brasil da Deusa, mais o caixa da Avenue."
+        description: "Total do saldo em conta no mês (classe_ativo = 'DISPONIBILIDADE'): contas Bradesco, Nubank e Banco do Brasil, cashback Nubank e caixa da Avenue."
       - name: total_investido
         description: "Total das posições de investimento no mês - tudo fora de 'DISPONIBILIDADE'."
       - name: banco_do_brasil
@@ -435,39 +395,11 @@ models:
       - name: bradesco
         description: "Total do mês na instituição BRADESCO, em reais."
       - name: nubank
-        description: "Total do mês na instituição NUBANK (investimentos + cashback), em reais."
+        description: "Total do mês na instituição NUBANK, em reais."
       - name: avenue
         description: "Total do mês na Avenue convertido para reais."
       - name: vlr_liquido_usd
         description: "Saldo Avenue no mês na moeda original (USD), reproduzido de stg_assets e stg_dividends_interest; 0 quando não há posição. NÃO somar com as colunas em reais."
-      - name: model_run_at
-        description: "Início do dbt run que materializou o modelo."
-
-  - name: carteira_auditoria
-    description: >
-      Modelo de auditoria da carteira: para cada mês x pessoa, compara o total somado linha a
-      linha em carteira_lucas / carteira_jessica / carteira_deusa com o total_geral do
-      respectivo mart agregado. As duas rotas partem do mesmo mart base `carteira`, então `dif`
-      deve ser zero em todos os meses - diferente de zero
-      denuncia divergência entre o caminho detalhado e o agregado (pivot, filtro por pessoa
-      ou join do saldo em USD).
-      É INNER JOIN: mês x pessoa que exista em só um dos lados some da saída em vez de
-      aparecer como divergência.
-    columns:
-      - name: mes_base
-        description: "Primeiro dia do mês-base auditado."
-      - name: pessoa
-        description: "Titular auditado (deusa, jessica ou lucas)."
-      - name: total_carteira
-        description: "Soma de vlr_atualizado_brl das linhas do mart detalhado da pessoa no mês."
-      - name: total_carteira_agregada
-        description: "total_geral do mart agregado da pessoa no mês."
-      - name: dif
-        description: "total_carteira menos total_carteira_agregada. Esperado 0; qualquer outro valor é divergência a investigar."
-        data_tests:
-          - accepted_values:
-              arguments: 
-                values: [0]
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -499,7 +431,7 @@ models:
       - name: data_vencimento
         description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
+        description: "Moeda de origem do ativo (BRL ou USD)."
       - name: camada
         description: "Camada do ativo ou 'NAO CLASSIFICADO' se ainda não classificado - os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: investimentos e disponibilidades chegam todos como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
       - name: model_run_at
@@ -530,7 +462,7 @@ models:
       - name: data_vencimento
         description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
+        description: "Moeda de origem do ativo (BRL ou USD)."
       - name: vlr_atualizado_brl
         description: "Valor da posição em reais, para priorizar o que classificar primeiro."
       - name: model_run_at
@@ -626,17 +558,19 @@ models:
         description: "Variação MoM, em fração decimal, do patrimônio líquido de Lucas."
       - name: saldo_bradesco_lucas
         description: "Variação MoM, em fração decimal, do saldo Bradesco (Lucas)."
-      - name: saldo_bradesco_investimentos_lucas
+      - name: saldo_nubank_lucas
+        description: "Variação MoM, em fração decimal, do saldo em conta Nubank (Lucas)."
+      - name: bradesco_investimentos_lucas
         description: "Variação MoM, em fração decimal, dos investimentos Bradesco (Lucas)."
-      - name: saldo_nubank_investimentos_lucas
+      - name: nubank_investimentos_lucas
         description: "Variação MoM, em fração decimal, dos investimentos Nubank (Lucas)."
       - name: saldo_nubank_cashback_lucas
         description: "Variação MoM, em fração decimal, do cashback Nubank (Lucas)."
       - name: saldo_bitcoin_lucas
         description: "Variação MoM, em fração decimal, do saldo em bitcoin (Lucas)."
-      - name: saldo_daycoval_lucas
+      - name: daycoval_lucas
         description: "Variação MoM, em fração decimal, dos investimentos Daycoval (Lucas)."
-      - name: saldo_avenue_lucas
+      - name: avenue_lucas
         description: "Variação MoM, em fração decimal, do saldo Avenue (Lucas)."
       - name: saldo_wise_lucas
         description: "Variação MoM, em fração decimal, do saldo Wise (Lucas)."
@@ -644,74 +578,18 @@ models:
         description: "Variação MoM, em fração decimal, do patrimônio líquido de Jéssica."
       - name: saldo_banco_brasil_jessica
         description: "Variação MoM, em fração decimal, do saldo Banco do Brasil (Jéssica)."
-      - name: saldo_sofisa_investimentos_jessica
+      - name: saldo_nubank_jessica
+        description: "Variação MoM, em fração decimal, do saldo em conta Nubank (Jéssica)."
+      - name: sofisa_investimentos_jessica
         description: "Variação MoM, em fração decimal, dos investimentos Sofisa (Jéssica)."
-      - name: saldo_itau_investimentos_jessica
+      - name: itau_investimentos_jessica
         description: "Variação MoM, em fração decimal, dos investimentos Itaú (Jéssica)."
-      - name: saldo_nubank_investimentos_jessica
+      - name: nubank_investimentos_jessica
         description: "Variação MoM, em fração decimal, dos investimentos Nubank (Jéssica)."
-      - name: saldo_avenue_jessica
+      - name: avenue_jessica
         description: "Variação MoM, em fração decimal, do saldo Avenue (Jéssica)."
       - name: vlr_carro
         description: "Variação MoM, em fração decimal, do valor de mercado do carro."
-      - name: model_run_at
-        description: "Início do dbt run que materializou o modelo."
-
-  - name: patrimonio
-    description: >
-      Fotografia mensal do patrimônio do casal: um registro por mês-base, com o bruto e o líquido
-      totais, o líquido de cada titular e o saldo de cada conta/instituição, em reais. Vem de
-      stg_patrimonio, cuja origem é a planilha (raw.patrimonio) - é declarado manualmente,
-      não derivado das posições de carteira, e por isso pode divergir de carteira_lucas /
-      carteira_jessica em meses em que as duas fontes não fecharam juntas. Para variação use patrimonio_mom, que tem os
-      mesmos nomes de coluna com unidade diferente.
-    columns:
-      - name: mes_base
-        description: "Primeiro dia do mês-base de referência."
-      - name: mes_final
-        description: "Último dia do mês de referência."
-      - name: trimestre
-        description: "Trimestre do ano de referência."
-      - name: ano
-        description: "Ano de referência."
-      - name: fl_mes_atual
-        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_patrimonio."
-      - name: total_patrimonio_bruto
-        description: "Patrimônio bruto total do casal no mês."
-      - name: total_patrimonio_liquido
-        description: "Patrimônio líquido total do casal no mês."
-      - name: patrimonio_liquido_lucas
-        description: "Patrimônio líquido de Lucas no mês."
-      - name: saldo_bradesco_lucas
-        description: "Saldo em conta corrente Bradesco (Lucas)."
-      - name: saldo_bradesco_investimentos_lucas
-        description: "Saldo em investimentos Bradesco (Lucas)."
-      - name: saldo_nubank_investimentos_lucas
-        description: "Saldo em investimentos Nubank (Lucas)."
-      - name: saldo_nubank_cashback_lucas
-        description: "Saldo de cashback Nubank (Lucas)."
-      - name: saldo_bitcoin_lucas
-        description: "Saldo em bitcoin (Lucas)."
-      - name: saldo_daycoval_lucas
-        description: "Saldo em investimentos Daycoval (Lucas)."
-      - name: saldo_avenue_lucas
-        description: "Saldo na Avenue (Lucas)."
-      - name: saldo_wise_lucas
-        description: "Saldo na Wise (Lucas)."
-      - name: patrimonio_liquido_jessica
-        description: "Patrimônio líquido de Jéssica no mês."
-      - name: saldo_banco_brasil_jessica
-        description: "Saldo em conta Banco do Brasil (Jéssica)."
-      - name: saldo_sofisa_investimentos_jessica
-        description: "Saldo em investimentos Sofisa (Jéssica)."
-      - name: saldo_itau_investimentos_jessica
-        description: "Saldo em investimentos Itaú (Jéssica)."
-      - name: saldo_nubank_investimentos_jessica
-        description: "Saldo em investimentos Nubank (Jéssica)."
-      - name: saldo_avenue_jessica
-        description: "Saldo na Avenue (Jéssica)."
-      - name: vlr_carro
-        description: "Valor de mercado do carro segundo a tabela Fipe, em reais."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -766,8 +644,8 @@ models:
       variações MoM de patrimonio_mom, a partir de 2023-11) contra os índices acumulados de
       int_indexadores, classificando cada mês por indexador.
       Cobre DOIS patrimônios independentes: o do casal (com abertura de Lucas e Jéssica, vinda de
-      patrimonio_mom) e o de Deusa (vindo de patrimonio_deusa, que traz só o total
-      líquido - por isso ela não tem abertura por conta e não entra em marts_financas.patrimonio). São
+      patrimonio_mom) e o de Deusa (vindo de stg_patrimonio_deusa, do qual usa só o total
+      líquido - por isso ela não tem abertura por conta). São
       planilhas, carteiras e objetivos distintos: aparecem no mesmo modelo porque enfrentam o mesmo
       benchmark, e NUNCA devem ser somados.
       NÃO É RENTABILIDADE: o índice compõe a variação do patrimônio, que inclui os aportes do
@@ -796,7 +674,7 @@ models:
       - name: patrimonio_liquido_deusa_acum
         description: >
           Índice acumulado do patrimônio líquido de Deusa, composto via EXP(SUM(LN(1+variação MoM)))
-          a partir de patrimonio_deusa. Base própria, diferente da do casal - não compare
+          a partir de stg_patrimonio_deusa. Base própria, diferente da do casal - não compare
           nível, só variação dentro de uma janela. O join é LEFT: mês sem fechamento da planilha dela
           não derruba a linha do casal, e o índice repete o valor anterior.
       - name: minha_inflacao_acum

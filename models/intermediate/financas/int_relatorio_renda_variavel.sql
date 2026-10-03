@@ -14,7 +14,7 @@ avenue AS (
         symbol_cusip                                         AS codigo_ativo,
         (market_value::INT * vlr_usd)::INT                   AS vlr_atualizado_brl,
         moeda_ativo,
-        'AVENUE'                                             AS fonte_dado
+        'RELATORIO AVENUE'                                   AS fonte_dado
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -30,7 +30,7 @@ acoes AS (
         codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo,
-        'B3'   AS fonte_dado
+        'RELATORIO B3'   AS fonte_dado
     FROM {{ ref('stg_acoes') }}
 ),
 
@@ -43,7 +43,7 @@ bdr AS (
         codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo,
-        'B3'   AS fonte_dado
+        'RELATORIO B3'   AS fonte_dado
     FROM {{ ref('stg_bdr') }}
 ),
 
@@ -56,7 +56,7 @@ etf AS (
         codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo,
-        'B3'    AS fonte_dado
+        'RELATORIO B3'    AS fonte_dado
     FROM {{ ref('stg_etf') }}
 ),
 
@@ -69,7 +69,7 @@ fundos AS (
         codigo_ativo,
         vlr_atualizado_brl,
         moeda_ativo,
-        'B3'    AS fonte_dado
+        'RELATORIO B3'    AS fonte_dado
     FROM {{ ref('stg_fundos') }}
 ),
 

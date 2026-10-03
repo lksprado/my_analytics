@@ -409,8 +409,8 @@ reportadas separadamente.
 
 **Dois patrimônios, o mesmo benchmark.** `riqueza` acompanha o patrimônio do
 casal (com abertura de Lucas e Jéssica) e o de Deusa, que vem de outra planilha
-e entra pelo `patrimonio_deusa` — só o total líquido, sem abertura
-por conta, e por isso ela não aparece em `patrimonio`. São carteiras e
+e entra pelo `stg_patrimonio_deusa` — só o total líquido, sem abertura
+por conta. São carteiras e
 objetivos distintos: convivem no mesmo modelo porque enfrentam os mesmos
 indexadores, e **nunca devem ser somados** nem lidos como um patrimônio só.
 Convivem no modelo, mas não na página: o relatório de meio de mês dá a Deusa
@@ -426,8 +426,9 @@ grão de ativo, que é a única que dá instituição, classe e indexador. Os do
 totais deveriam bater e quase sempre batem — R$ 2 de diferença em 07/2026 —,
 mas já diferiram em R$ 60 mil em 12/2024. Quem exibe os dois na mesma página
 imprime a diferença junto; a variação do mês calculada sobre a carteira pode
-não ser a mesma calculada sobre o índice, e a diferença é posição não lançada
-em uma das duas, não erro de conta.
+não ser a mesma calculada sobre o índice. Os investimentos da carteira vêm de
+relatórios e seeds, e `investimentos_faltantes_identificados` aponta, no último
+mês, o investimento declarado na planilha que ainda falta cadastrar na seed.
 
 Três armadilhas do índice, nesta ordem de importância:
 
@@ -464,7 +465,7 @@ um número parece estar faltando.
 | `consumo` | **diário** | contínuo, ~D+1 | Lançado à mão na planilha, quase todo dia |
 | `resultado` | mensal | primeiros dias do mês seguinte | Fecha quando o último lançamento do mês entra |
 | `luz` | mensal | com a chegada da fatura | |
-| `patrimonio`, `patrimonio_mom` | mensal | fechamento manual da planilha | |
+| `patrimonio_mom` | mensal | fechamento manual da planilha | |
 | `carteira_*`, `dividendos` | mensal | cadência própria da B3 e da Avenue | Costuma vir **1 mês atrás** do DRE; `defasagem_carteira_meses` reporta |
 | `indicadores`, `riqueza` | mensal | **~dia 10 do mês seguinte, ou depois** | O IPCA é publicado pelo IBGE por volta do dia 10 e só então é digitado na planilha |
 
@@ -552,35 +553,38 @@ calendário — ver `ciclo_fatura`. É o que torna dois meses comparáveis dia a
 
 {% docs fonte_dado %}
 
-**Procedência da linha** — de qual extração veio o valor da posição.
+**Procedência da linha** — de qual trilha veio o valor da posição.
 
-A carteira é uma união de fontes que não têm a mesma confiabilidade nem a mesma
-cadência de atualização, e depois do `UNION ALL` isso ficava indistinguível.
-`fonte_dado` é atribuído no CTE-folha de cada ramo, onde a origem ainda é
-conhecida, e viaja intacto por `int_renda_variavel` / `int_renda_fixa_incompleta`
-/ `int_renda_fixa_loop` / `int_disponibilidades_isoladas` →
-`int_ativos_consolidados` → `marts_financas.carteira` e seus recortes por pessoa.
+A carteira tem três origens com confiabilidade e cadência diferentes. Relatório e seed correm em
+trilhas separadas no intermediate e se juntam em `int_investimentos_consolidados`; os saldos da
+planilha entram direto na `carteira`:
 
-| Valor | Origem | Modelos de staging |
+| Trilha | Modelos | Conteúdo |
 |---|---|---|
-| `B3` | Relatório da B3 (CEI) | `stg_acoes`, `stg_bdr`, `stg_etf`, `stg_fundos`, `stg_renda_fixa`, `stg_tesouro_direto` |
-| `AVENUE` | Extrato da Avenue (broker no exterior) | `stg_assets` |
-| `PLANILHA GOOGLE` | Aba de patrimônio da planilha | `stg_patrimonio`, `stg_patrimonio_deusa` |
-| `SEED` | Seeds de investimentos faltantes, cadastradas à mão | `stg_investimentos_faltantes_lucas` / `_jessica` / `_deusa` |
+| Relatório | `int_relatorio_renda_fixa`, `int_relatorio_renda_variavel`, `int_relatorio_disponibilidades` → `int_relatorio_unificado` | Só o que a B3 e a Avenue extraem |
+| Seed | `int_investimentos_faltantes_unificados` | Produto real que nenhum relatório traz, cadastrado à mão |
+| Planilha | `stg_patrimonio`, `stg_patrimonio_deusa` → CTE `saldos` da `carteira` | Conta corrente, cashback, Wise e bitcoin declarados na planilha |
 
-Duas leituras que a coluna habilita e antes exigiam abrir o SQL:
+Os investimentos declarados na planilha (`int_planilha_investimentos_selecionados`) não entram na
+carteira: servem de referência para `investimentos_faltantes_identificados`, que compara o investimento
+declarado por instituição com o relatório e mostra o que falta na seed.
 
-1. **Quanto da carteira é digitado à mão.** `SEED` e `PLANILHA GOOGLE` são
-   cadastro manual — não se atualizam sozinhos e envelhecem em silêncio. São eles
-   que explicam boa parte da divergência entre `marts_financas.carteira_deusa` e
-   `marts_financas.patrimonio_deusa` (as seeds itemizadas e a Avenue, que não tem coluna
-   na planilha dela).
-2. **O que se perde se uma extração falhar.** Um mês sem linhas `B3` ou sem
-   linhas `AVENUE` é uma extração que não rodou, não um resgate.
+| Valor | Origem |
+|---|---|
+| `RELATORIO B3` | Relatório da B3 (CEI) |
+| `RELATORIO AVENUE` | Extrato da Avenue (broker no exterior), inclusive o caixa em conta |
+| `SEED` | `seed_investimentos_faltantes_*`, cadastro manual de produto real |
+| `GOOGLE SHEETS` | Saldos em conta, cashback, Wise e bitcoin declarados na planilha |
 
-Cuidado com um caso: em `int_renda_variavel` a coluna entra no `GROUP BY` junto
-com pessoa, instituição e ativo. Hoje isso não muda o grão, porque cada
-instituição tem uma fonte só — B3 e Avenue nunca custodiam o mesmo ativo do mesmo
-titular. Se um dia custodiarem, a mesma posição passa a aparecer em duas linhas.
+Duas leituras que a coluna habilita:
+
+1. **Quanto da carteira é manual.** `SEED` e `GOOGLE SHEETS` não se atualizam sozinhos e envelhecem em silêncio.
+2. **O que se perde se uma extração falhar.** Um mês sem linhas `RELATORIO B3` ou `RELATORIO AVENUE`
+   é uma extração que não rodou, não um resgate.
+
+Cuidado com um caso: em `int_relatorio_renda_variavel` a coluna entra no `GROUP BY` junto com pessoa,
+instituição e ativo. Hoje isso não muda o grão, porque cada instituição tem uma fonte só: B3 e Avenue
+nunca custodiam o mesmo ativo do mesmo titular. Se um dia custodiarem, a mesma posição passa a
+aparecer em duas linhas.
 
 {% enddocs %}

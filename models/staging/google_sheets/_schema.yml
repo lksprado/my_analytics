@@ -14,17 +14,19 @@ models:
         description: "Patrimônio líquido de Lucas no mês, em reais."
       - name: saldo_bradesco_lucas
         description: "Saldo em conta corrente Bradesco (Lucas)."
-      - name: saldo_bradesco_investimentos_lucas
+      - name: saldo_nubank_lucas
+        description: "Saldo em conta corrente Nubank (Lucas)."
+      - name: bradesco_investimentos_lucas
         description: "Saldo em investimentos Bradesco (Lucas)."
-      - name: saldo_nubank_investimentos_lucas
+      - name: nubank_investimentos_lucas
         description: "Saldo em investimentos Nubank (Lucas)."
       - name: saldo_nubank_cashback_lucas
         description: "Saldo de cashback Nubank (Lucas)."
       - name: saldo_bitcoin_lucas
         description: "Saldo em bitcoin (Lucas)."
-      - name: saldo_daycoval_lucas
+      - name: daycoval_lucas
         description: "Saldo em investimentos Daycoval (Lucas)."
-      - name: saldo_avenue_lucas
+      - name: avenue_lucas
         description: "Saldo na Avenue (Lucas)."
       - name: saldo_wise_lucas
         description: "Saldo na Wise (Lucas)."
@@ -32,13 +34,15 @@ models:
         description: "Patrimônio líquido de Jéssica no mês, em reais."
       - name: saldo_banco_brasil_jessica
         description: "Saldo em conta Banco do Brasil (Jéssica)."
-      - name: saldo_sofisa_investimentos_jessica
+      - name: saldo_nubank_jessica
+        description: "Saldo em conta corrente Nubank (Jéssica)."
+      - name: sofisa_investimentos_jessica
         description: "Saldo em investimentos Sofisa (Jéssica)."
-      - name: saldo_itau_investimentos_jessica
+      - name: itau_investimentos_jessica
         description: "Saldo em investimentos Itaú (Jéssica)."
-      - name: saldo_nubank_investimentos_jessica
+      - name: nubank_investimentos_jessica
         description: "Saldo em investimentos Nubank (Jéssica)."
-      - name: saldo_avenue_jessica
+      - name: avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
       - name: vlr_carro
         description: "Valor de mercado do carro segundo a Fipe"
@@ -74,18 +78,20 @@ models:
         description: "Patrimônio líquido total do casal no mês"
       - name: saldo_banco_brasil_deusa
         description: "Saldo em conta corrente de Deusa no mês"
-      - name: saldo_banco_brasil_investimentos_deusa
+      - name: banco_brasil_investimentos_deusa
         description: "Saldo em investimentos Banco do Brasil."
       - name: saldo_bradesco_deusa
         description: "Saldo em conta corrente Bradesco"
-      - name: saldo_bradesco_investimentos_deusa
+      - name: bradesco_investimentos_deusa
         description: "Saldo em investimentos Bradesco"
       - name: saldo_nubank_deusa
         description: "Saldo em conta corrente"
-      - name: saldo_nubank_investimentos_deusa
+      - name: nubank_investimentos_deusa
         description: "Saldo em investimentos"
       - name: saldo_nubank_cashback_deusa
         description: "Saldo de cashback"
+      - name: avenue_deusa
+        description: "Saldo na Avenue (Deusa)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
