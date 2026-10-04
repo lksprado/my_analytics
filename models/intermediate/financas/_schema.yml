@@ -4,8 +4,8 @@ models:
 
   - name: int_investimentos_consolidados
     description: >
-      Ponto único de consolidação da carteira: uma linha por posição de Lucas, Jéssica e Deusa por mês,
-      unindo a trilha relatório e a trilha seed.
+      Uma linha por posição (mês, titular, instituição e ativo), unindo a trilha relatório e a trilha
+      seed.
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -16,33 +16,33 @@ models:
               - codigo_ativo
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: emissor
-        description: "Instituição emissora do título."
+        description: "Instituição emissora do título (só renda fixa)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
-        description: "Indexador de rentabilidade do título."
+        description: "Indexador de rentabilidade (só renda fixa)."
       - name: data_vencimento
-        description: "Data de vencimento do título."
+        description: "Data de vencimento do título (só renda fixa)."
       - name: vencimento_em_dias
-        description: "Dias restantes até o vencimento; nulo se já vencido ou sem vencimento."
+        description: "Dias até o vencimento; nulo se vencido ou sem vencimento."
       - name: fl_vencido
         description: "Indica se o título já venceu."
       - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE ou SEED). {{ doc('fonte_dado') }}"
       - name: model_run_at
@@ -50,8 +50,8 @@ models:
 
   - name: int_relatorio_unificado
     description: >
-      Trilha relatório: todas as posições extraídas dos relatórios da B3 e da Avenue (renda fixa, renda
-      variável e caixa), sem planilha nem seed. Uma linha por posição, pessoa e mês.
+      Trilha relatório: posições dos relatórios da B3 e da Avenue (renda fixa, renda variável e caixa),
+      uma linha por posição, pessoa e mês.
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -62,33 +62,33 @@ models:
               - codigo_ativo
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: emissor
-        description: "Instituição emissora do título."
+        description: "Instituição emissora do título (só renda fixa)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
-        description: "Indexador de rentabilidade do título."
+        description: "Indexador de rentabilidade (só renda fixa)."
       - name: data_vencimento
-        description: "Data de vencimento do título."
+        description: "Data de vencimento do título (só renda fixa)."
       - name: vencimento_em_dias
-        description: "Dias restantes até o vencimento; nulo se já vencido ou sem vencimento."
+        description: "Dias até o vencimento; nulo se vencido ou sem vencimento."
       - name: fl_vencido
         description: "Indica se o título já venceu."
       - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
       - name: model_run_at
@@ -96,38 +96,38 @@ models:
 
   - name: int_relatorio_renda_fixa
     description: >
-      Trilha relatório: as posições em renda fixa da B3 (títulos privados e tesouro direto) e da Avenue.
+      Trilha relatório: posições em renda fixa da B3 (títulos privados e Tesouro Direto) e da Avenue.
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: emissor
-        description: "Instituição emissora do título."
+        description: "Instituição emissora do título (só renda fixa)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
-        description: "Indexador de rentabilidade do título."
+        description: "Indexador de rentabilidade (só renda fixa)."
       - name: data_emissao
         description: "Data de emissão do título."
       - name: data_vencimento
-        description: "Data de vencimento do título."
+        description: "Data de vencimento do título (só renda fixa)."
       - name: vencimento_em_dias
-        description: "Dias restantes até o vencimento; nulo se já vencido ou sem vencimento."
+        description: "Dias até o vencimento; nulo se vencido ou sem vencimento."
       - name: fl_vencido
         description: "Indica se o título já venceu."
       - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
       - name: model_run_at
@@ -135,27 +135,26 @@ models:
 
   - name: int_relatorio_renda_variavel
     description: >
-      Trilha relatório: as posições em renda variável da B3 (ações, BDRs, ETFs, fundos) e as equities da
-      Avenue.
+      Trilha relatório: posições em renda variável da B3 (ações, BDRs, ETFs e fundos) e da Avenue.
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
       - name: model_run_at
@@ -163,26 +162,26 @@ models:
 
   - name: int_relatorio_disponibilidades
     description: >
-      Trilha relatório: o saldo em conta na Avenue, por pessoa e mês.
+      Trilha relatório: saldo em conta na Avenue, por pessoa e mês.
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
       - name: model_run_at
@@ -190,39 +189,38 @@ models:
 
   - name: int_investimentos_faltantes_unificados
     description: >
-      Trilha seed: posições reais que nenhum relatório traz, cadastradas à mão nas seeds de
-      investimentos faltantes de cada titular.
+      Trilha seed: posições reais que nenhum relatório traz, cadastradas à mão por titular.
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: emissor
-        description: "Instituição emissora do título."
+        description: "Instituição emissora do título (só renda fixa)."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
         description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
-        description: "Código do ativo na fonte (ticker B3, ISIN do tesouro, CUSIP da Avenue ou código da seed)."
+        description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código da seed)."
       - name: ativo
         description: "Nome do ativo."
       - name: indexador
-        description: "Indexador de rentabilidade do título."
+        description: "Indexador de rentabilidade (só renda fixa)."
       - name: data_emissao
         description: "Data de emissão do título."
       - name: data_vencimento
-        description: "Data de vencimento do título."
+        description: "Data de vencimento do título (só renda fixa)."
       - name: vencimento_em_dias
-        description: "Dias restantes até o vencimento; nulo se já vencido ou sem vencimento."
+        description: "Dias até o vencimento; nulo se vencido ou sem vencimento."
       - name: fl_vencido
         description: "Indica se o título já venceu."
       - name: vlr_atualizado_brl
-        description: "Valor atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
         description: "Procedência da linha (SEED). {{ doc('fonte_dado') }}"
       - name: model_run_at
@@ -276,11 +274,11 @@ models:
               - instituicao
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: vlr_declarado_brl
         description: "Saldo declarado na planilha, em reais."
       - name: fonte_dado
@@ -288,40 +286,38 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
-
   - name: int_dividendos
     description: >
-      A renda passiva recebida por Lucas, Jéssica e Deusa mês a mês: proventos da B3, exceto juros,
-      e dividendos da Avenue.
+      Renda passiva por titular e mês: proventos da B3, exceto juros, e dividendos da Avenue.
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base do recebimento."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: instituicao
-        description: "Corretora, banco ou custodiante da posição, com nome padronizado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: vlr_liquido_brl
-        description: "Valor líquido recebido no mês, em reais."
+        description: "Proventos líquidos recebidos no mês, em reais."
       - name: moeda_ativo
-        description: "Moeda de origem do ativo."
+        description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: int_indexadores
     description: >
-      Os indexadores macroeconômicos mensais que servem de referência de comparação para o
-      patrimônio: inflação pessoal, IPCA, IGP-M, Selic e CDI, na taxa do mês e no índice acumulado.
+      Indexadores mensais (inflação pessoal, IPCA, IGP-M, Selic e CDI), com a taxa do mês e o índice
+      acumulado.
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base de referência."
+        description: "Primeiro dia do mês-base."
       - name: minha_inflacao
-        description: "Inflação pessoal do mês, em fração decimal."
+        description: "Inflação pessoal do mês (cesta própria), em fração decimal."
       - name: ipca
         description: "IPCA do mês, em fração decimal."
       - name: igpm
         description: "IGP-M do mês, em fração decimal."
       - name: selic
-        description: "Taxa Selic do mês, em fração decimal."
+        description: "Selic do mês, em fração decimal."
       - name: cdi
         description: "CDI do mês, em fração decimal."
       - name: minha_inflacao_acum
@@ -339,24 +335,25 @@ models:
 
   - name: int_consumo_consolidado
     description: >
-      Cada despesa lançada por Lucas e Jéssica, no dia em que aconteceu, com o valor distribuído
-      pelas colunas de categoria.
-      {{ doc('ciclo_fatura') }}
+      Uma linha por despesa de Lucas e Jéssica, na data do lançamento, com o valor na coluna da
+      categoria.
     columns:
       - name: mes_fatura
-        description: "Primeiro dia do mês da fatura de referência."
+        description: "Primeiro dia do mês da fatura."
       - name: mes_debito
-        description: "Primeiro dia do mês de débito/competência."
+        description: >
+          Primeiro dia do mês de competência.
+          {{ doc('ciclo_fatura') }}
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas ou jessica)."
       - name: data_debito
         description: "Data do lançamento da despesa."
       - name: nome_dia
-        description: "Nome do dia da semana da despesa, em maiúsculas."
+        description: "Nome do dia da semana, em maiúsculas."
       - name: dia_ajustado
-        description: "Dia da despesa dentro do ciclo da fatura."
+        description: "Dia dentro do ciclo de fatura."
       - name: dia_real
-        description: "Dia do calendário em que a despesa aconteceu."
+        description: "Dia real do calendário."
       - name: mercado
         description: '{{ doc("categoria_mercado") }}'
       - name: diversos
@@ -378,24 +375,25 @@ models:
 
   - name: int_dre_consolidado
     description: >
-      O resultado mensal de Lucas e Jéssica: quanto entrou, quanto saiu por categoria e o que
-      sobrou, já com o ajuste de fechamento aplicado.
-      {{ doc('ciclo_fatura') }}
+      Resultado mensal por titular (Lucas e Jéssica): receita por origem, despesa por categoria, ajuste
+      e resultado.
     columns:
       - name: mes_fatura
-        description: "Primeiro dia do mês da fatura de referência."
+        description: "Primeiro dia do mês da fatura."
       - name: mes_debito
-        description: "Primeiro dia do mês de débito/competência."
+        description: >
+          Primeiro dia do mês de competência.
+          {{ doc('ciclo_fatura') }}
       - name: pessoa
-        description: "Titular (deusa, jessica ou lucas)."
+        description: "Titular (lucas ou jessica)."
       - name: salario
-        description: "Receita de salário no mês."
+        description: "Receita de salário no mês, em reais."
       - name: dividendos
-        description: "Receita de dividendos no mês."
+        description: "Receita de dividendos no mês, em reais."
       - name: outros
-        description: "Outras receitas no mês."
+        description: "Outras receitas no mês, em reais."
       - name: receita_total
-        description: "Receita total do mês."
+        description: "Receita total do mês, em reais."
       - name: ajuste_realizado
         description: '{{ doc("ajuste") }}'
       - name: mercado
@@ -415,8 +413,8 @@ models:
       - name: educacao
         description: '{{ doc("categoria_educacao") }}'
       - name: despesas_total
-        description: "Despesa total do mês."
+        description: "Despesa total do mês, em reais."
       - name: resultado
-        description: "Resultado do mês (receita total menos despesa total)."
+        description: "Receita total menos despesa total do mês, em reais."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."

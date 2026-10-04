@@ -1,553 +1,260 @@
 {#
-  ============================================================================
-  Dicionário semântico do domínio FINANÇAS.
+  Regras de interpretação do domínio FINANÇAS. Fonte única: categorias de gasto, camadas de
+  investimento, política de investimento e armadilhas de leitura do dado.
 
-  Este arquivo é a FONTE ÚNICA de verdade sobre:
-    1. o que cada categoria de gasto engloba;
-    2. o que significa cada camada de investimento;
-    3. a política de investimento (aporte, alocação-alvo, metas e limites);
-    4. demais conhecimentos que auxiliem calcular e interpretar os dados
+  Quem lê: `dbt docs` (via `doc()` no `_schema.yml`), as skills `/relatorio-financas` e
+  `/relatorio-meio-mes`, e `scripts/relatorios/politica.py`, que extrai daqui os parâmetros e o
+  glossário dos PDFs. Por isso não renomeie os títulos `###` nem as colunas das tabelas da
+  política, e mantenha as linhas `Entra:` / `Não entra:` e `` `CAMADA` — `` em uma linha só.
+  Fato novo é uma linha em `fatos_relevantes`; revise a tabela a cada fechamento. #}
 
-  FATOS RELEVANTES — cada categoria de gasto tem, no fim do seu bloco, uma
-  subseção `Fatos relevantes`: eventos datados, fora da rotina, que explicam
-  variação brusca e não existem em nenhum campo do dado. Uma linha por fato:
+{% docs fatos_relevantes %}
 
-      - <período> — <justificativa breve>, <ordem de grandeza> (<status>).
+**Fatos relevantes** — eventos datados, fora da rotina, que explicam variação brusca e não estão no dado.
 
-  Status é `previsto` (pode não acontecer), ou `realizado` (ocorreu; anote o valor efetivo). Previsão e fato
-  consumado convivem na mesma lista — quando a previsão se realiza muda só o
-  status, não o lugar. Fato nenhum altera número: altera a leitura do número.
-  Revise a cada fechamento e apague o que já não explica nada.
+| Período | Categoria | Fato | Valor (R$) | Status |
+| --- | --- | --- | --- | --- |
+| 05/2026 | educacao | Festa do Livro UNESP, 50% de desconto | ~900 | realizado |
+| 08/2026 | role, diversos | Viagem a Ouro Preto (06 a 11/08) | ~15.000 | realizado |
+| 09/2026 | saude | Transplante capilar de Lucas, parcela 1/2 | 11.000 | realizado |
+| 10/2026 | saude | Transplante capilar de Lucas, parcela 2/2 | 11.000 | realizado |
+| 10-11/2026 | transporte | Troca de carro | ~15.000 | previsto |
 
-  É lido em três lugares:
-    - pelo `dbt docs generate` (os blocos `{% docs %}` abaixo são referenciados
-      em `_schema.yml` via `{{ doc('...') }}`);
-    - pelas skills `/relatorio-financas` (fechamento do mês anterior) e
-      `/relatorio-meio-mes` (acompanhamento do mês em andamento), que usam
-      estas definições para escrever diagnóstico e recomendações;
-    - por `scripts/relatorios/politica.py`, cópia resumida deste arquivo em
-      Python — `TEXTO_CATEGORIA`, `TEXTO_CAMADA`, `ALVOS_CAMADA`,
-      `APORTE_ALVO`, `META_RESERVA_*`, `META_POUPANCA_PCT` — que vai impressa
-      nos PDFs. É UMA cópia, compartilhada pelos dois relatórios; não crie uma
-      terceira.
+- Status é `previsto` ou `realizado`; quando o previsto acontece, troque o status e anote o valor efetivo.
+- Fato muda a leitura, não o número: nada sai de média, mediana ou reserva-alvo. Desvio até o valor
+  declarado é execução de plano; só o excedente pede explicação.
+- Fato pago com a `RESERVA` de alguém: a calibragem da carteira usa a reserva menos o compromisso, e a
+  queda no mês da saída não é desenquadramento.
 
-  Ao mudar uma regra de classificação de gasto ou de camada, edite AQUI —
-  não no schema.yml e não nas skills. Depois propague para
-  `scripts/relatorios/politica.py`: ele não lê este arquivo, e já divergiu dele.
-
-  ============================================================================
-#}
-
+{% enddocs %}
 
 {% docs categoria_mercado %}
 
 **Mercado** — abastecimento da casa.
 
-Entra: supermercado, hortifruti, feira, marmitas fit, açougue, peixaria, padaria (compra de despensa),
-bebidas para consumo em casa, produtos de limpeza, higiene pessoal e itens de
-uso doméstico não duráveis.
+Entra: supermercado, hortifruti, feira, marmitas fit, açougue, peixaria, padaria (compra de despensa), bebidas para consumo em casa, produtos de limpeza, higiene pessoal e itens domésticos não duráveis.
 
-Não entra: refeição consumida fora de casa ou delivery (→ `role`); medicamento
-e farmácia (→ `saude`); utensílios, móvel ou eletrodomésticos (→ `apartamento` / `diversos`).
+Não entra: refeição fora de casa ou delivery (→ `role`), farmácia (→ `saude`), utensílios, móveis e eletrodomésticos (→ `apartamento` / `diversos`).
 
-Natureza: variável, essencial. É o principal item de despesa compressível do
-orçamento — variações relevantes mês a mês costumam ser volume de compra, não
-preço.
-
-Fatos relevantes: nenhum registrado.
+Natureza: variável, essencial. Principal despesa compressível; variação mês a mês costuma ser volume de compra, não preço.
 
 {% enddocs %}
-
 
 {% docs categoria_diversos %}
 
 **Diversos** — categoria residual.
 
-Entra: vestuário e calçado, presentes, eletrônicos e acessórios pessoais, objetos
-domésticos, imprevistos, clube de tiro, charutos, salão de beleza, e qualquer lançamento que não
-caiba nas demais categorias.
+Entra: vestuário e calçado, presentes, eletrônicos e acessórios pessoais, objetos domésticos, imprevistos, clube de tiro, charutos, salão de beleza e o que não couber nas demais.
 
-Não entra: nada que tenha categoria própria. Se um tipo de gasto aparece em
-`diversos` de forma recorrente e que não pode ser eliminado então ele deixou de ser residual e merece categoria
-nova.
+Não entra: nada que tenha categoria própria.
 
-Natureza: variável, majoritariamente discricionário. Flags `fl_data_especial`e `fl_mes_especial` podem sinalizar
-picos desse gasto.
-
-Sinal de alerta: `diversos` acima de ~20% da despesa total do mês indica abuso de compras desnecessárias.
-Relatório deve focar nessa categoria para redução de gastos.
-
-Fatos relevantes:
-- **06/08/2026 - 11/08/2026** — Viagem à Ouro Preto (Evento realizado)
+Natureza: variável, discricionário. Acima de ~20% da despesa do mês indica abuso de compras desnecessárias e é onde o relatório concentra as sugestões de corte. Gasto que aparece aqui todo mês merece categoria própria. `fl_data_especial` e `fl_mes_especial` explicam picos.
 
 {% enddocs %}
-
 
 {% docs categoria_assinaturas %}
 
 **Assinaturas** — serviços recorrentes de cobrança automática.
 
-Entra: streaming de vídeo e música, armazenamento em nuvem, licenças de
-software, telefonia móvel, academia e clubes com mensalidade, jornais e
-revistas, quaisquer serviços com renovação automática.
+Entra: streaming de vídeo e música, nuvem, licenças de software, telefonia móvel, academia e clubes com mensalidade, jornais e revistas.
 
-Não entra: internet fixa do apartamento (→ `apartamento`); plano de saúde
-(→ `saude`); mensalidade de curso (→ `educacao`).
+Não entra: internet fixa (→ `apartamento`), plano de saúde (→ `saude`), mensalidade de curso (→ `educacao`).
 
-Natureza: fixa, discricionário na maior parte. É a categoria com maior razão
-entre facilidade de corte e esforço — cancelamento é decisão única com efeito
-permanente, ao contrário de `mercado` ou `role`, que exigem disciplina mensal.
-
-Fatos relevantes: nenhum registrado.
+Natureza: fixa, discricionário. O corte mais fácil: cancelar é uma decisão só, com efeito permanente.
 
 {% enddocs %}
-
 
 {% docs categoria_role %}
 
 **Rolê** — lazer e consumo fora de casa.
 
-Entra: bares e restaurantes, delivery e aplicativos de comida, cafés, cinema,
-shows, eventos, viagens (hospedagem, aluguel de veículos, passeios), 
-compras de mercado exclusivamente para eventos, hobbies e lazer em geral.
+Entra: bares e restaurantes, delivery e aplicativos de comida, cafés, cinema, shows, eventos, viagens (hospedagem, aluguel de veículo, passeios), compras de mercado só para eventos e hobbies.
 
-Não entra: transporte terrestre usado para chegar ao rolê (→ `transporte`), exceto aluguel de veículos;
+Não entra: transporte para chegar ao rolê (→ `transporte`), exceto aluguel de veículo.
 
-Natureza: variável, discricionário. É o item que mais responde a decisão
-consciente no curto prazo e o primeiro a ser revisto quando o resultado do mês
-fica abaixo da meta de poupança. Flags `fl_data_especial`e `fl_mes_especial` podem sinalizar
-picos desse gasto.
-
-Fatos relevantes:
-- **06/08/2026 - 11/08/2026** — Viagem à Ouro Preto (Evento realizado)
+Natureza: variável, discricionário. O gasto que mais depende de escolha no dia a dia e o primeiro a rever quando a poupança fica abaixo da meta. `fl_data_especial` e `fl_mes_especial` explicam picos.
 
 {% enddocs %}
-
 
 {% docs categoria_transporte %}
 
 **Transporte** — deslocamento.
 
-Entra: combustível, aplicativos de transporte, transporte público,
-estacionamento, pedágio, manutenção e revisão do veículo, seguro do veículo,
-IPVA e licenciamento.
+Entra: combustível, aplicativos de transporte, transporte público, estacionamento, pedágio, manutenção e revisão, seguro, IPVA e licenciamento.
 
 Não entra: viagem de lazer com hospedagem (→ `role`).
 
-Natureza: mista — combustível e aplicativos são variáveis; seguro, IPVA e
-licenciamento são fixos anuais e concentram-se em poucos meses, o que distorce
-a comparação mês a mês. O relatório deve tratar picos de `transporte` como
-sazonalidade antes de tratá-los como descontrole.
-
-Fatos relevantes:
-
-- **ago–set/2026** — troca de carro, ~R$ 15.000 (Evento previsto).
+Natureza: mista. Seguro, IPVA e licenciamento concentram-se em poucos meses: compare com o mesmo mês do ano anterior antes de chamar pico de descontrole.
 
 {% enddocs %}
-
 
 {% docs categoria_apartamento %}
 
-**Apartamento** — moradia e sua manutenção.
+**Apartamento** — moradia e manutenção.
 
-Entra: Condomínio, IPTU, energia elétrica, internet fixa, móveis, reformas e reparos.
+Entra: condomínio, IPTU, energia elétrica, internet fixa, móveis, reformas e reparos.
 
-Não entra: produtos de limpeza e itens de consumo da casa (→ `mercado`).
+Não entra: produtos de limpeza e consumo da casa (→ `mercado`).
 
-Natureza: fixa e essencial em quase toda a sua composição — é o piso do
-orçamento. Móveis e reformas são exceções: são investimentos pontuais em bem
-durável e devem ser lidos separadamente da despesa corrente de moradia.
-
-Referência cruzada: a conta de energia tem detalhamento próprio no mart `luz`
-(valor, kWh, consumo diário e preço por kWh), útil para separar aumento de
-tarifa de aumento de consumo. `luz` **detalha uma parcela de `apartamento`** —
-não é uma nona categoria e nunca deve ser somada a ela.
-
-Fatos relevantes: nenhum registrado.
+Natureza: fixa, essencial; é o piso do orçamento. Móveis e reformas são pontuais e se leem à parte. O mart `luz` detalha a energia (kWh, preço por kWh) e é parcela de `apartamento`: nunca some os dois.
 
 {% enddocs %}
-
 
 {% docs categoria_saude %}
 
 **Saúde** — saúde física e mental.
 
-Entra: plano de saúde, consultas, exames, procedimentos, odontologia, terapia,
-farmácia e medicamentos.
+Entra: plano de saúde, consultas, exames, procedimentos, odontologia, terapia, farmácia e medicamentos.
 
 Não entra: academia (→ `assinaturas`).
 
-Natureza: mista — plano de saúde é fixo e essencial; o restante é variável e
-não compressível. Nunca deve ser objeto de recomendação de corte: quando
-`saude` sobe, o relatório reporta e explica, não sugere reduzir.
-
-Fatos relevantes:
-
-- **set–dez/2026** — transplante capilar de Lucas, ~R$ 25.000 (evento previsto). Sai da
-  `RESERVA` dele, ainda que a despesa seja lançada no casal.
-- **até out/2026** — sobreposição do plano de saúde da empresa com o particular,
-  ~R$ 650/mês adicional (evento previsto) descontado em folha de pagamento a partir de Set/2026. 
-  Quando encerrar, a queda de `saude` não é mérito de contenção de gasto.
+Natureza: mista, não compressível. Nunca entra em sugestão de corte: quando sobe, o relatório reporta e explica.
 
 {% enddocs %}
-
 
 {% docs categoria_educacao %}
 
 **Educação** — formação e desenvolvimento.
 
-Entra: cursos, graduação e pós-graduação, certificações, livros, material
-didático e plataformas de ensino.
+Entra: cursos, graduação e pós-graduação, certificações, livros, material didático e plataformas de ensino.
 
-Não entra: assinatura de plataforma de conteúdo genérico (→ `assinaturas`);
+Não entra: plataforma de conteúdo genérico (→ `assinaturas`).
 
-Natureza: variável, discricionário no curto prazo mas com retorno esperado no
-longo prazo. Deve ser tratado no relatório como investimento em capital humano,
-não como consumo — não entra nas sugestões de corte por padrão.
-
-Fatos relevantes:
-- **Maio/2026** Festa do Livro UNESP 50% desconto (Evento realizado).
+Natureza: variável. Investimento em capital humano: nunca entra em sugestão de corte.
 
 {% enddocs %}
 
 {% docs ajuste %}
 
-**Ajuste Realizado** — Equilíbrio de despesas conjuntas.
+**Ajuste realizado** — compensação mensal das despesas conjuntas.
 
-Lucas centraliza o pagamento das despesas compartilhadas; a Jéssica compensa
-mensalmente para que cada um arque com uma parcela proporcional à sua renda. O
-valor da compensação já desconta as despesas individuais do Lucas.
+Lucas paga as despesas compartilhadas e Jéssica compensa para que cada um arque com parcela proporcional à renda, já descontadas as despesas individuais de Lucas. Positivo é o que Jéssica transferiu a Lucas no mês.
 
-**Sinal:** positivo é o valor que a Jéssica transferiu ao Lucas no mês — crédito
-para ele, débito para ela.
-
-**Fora do DRE:** o ajuste **não** está dentro de `total_receita` nem de
-`total_despesas` — é lançado depois do registro das movimentações e aparece ao
-lado delas apenas como referência de análise. Somá-lo à receita conta o mesmo
-dinheiro duas vezes. Os saldos de conta corrente, esses sim, já o refletem.
+Fica fora de `total_receita` e `total_despesas`: somá-lo à receita conta o mesmo dinheiro duas vezes. Os saldos de conta corrente já o refletem.
 
 {% enddocs %}
-
 
 {% docs ciclo_fatura %}
 
-**Ciclo de fatura** — por que existem duas datas para o mesmo gasto.
-
-Uma despesa no cartão é paga num mês e pertence a outro. O domínio guarda os
-dois, e confundi-los troca o mês inteiro de lugar:
+**Ciclo de fatura** — duas datas para o mesmo gasto.
 
 | Campo | O que é |
-|---|---|
-| `mes_debito` | **Mês de competência** — a que mês o gasto pertence. É a chave de todas as análises: DRE, gasto por categoria, resultado, taxa de poupança. |
-| `mes_fatura` | Mês da fatura em que a despesa foi efetivamente cobrada. Serve para conciliar com o extrato do cartão, não para analisar comportamento. |
+| --- | --- |
+| `mes_debito` | **Mês de competência**, chave de toda análise (DRE, categoria, resultado, poupança). |
+| `mes_fatura` | Mês da fatura que cobrou a despesa; só para conciliar com o extrato do cartão. |
 | `dia_real` | Dia do calendário em que o gasto ocorreu. |
-| `dia_ajustado` | O mesmo dia deslocado para a posição que ocupa dentro do ciclo de fatura, para que gastos de ciclos diferentes sejam comparáveis dia a dia. |
+| `dia_ajustado` | Posição do dia dentro do ciclo de fatura; torna meses comparáveis dia a dia. |
 
-O dia de fechamento do cartão que define o ciclo é aplicado **na planilha de
-origem**: `dia_ajustado` e `dia_real` chegam prontos em `raw.luc_contas` e
-`raw.jsc_contas`, e nenhum modelo dbt os recalcula. Para mudar a regra do ciclo,
-edite a planilha — não os modelos.
+`dia_real` e `dia_ajustado` chegam prontos da planilha (`raw.luc_contas`, `raw.jsc_contas`). Para mudar a regra do ciclo, edite a planilha, não os modelos.
 
 {% enddocs %}
-
 
 {% docs camada_investimento %}
 
+**Camada de alocação** — o papel que o ativo cumpre na carteira, pela intenção do investidor (o que o ativo é fica em `tipo_ativo`).
 
-**Camada de alocação** — o papel que o ativo cumpre na carteira conforme intenção do investidor.
-
-A camada não descreve o que o ativo é (isso é `tipo_ativo`), e sim para
-que ele existe na carteira. É classificada manualmente por Lucas na aba
-`classificacao` da planilha e volta ao warehouse via
-`stg_carteira_classificacao`, de onde o mart base `carteira` a lê por
-`pessoa + codigo_ativo + instituicao`.
-
-**A classificação é estado atual, não histórico.** A aba já teve uma coluna
-`mes_base` e o join era as-of (SCD2): cada mês da carteira recebia a camada
-vigente naquele mês, e reclassificar um ativo não reescrevia o passado. A coluna
-saiu da origem, então não há mais vigência a resolver — hoje um mês passado
-carrega a classificação de hoje. Reclassificar um ativo muda a série inteira
-retroativamente, e a composição por camada de um mês antigo não é
-necessariamente a que valia quando aquele mês fechou.
+Lucas classifica à mão na aba `classificacao` da planilha; o mart `carteira` lê via `stg_carteira_classificacao` por `pessoa + codigo_ativo + instituicao`. Posição nova nasce `NAO CLASSIFICADO`, inclusive saldo em conta; nenhuma camada é inferida. A classificação é estado atual: reclassificar reescreve a série inteira.
 
 | Camada | Objetivo | Horizonte | Instrumentos típicos |
-|---|---|---|---|
-| `RESERVA` | Liquidez e preservação de capital | D+0 a D+1 | CDB e RDB de liquidez diária, conta remunerada, saldo em conta corrente |
-| `RESERVA ESTRATEGICA` | Reserva de valor | Indefinido | Criptoativos, saldo em moeda estrangeira, cashback |
-| `CRESCIMENTO` | Acumulação de patrimônio, aceita volatilidade | 5 anos ou mais | RDB de vencimento, CDB, LCA, LCI, ações, ETFs, BDRs, fundos de ações, cripto, prefixado e IPCA+ longos |
-| `RENDA` | Geração de fluxo de caixa recorrente | Indefinido — a posição é para carregar | FIIs, ações pagadoras de dividendos |
-| `NAO CLASSIFICADO` | — | — | Default automático a ser regularizado |
+| --- | --- | --- | --- |
+| `RESERVA` | Liquidez e preservação de capital | D+0 a D+1 | CDB e RDB de liquidez diária, conta remunerada, saldo em conta |
+| `RESERVA ESTRATEGICA` | Reserva de valor | Indefinido | Cripto, moeda estrangeira, cashback |
+| `CRESCIMENTO` | Acumulação, aceita volatilidade | 5 anos ou mais | RDB de vencimento, CDB, LCA, LCI, ações, ETFs, BDRs, fundos de ações, prefixado e IPCA+ longos |
+| `RENDA` | Fluxo de caixa recorrente | Indefinido | FIIs, ações pagadoras de dividendos |
+| `NAO CLASSIFICADO` | — | — | Default a regularizar |
 
-**Toda camada é atribuída manualmente**, na aba `classificacao` da planilha. O
-default automático de qualquer posição nova — inclusive das disponibilidades em
-conta — é `NAO CLASSIFICADO`. Nenhuma camada é inferida pelo modelo.
+`RESERVA` — liquidez e preservação de capital: resgate em até D+1, sem marcação a mercado negativa, para cobrir despesa e não para carregar o papel até o vencimento.
 
-`RESERVA` — um ativo é reserva quando cumpre os **três** critérios, nesta ordem:
+A intenção decide os casos ambíguos: CDB de 3 anos com liquidez D+1 levado ao vencimento é `CRESCIMENTO`. O tamanho da reserva é em meses de despesa (ver `politica_investimentos`), não em percentual da carteira.
 
-1. resgate em até D+1;
-2. sem marcação a mercado negativa no resgate;
-3. a intenção de uso é cobrir despesa, não carregar o papel até o vencimento.
+`RESERVA ESTRATEGICA` — reserva de valor em cripto, moeda estrangeira e cashback: líquida, mas depende de cenário favorável para ser liquidada e não recebe aporte, por isso fica fora da alocação-alvo.
 
-O critério (3) é o que decide os casos ambíguos, e é por ele que um CDB com
-vencimento em 3 anos **não** é reserva mesmo tendo liquidez em D+1: a intenção
-é levá-lo ao vencimento, então ele é `CRESCIMENTO`. Liquidez sozinha não basta.
+`CRESCIMENTO` — acumulação de patrimônio em cinco anos ou mais, aceitando perda temporária; inclui renda fixa longa sujeita a marcação a mercado e ativos no exterior, mesmo os que pagam dividendos.
 
-O tamanho da reserva é definido em meses de despesa com piso em reais (ver
-"Metas e limites"), não em percentual da carteira: reserva existe para cobrir
-despesas correntes e emergenciais, não para acompanhar o patrimônio uma vez que
-as metas estejam cumpridas.
+`RENDA` — fluxo de caixa recorrente e previsível: qualifica a regularidade do pagamento, não o retorno total nem o prazo; na sobreposição com crescimento, decide a intenção.
 
-A reserva pode estar comprometida com saída já planejada — hoje, o transplante
-capilar de Lucas (ver "Fatos relevantes" em `categoria_saude`). Quando houver um
-fato desses, a calibragem da carteira usa a reserva **menos** o compromisso, não
-o saldo bruto, e a queda no mês da saída é execução do plano, não
-desenquadramento da alocação-alvo.
+`NAO CLASSIFICADO` — ativo sem camada atribuída na planilha: pendência de classificação, não alocação.
 
-`RESERVA ESTRATEGICA` — ativos de reserva de valor (cripto, moeda estrangeira,
-cashback). Têm alta liquidez, mas dependem de um cenário favorável de valorização
-para serem liquidados, e não há perspectiva de novos aportes. Por isso **fica
-fora da alocação-alvo**: não faz sentido ter meta de rebalanceamento para uma
-posição que não recebe aporte. No relatório ela aparece com o valor e o
-percentual que representa, e com alvo `—`.
-
-`CRESCIMENTO` — é a camada que aceita perda temporária em troca de retorno
-esperado maior. Renda fixa longa entra aqui, e não em `RESERVA`, quando está
-sujeita a marcação a mercado. Investimentos no exterior que rendem dividendos
-também são considerados aqui.
-
-`RENDA` — o que qualifica é a previsibilidade do fluxo, não o rendimento total
-nem o prazo. Sobreposição com `CRESCIMENTO` é esperada (uma ação pagadora de
-dividendo também se valoriza); a classificação segue a intenção de uso do ativo.
-
-`NAO CLASSIFICADO` — não é uma camada, é ausência de classificação. Um ativo cai
-aqui quando é novo na carteira ou quando sua chave de identidade mudou (`pessoa`,
-`ativo`, `classe_ativo`, `tipo_ativo`, `instituicao`).
-Tickers de renda variável são estáveis; descrições de renda fixa podem mudar e
-quebrar o vínculo. Todo `NAO CLASSIFICADO` no mês corrente é pendência
-operacional e deve aparecer no relatório como item de ação, não como alocação.
+Um ativo cai em `NAO CLASSIFICADO` quando é novo ou quando a chave mudou (`pessoa`, `ativo`, `classe_ativo`, `tipo_ativo`, `instituicao`); descrição de renda fixa costuma mudar e quebrar o vínculo. No relatório, vira item de ação.
 
 {% enddocs %}
 
-
 {% docs politica_investimentos %}
 
-**Política de investimento** — parâmetros que o relatório usa para transformar
-diagnóstico em recomendação.
-
-Sem estes números, o relatório só consegue descrever a carteira. Com eles,
-consegue dizer para onde vai o aporte do mês.
+**Política de investimento** — parâmetros que transformam o diagnóstico da carteira em recomendação de aporte.
 
 ### Aporte mensal estimado
 
-| Pessoa | Aporte alvo estimado (R$/mês) | Origem |
-|---|---|---|
-| Lucas | 4.000  | Resultado mensal (receita − despesa) |
-| Jéssica | 2.000  | Resultado mensal (receita − despesa) |
+| Pessoa | Aporte alvo (R$/mês) | Origem |
+| --- | --- | --- |
+| Lucas | 4.000 | Resultado mensal (receita - despesa) |
+| Jéssica | 2.000 | Resultado mensal (receita - despesa) |
 | Deusa | 3.000 | Renda própria |
 
-Regra de aporte: o valor efetivo do mês é o resultado apurado no mart
-`resultado`, não o alvo. O alvo serve para medir aderência — quando o resultado
-fica abaixo dele, o relatório aponta a categoria de despesa que explica a
-diferença.
+O aporte efetivo é o resultado do mart `resultado`; o alvo mede aderência, e quando o resultado fica abaixo o relatório aponta a categoria que explica a diferença.
 
 ### Alocação-alvo por camada
 
-| Pessoa | RESERVA | CRESCIMENTO | RENDA | Razão da alocação |
-|---|---|---|---|---|
-| Lucas | 30% | 50% | 20% | Horizonte longo com tolerância a volatilidade; a fatia em `RENDA` existe para começar a formar fluxo de caixa antes de precisar dele |
-| Jéssica | 30% | 70% | 0% | Fase de acumulação pura — sem necessidade de fluxo corrente, todo o risco vai para crescimento |
-| Deusa | 30% | 60% | 10% | Aposentada, mas com reserva já formada e renda própria cobrindo a despesa; o crescimento serve à sucessão, não ao consumo |
+| Pessoa | RESERVA | CRESCIMENTO | RENDA | Razão |
+| --- | --- | --- | --- | --- |
+| Lucas | 30% | 50% | 20% | Horizonte longo; `RENDA` começa a formar fluxo de caixa antes de precisar dele |
+| Jéssica | 30% | 70% | 0% | Acumulação pura, sem necessidade de fluxo corrente |
+| Deusa | 30% | 60% | 10% | Aposentada, reserva formada e renda própria cobrindo a despesa; crescimento serve à sucessão |
 
-`RESERVA ESTRATEGICA` **não tem alvo** — ver `camada_investimento`. `NAO
-CLASSIFICADO` também não: é pendência, não alocação.
-
-**Denominador:** os percentuais acima são sobre a carteira **excluindo**
-`RESERVA ESTRATEGICA` e `NAO CLASSIFICADO`. As três camadas com alvo somam 100%
-dessa base. O valor das duas camadas sem alvo é reportado à parte, em reais e
-como percentual da carteira total.
-
-Banda de tolerância: ±5 pontos percentuais. Desvio dentro da banda não gera
-recomendação. Fora da banda, o rebalanceamento é feito **por aporte** (direcionar
-dinheiro novo à camada defasada), nunca por venda, exceto quando o desvio
-ultrapassa 15 pontos percentuais **medidos contra o alvo** (não contra a borda
-da banda) — ou seja, uma camada com alvo 50% só autoriza venda abaixo de 35% ou
-acima de 65%.
+Base: carteira sem `RESERVA ESTRATEGICA` e `NAO CLASSIFICADO`, que são reportadas à parte em reais e em % da carteira total. Fora da banda, rebalanceia-se por aporte; venda só com desvio acima de 15 p.p. do alvo (alvo 50% autoriza venda abaixo de 35% ou acima de 65%).
 
 ### Metas e limites
 
-**Reserva-alvo** — uma regra só, em vez de duas unidades concorrentes:
+Reserva-alvo = o maior entre N × mediana da despesa total dos últimos 6 meses fechados e o piso da tabela abaixo. Mediana para que um mês atípico não infle a meta; meses futuros pré-lançados não entram.
 
-> Reserva-alvo = **o maior** entre
-> (a) N × mediana da despesa total dos últimos 6 meses fechados, e
-> (b) R$ 100.000.
+| Pessoa | N (meses) | Base de despesa |
+| --- | --- | --- |
+| Lucas e Jéssica | 6 | Despesa do casal, em conjunto |
+| Deusa | 12 | Sem despesa no warehouse: na prática vale o piso |
 
-| Pessoa | N | Base de despesa |
-|---|---|---|
-| Lucas e Jéssica | 6 meses | Despesa do casal, avaliada em conjunto |
-| Deusa | 12 meses | Aposentada; não há lançamento de despesa dela no warehouse, então na prática vale o piso de R$ 100.000 |
-
-A mediana (e não a média) é o que dimensiona a reserva, para que um mês atípico
-— IPVA, viagem, reforma — não infle a meta permanentemente. Meses futuros
-pré-lançados em `resultado` não entram na base.
-
-**Demais parâmetros**
+### Demais parâmetros
 
 | Parâmetro | Valor | Aplicação |
-|---|---|---|
+| --- | --- | --- |
+| Piso da reserva-alvo | R$ 100.000 | Todos |
+| Banda de tolerância da alocação | 5 p.p. | Todos |
 | Limite FGC por conglomerado | R$ 250.000 | Todos |
-| Folga mínima sobre o limite FGC | R$ 50.000 | Alerta antes de estourar a garantia; é o limiar usado nos marts `risco_fgc_*` |
-| Exposição internacional alvo | 15% da carteira  | Lucas e Jéssica |
-| Exposição internacional alvo | 10% da carteira  | Deusa |
-| Taxa de poupança alvo | 35% da receita líquida | Lucas e Jéssica (conjunta) |
+| Folga mínima sobre o limite FGC | R$ 50.000 | Todos; limiar dos marts `risco_fgc_*` |
+| Exposição internacional alvo | 15% da carteira | Lucas e Jéssica |
+| Exposição internacional alvo | 10% da carteira | Deusa |
+| Taxa de poupança alvo | 35% da receita líquida | Lucas e Jéssica |
 
 ### Benchmark
 
-O sucesso do mês é medido contra o CDI e contra a inflação pessoal
-(`minha_inflacao`), disponíveis no mart `riqueza`. Bater o CDI é a meta da
-carteira; bater a inflação pessoal é a meta do patrimônio. As duas são
-reportadas separadamente.
+Bater o CDI é a meta da carteira; bater a inflação pessoal (`minha_inflacao`) é a meta do patrimônio. As duas saem do mart `riqueza` e são reportadas separadamente.
 
-**Dois patrimônios, o mesmo benchmark.** `riqueza` acompanha o patrimônio do
-casal (com abertura de Lucas e Jéssica) e o de Deusa, que vem de outra planilha
-e entra pelo `stg_patrimonio_deusa` — só o total líquido, sem abertura
-por conta. São carteiras e
-objetivos distintos: convivem no mesmo modelo porque enfrentam os mesmos
-indexadores, e **nunca devem ser somados** nem lidos como um patrimônio só.
-Convivem no modelo, mas não na página: o relatório de meio de mês dá a Deusa
-uma **seção apartada**, porque enquanto ela era uma linha a mais no gráfico do
-casal o leitor comparava as duas séries entre si — o que a armadilha 2 abaixo
-proíbe. E dá também um **PDF próprio**, com a mesma leitura e outro leitor: o
-arquivo do casal não é entregável a ela sem expor o orçamento deles, e a
-recíproca — número do casal dentro do documento dela — não deve existir.
+`riqueza` traz o patrimônio do casal (com abertura de Lucas e Jéssica) e o de Deusa, que vem de outra planilha via `stg_patrimonio_deusa`, só com o total líquido. Mesmo benchmark, carteiras distintas: **nunca some os dois** nem compare um índice com o outro.
 
-**O nível dela tem duas fontes, e elas discordam.** O índice de `riqueza` vem
-da planilha de patrimônio; a composição de ativos vem de `carteira_deusa`, no
-grão de ativo, que é a única que dá instituição, classe e indexador. Os dois
-totais deveriam bater e quase sempre batem — R$ 2 de diferença em 07/2026 —,
-mas já diferiram em R$ 60 mil em 12/2024. Quem exibe os dois na mesma página
-imprime a diferença junto; a variação do mês calculada sobre a carteira pode
-não ser a mesma calculada sobre o índice. Os investimentos da carteira vêm de
-relatórios e seeds, e `investimentos_faltantes_identificados` aponta, no último
-mês, o investimento declarado na planilha que ainda falta cadastrar na seed.
+Armadilhas, em ordem de importância:
 
-Três armadilhas do índice, nesta ordem de importância:
-
-1. **O índice inclui aporte.** Ele não é rentabilidade. Um mês de aporte alto
-   sobe o índice sem que ativo nenhum tenha rendido, e comparar isso ao CDI
-   superestima o desempenho da carteira. Serve para "o patrimônio cresceu mais
-   que a inflação?", não para "a carteira bateu o CDI?". Um salto de dois
-   dígitos num único mês é entrada de recurso ou reavaliação de ativo — leia
-   como tal, não como retorno.
-2. **As séries não compartilham base.** A do casal é composta desde 2023-11, a
-   de Deusa desde a primeira variação da planilha dela, e as dos indexadores
-   chegam prontas da planilha com base própria e desconhecida. Só a variação
-   **dentro de uma janela** é comparável entre séries; o nível absoluto não é.
-   Quem plota reindexa no primeiro mês exibido.
-3. **Queda no índice de Deusa não tem causa apurável aqui.** Não há lançamento
-   de despesa dela no warehouse, então o modelo não distingue resgate planejado
-   de perda de mercado. Reportar a queda é correto; atribuí-la, não. A
-   composição da carteira estreita a dúvida sem eliminá-la: dá para separar o
-   que foi realocação entre classes do que de fato deixou a carteira, e é só
-   esse resto que fica sem explicação.
+1. **O índice inclui aporte**: responde "o patrimônio cresceu mais que a inflação?", não "a carteira bateu o CDI?". Salto de dois dígitos num mês é entrada de recurso ou reavaliação, não retorno.
+2. **As séries não compartilham base** (casal desde 2023-11, Deusa desde a primeira variação da planilha dela, indexadores com base própria): compare só variação dentro da janela, reindexada no primeiro mês exibido.
+3. **Queda no índice de Deusa não tem causa apurável**: sem despesa dela no warehouse, resgate e perda de mercado se confundem. Reporte sem atribuir; a composição da carteira separa só a rotação entre classes.
+4. **O nível de Deusa tem duas fontes**: o índice vem da planilha de patrimônio e a composição de `carteira_deusa`. Os totais quase sempre batem, mas podem divergir; quem mostra os dois imprime a diferença. `investimentos_faltantes_identificados` aponta o que falta cadastrar na seed.
 
 {% enddocs %}
 
 {% docs calendario_dados %}
 
-**Calendário do dado** — o que se sabe, e quando.
-
-As fontes do domínio não ficam prontas ao mesmo tempo. Esta tabela é a razão de
-existirem dois relatórios em vez de um, e é o primeiro lugar a consultar quando
-um número parece estar faltando.
+**Calendário do dado** — quando cada fonte fica confiável. Primeiro lugar a consultar quando um número parece faltar.
 
 | Fonte | Grão | Quando fica confiável | Por quê |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `consumo` | **diário** | contínuo, ~D+1 | Lançado à mão na planilha, quase todo dia |
 | `resultado` | mensal | primeiros dias do mês seguinte | Fecha quando o último lançamento do mês entra |
 | `luz` | mensal | com a chegada da fatura | |
 | `patrimonio_mom` | mensal | fechamento manual da planilha | |
 | `carteira_*`, `dividendos` | mensal | cadência própria da B3 e da Avenue | Costuma vir **1 mês atrás** do DRE; `defasagem_carteira_meses` reporta |
-| `indicadores`, `riqueza` | mensal | **~dia 10 do mês seguinte, ou depois** | O IPCA é publicado pelo IBGE por volta do dia 10 e só então é digitado na planilha |
+| `indicadores`, `riqueza` | mensal | **~dia 10 do mês seguinte, ou depois** | O IPCA sai ~dia 10 e só então é digitado na planilha |
 
-Três consequências que não são óbvias:
-
-1. **Nos primeiros dias do mês não existe leitura de benchmark.** No dia 1º o
-   IPCA do mês anterior ainda não saiu. `riqueza` faz `INNER JOIN` com os
-   indexadores, então o mês simplesmente não existe lá — a série encolhe sem
-   avisar. O mart `indicadores` é a mitigação: ele mantém a linha com `NULL`,
-   o que dá um sinal legível para o portão de prontidão.
-2. **O gasto diário é o dado mais fresco do domínio** e era usado uma vez por
-   mês, no fechamento, quando já não dava para agir sobre ele.
-3. **Meses futuros existem na base.** `resultado` e `consumo` carregam
-   lançamentos pré-agendados das despesas fixas — que caem no dia 25 da
-   competência. Não são realizados e nunca entram em média, mediana ou
-   diagnóstico. Num mês em andamento, porém, eles são informação boa: é
-   dinheiro já comprometido, e a projeção de fechamento os usa como piso.
-
-{% enddocs %}
-
-{% docs cadencia_relatorios %}
-
-**Cadência dos relatórios** — quem fala do quê, e quando.
-
-Dois relatórios complementares, nenhum repetindo o assunto do outro. A divisão
-segue o `calendario_dados`: cada um fala do que já se sabe no dia em que roda.
-
-| | `/relatorio-financas` | `/relatorio-meio-mes` |
-|---|---|---|
-| Quando roda | dias 1 a 5 | dias 15 a 20 |
-| Sobre qual mês | o **anterior**, fechado | o **corrente**, em andamento (+ benchmark do anterior) |
-| Saída | 4 PDFs: um por titular + orçamento do casal | 2 PDFs: o do casal (com a seção apartada de Deusa dentro) e o de Deusa |
-| Pergunta | "como foi o mês" | "o que fazer nos dias que restam" |
-
-**Fronteira de assunto — nenhum dos dois invade o outro:**
-
-| Assunto | Onde mora |
-|---|---|
-| Receita, despesa, resultado, taxa de poupança do mês fechado | fechamento |
-| Gasto por categoria do mês fechado, conta de luz | fechamento |
-| Reserva de emergência e cobertura em meses | fechamento (orçamento) |
-| Carteira, alocação por camada, FGC, vencimentos, renda passiva | fechamento (individuais) |
-| Destino do aporte | fechamento (individuais) |
-| Ritmo do gasto, projeção de fechamento, margem disponível | meio de mês |
-| Desempenho do patrimônio contra CDI e inflação pessoal | **meio de mês** |
-| Composição dos ativos de Deusa — instituição, disponível contra investido, classe, indexador | **meio de mês** |
-
-A penúltima e a última linha se separam por um fio: camada, FGC, vencimento e
-destino do aporte de Deusa continuam no fechamento, que emite um PDF de
-investimentos só dela. O meio de mês fica com a **posição** — onde o dinheiro
-está e quanto está parado —, que é o que ainda dá para mudar e o que o índice
-sozinho não mostra.
-
-A última linha é a que costuma surpreender. O desempenho contra benchmark
-parece pertencer ao fechamento, e ficou lá por um tempo — mas no dia em que o
-fechamento roda os indexadores do mês ainda não foram publicados, e a seção
-saía calada, um mês curta. Ver `calendario_dados`.
-
-### Regra de projeção do fechamento
-
-Usada só pelo relatório de meio de mês, por categoria:
-
-> projeção = realizado até o corte + **o maior** entre
-> (a) a mediana, nos 6 meses fechados, do que caiu **depois** do mesmo dia do
-> ciclo, e (b) o que já está lançado neste mês com data futura.
-
-É o maior dos dois, e **não a soma**: a mediana histórica já embute as despesas
-fixas do dia 25, e somar o agendado por cima as contaria duas vezes. Quando o
-agendado do mês supera o padrão histórico — uma fixa nova, uma parcela grande —
-ele passa a ser o piso.
-
-Duas propriedades a declarar em qualquer relatório que use a projeção:
-
-- **É enviesada para cima**, por construção. Erra para o lado de avisar demais,
-  não de avisar de menos.
-- **A coluna por categoria não soma ao total.** A mediana de uma soma não é a
-  soma das medianas, e `GREATEST` não é linear. O total é apurado sobre a série
-  do total e é ele que vale para julgar o mês; a linha da categoria vale para
-  julgar a categoria. Reconciliar os dois na narrativa é erro.
-
-O dia usado é o **`dia_fatura`** (o `dia_ajustado` da planilha), nunca o dia do
-calendário — ver `ciclo_fatura`. É o que torna dois meses comparáveis dia a dia.
+1. **Nos primeiros dias do mês não há benchmark do mês anterior.** `riqueza` faz `INNER JOIN` com os indexadores e o mês some; `indicadores` mantém a linha com `NULL`.
+2. **O gasto diário é o dado mais fresco**: lido só no fechamento, chega quando já não dá para agir.
+3. **Meses futuros existem na base**: `resultado` e `consumo` trazem as fixas pré-agendadas (dia 25). Nunca entram em média, mediana ou diagnóstico; no mês em andamento são dinheiro já comprometido.
 
 {% enddocs %}
 
@@ -555,36 +262,19 @@ calendário — ver `ciclo_fatura`. É o que torna dois meses comparáveis dia a
 
 **Procedência da linha** — de qual trilha veio o valor da posição.
 
-A carteira tem três origens com confiabilidade e cadência diferentes. Relatório e seed correm em
-trilhas separadas no intermediate e se juntam em `int_investimentos_consolidados`; os saldos da
-planilha entram direto na `carteira`:
+Relatório e seed se juntam em `int_investimentos_consolidados`; os saldos da planilha entram direto na `carteira`.
 
-| Trilha | Modelos | Conteúdo |
-|---|---|---|
-| Relatório | `int_relatorio_renda_fixa`, `int_relatorio_renda_variavel`, `int_relatorio_disponibilidades` → `int_relatorio_unificado` | Só o que a B3 e a Avenue extraem |
-| Seed | `int_investimentos_faltantes_unificados` | Produto real que nenhum relatório traz, cadastrado à mão |
-| Planilha | `stg_patrimonio`, `stg_patrimonio_deusa` → CTE `saldos` da `carteira` | Conta corrente, cashback, Wise e bitcoin declarados na planilha |
+| Valor | Trilha | Origem |
+| --- | --- | --- |
+| `RELATORIO B3` | Relatório (`int_relatorio_*` → `int_relatorio_unificado`) | Relatório da B3 (CEI) |
+| `RELATORIO AVENUE` | Relatório | Extrato da Avenue, inclusive o caixa em conta |
+| `SEED` | `int_investimentos_faltantes_unificados` | `seed_investimentos_faltantes_*`, produto real que nenhum relatório traz |
+| `GOOGLE SHEETS` | `stg_patrimonio`, `stg_patrimonio_deusa` → CTE `saldos` | Conta corrente, cashback, Wise e bitcoin declarados na planilha |
 
-Os investimentos declarados na planilha (`int_planilha_investimentos_selecionados`) não entram na
-carteira: servem de referência para `investimentos_faltantes_identificados`, que compara o investimento
-declarado por instituição com o relatório e mostra o que falta na seed.
+Os investimentos declarados na planilha (`int_planilha_investimentos_selecionados`) não entram na carteira: servem para `investimentos_faltantes_identificados` mostrar o que falta na seed.
 
-| Valor | Origem |
-|---|---|
-| `RELATORIO B3` | Relatório da B3 (CEI) |
-| `RELATORIO AVENUE` | Extrato da Avenue (broker no exterior), inclusive o caixa em conta |
-| `SEED` | `seed_investimentos_faltantes_*`, cadastro manual de produto real |
-| `GOOGLE SHEETS` | Saldos em conta, cashback, Wise e bitcoin declarados na planilha |
-
-Duas leituras que a coluna habilita:
-
-1. **Quanto da carteira é manual.** `SEED` e `GOOGLE SHEETS` não se atualizam sozinhos e envelhecem em silêncio.
-2. **O que se perde se uma extração falhar.** Um mês sem linhas `RELATORIO B3` ou `RELATORIO AVENUE`
-   é uma extração que não rodou, não um resgate.
-
-Cuidado com um caso: em `int_relatorio_renda_variavel` a coluna entra no `GROUP BY` junto com pessoa,
-instituição e ativo. Hoje isso não muda o grão, porque cada instituição tem uma fonte só: B3 e Avenue
-nunca custodiam o mesmo ativo do mesmo titular. Se um dia custodiarem, a mesma posição passa a
-aparecer em duas linhas.
+- `SEED` e `GOOGLE SHEETS` não se atualizam sozinhos e envelhecem em silêncio.
+- Mês sem `RELATORIO B3` ou `RELATORIO AVENUE` é extração que não rodou, não resgate.
+- Em `int_relatorio_renda_variavel` a coluna está no `GROUP BY`; se B3 e Avenue um dia custodiarem o mesmo ativo do mesmo titular, a posição aparece em duas linhas.
 
 {% enddocs %}
