@@ -2,122 +2,122 @@ version: 2
 
 models:
   - name: stg_investimentos_faltantes_lucas
-    description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
+    description: "Posições reais de Lucas que nenhum relatório traz, cadastradas à mão; uma linha por ativo e mês-base."
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular da posição (deusa, jessica ou lucas)."
+        description: "Titular (lucas)."
       - name: instituicao
-        description: "Instituição onde o ativo está posicionado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: emissor
-        description: "Instituição emissora do título (apenas renda fixa)."
+        description: "Instituição emissora do título (só renda fixa)."
         meta:
           source_column: "emissor"
       - name: classe_ativo
-        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
-        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
         description: "Código do ativo na seed (ex.: RDB100CAIX00)."
       - name: ativo
-        description: "Nome/identificação do ativo."
+        description: "Nome do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do ativo; em branco nas linhas antigas. O tipo é fixado como date em dbt_project.yml - sem isso o dbt infere integer quando a coluna está inteiramente vazia."
+        description: "Data de emissão do título; vazia nas linhas antigas."
       - name: data_vencimento
-        description: "Data de vencimento do ativo."
+        description: "Data de vencimento do título (só renda fixa)."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_investimentos_faltantes_jessica
-    description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
+    description: "Posições reais de Jéssica que nenhum relatório traz, cadastradas à mão; uma linha por ativo e mês-base."
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular da posição (deusa, jessica ou lucas)."
+        description: "Titular (jessica)."
       - name: instituicao
-        description: "Instituição onde o ativo está posicionado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: emissor
-        description: "Instituição emissora do título (apenas renda fixa)."
+        description: "Instituição emissora do título (só renda fixa)."
         meta:
           source_column: "emissor"
       - name: classe_ativo
-        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
-        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
         description: "Código do ativo na seed (ex.: RDB100CAIX00)."
       - name: ativo
-        description: "Nome/identificação do ativo."
+        description: "Nome do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do ativo; em branco nas linhas antigas. O tipo é fixado como date em dbt_project.yml - sem isso o dbt infere integer quando a coluna está inteiramente vazia."
+        description: "Data de emissão do título; vazia nas linhas antigas."
       - name: data_vencimento
-        description: "Data de vencimento do ativo."
+        description: "Data de vencimento do título (só renda fixa)."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_investimentos_faltantes_deusa
-    description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
+    description: "Posições reais de Deusa que nenhum relatório traz, cadastradas à mão; uma linha por ativo e mês-base."
     columns:
       - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
+        description: "Primeiro dia do mês-base."
       - name: pessoa
-        description: "Titular da posição (deusa)."
+        description: "Titular (deusa)."
       - name: instituicao
-        description: "Instituição onde o ativo está posicionado."
+        description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: emissor
-        description: "Instituição emissora do título (apenas renda fixa)."
+        description: "Instituição emissora do título (só renda fixa)."
         meta:
           source_column: "emissor"
       - name: classe_ativo
-        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_ativo
-        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
         description: "Código do ativo na seed (ex.: RDB100CAIX00)."
       - name: ativo
-        description: "Nome/identificação do ativo."
+        description: "Nome do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do ativo; em branco nas linhas antigas. O tipo é fixado como date em dbt_project.yml - sem isso o dbt infere integer quando a coluna está inteiramente vazia."
+        description: "Data de emissão do título; vazia nas linhas antigas."
       - name: data_vencimento
-        description: "Data de vencimento do ativo."
+        description: "Data de vencimento do título (só renda fixa)."
       - name: vlr_atualizado_brl
-        description: "Valor de mercado atualizado da posição, em reais."
+        description: "Valor de mercado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_usd
-    description: "Cotação do dólar (USD) no último dia útil de cada mês, com data de referência posicionada no final do mês."
+    description: "Cotação de venda do dólar no último dia útil de cada mês, um registro por mês."
     columns:
       - name: data_referencia
-        description: "Último dia do mês de referência (posição usada para conversão cambial mensal)."
+        description: "Último dia do mês de referência."
       - name: vlr_usd
         description: "Cotação de venda do dólar no último dia útil do mês, em reais."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_de_para_instituicoes_fgc
-    description: "De-para entre instituição emissora e o conglomerado financeiro do FGC ao qual pertence, usado para agregar o risco por conglomerado (limite de garantia)."
+    description: "De-para de instituição emissora para conglomerado financeiro do FGC, uma linha por instituição."
     columns:
       - name: instituicao
-        description: "Nome da instituição emissora, normalizado (sem sufixos societários e pontuação)."
+        description: "Nome da instituição emissora, sem sufixo societário nem pontuação."
       - name: conglomerado
         description: "Conglomerado financeiro FGC ao qual a instituição pertence."
       - name: model_run_at
@@ -125,17 +125,15 @@ models:
 
   - name: stg_datas_especiais
     description: >
-      Calendário de datas especiais da família (aniversários e efemérides), vindo do seed
-      seed_datas_especiais. Um registro por evento; a data é recorrente por dia+mês, sem ano fixo.
-      Consumido por dim_datas, que dele deriva fl_data_especial e fl_mes_especial - as flags que
-      permitem ler pico de gasto em `role` e `diversos` como sazonalidade conhecida.
+      Datas especiais da família (aniversários e efemérides), um registro por evento recorrente
+      por dia e mês. Explicam picos de gasto em role e diversos.
     columns:
       - name: dia
         description: "Dia do mês em que o evento cai (1-31)."
       - name: mes_num
         description: "Mês do evento (1-12)."
       - name: ano_inicio
-        description: "Primeiro ano em que o evento passa a valer (ex.: o ano do casamento). Nulo quando o evento vale para toda a série."
+        description: "Primeiro ano em que o evento vale; nulo quando vale para toda a série."
       - name: motivo
         description: "Descrição do evento, em maiúsculas."
       - name: model_run_at

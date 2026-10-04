@@ -2,38 +2,38 @@ version: 2
 
 models:
   - name: stg_assets
-    description: "Posições atuais e legadas da Avenue, ordenada por início do período."
+    description: "Posições na Avenue, uma linha por ativo, titular e período do extrato, em USD."
     columns:
       - name: period_start
-        description: "Início do período de referência da posição, normalizado para o início do mês em períodos longos."
+        description: "Início do período do extrato."
       - name: period_end
-        description: "Fim do período de referência da posição."
+        description: "Fim do período do extrato."
       - name: asset_class
-        description: "Classe do ativo na Avenue (ex.: FIXED INCOME, EQUITIES, CASH), normalizada em maiúsculas."
+        description: "Classe do ativo na Avenue (ex.: FIXED INCOME, EQUITIES, CASH)."
       - name: market_value
         description: "Valor de mercado da posição, em dólares (USD)."
       - name: pessoa
-        description: "Titular da posição."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: description
-        description: "Descrição do ativo; títulos do tesouro americano são padronizados como 'US TREASURY'."
+        description: "Descrição do ativo ('US TREASURY' nos títulos do tesouro americano)."
       - name: symbol_cusip
-        description: "Símbolo/CUSIP identificador do ativo (com normalização para títulos do tesouro americano)."
+        description: "Símbolo ou CUSIP do ativo."
       - name: moeda_ativo
         description: "Moeda do ativo (USD)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
   - name: stg_dividends_interest
-    description: "Dividendos e impostos pagos atuais e legadas da Avenue, ordenada por início do período."
+    description: "Dividendos e juros líquidos de impostos na Avenue, uma linha por titular e período do extrato, em USD."
     columns:
       - name: period_start
-        description: "Início do período de referência, normalizado para o início do mês em períodos longos."
+        description: "Início do período do extrato."
       - name: period_end
-        description: "Fim do período de referência."
+        description: "Fim do período do extrato."
       - name: vlr_liquido_usd
-        description: "Valor líquido de dividendos/juros no período (crédito menos débito/impostos), em dólares (USD)."
+        description: "Dividendos e juros líquidos de impostos no período, em dólares (USD)."
       - name: pessoa
-        description: "Titular que recebeu os dividendos/juros."
+        description: "Titular (lucas, jessica ou deusa)."
       - name: moeda_ativo
         description: "Moeda do valor (USD)."
       - name: model_run_at

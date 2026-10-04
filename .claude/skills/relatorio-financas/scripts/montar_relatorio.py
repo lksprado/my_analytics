@@ -539,7 +539,7 @@ def montar_orcamento(d, n):
                         brl(r["vlr_fatura"], 2),
                         f"{r['kwh']}",
                         f"{r['kwh_dia']}".replace(".", ","),
-                        f"R$ {r['preco_kwh']}".replace(".", ","),
+                        f"R$ {r['preco_kwh']:.2f}".replace(".", ","),
                     ]
                     for r in d["luz"][-6:]
                 ],
@@ -746,7 +746,7 @@ def montar_investimentos(d, n, pessoa):
             secao(
                 prox(),
                 "Patrimônio",
-                f"Patrimônio líquido de {NOME[pessoa]} · últimos 12 meses",
+                f"Patrimônio líquido de {NOME[pessoa]} · últimos 13 meses",
                 f"<figure>{barras_empilhadas([r['mes_base'] for r in pat], [(NOME[pessoa], SERIES[0], [r[col_pat] for r in pat])])}"
                 f"<figcaption>Patrimônio líquido do titular, em reais.</figcaption></figure>"
                 + tabela(

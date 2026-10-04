@@ -106,12 +106,15 @@ meses_fechados AS (
     WHERE r.total_role + r.total_diversos + r.total_transporte > 0
       AND c.ultimo_dia_com_gasto IS NOT NULL
       AND (c.fim_do_mes - c.ultimo_dia_com_gasto) <= 2
+      -- As fixas pré-agendadas lançam até o fim do mês e fariam o mês corrente parecer fechado
+      AND c.mes < date_trunc('month', current_date)
 ),
 
 prontidao AS (
     SELECT
         COALESCE(d.presente, FALSE)                                AS dre_presente,
         COALESCE(d.com_variaveis, FALSE)                           AS dre_com_variaveis,
+        pa.mes_ref >= date_trunc('month', current_date)::date      AS mes_aberto,
         c.dias_no_mes,
         c.dias_com_gasto,
         c.ultimo_dia_com_gasto,
@@ -153,6 +156,9 @@ pendencias AS (
     SELECT 'orcamento', 'Nenhum dia com gasto lançado no mês.'
     FROM prontidao WHERE ultimo_dia_com_gasto IS NULL
     UNION ALL
+    SELECT 'orcamento', 'O mês de referência é o corrente ou um mês futuro: ainda não terminou.'
+    FROM prontidao WHERE mes_aberto
+    UNION ALL
     SELECT 'investimentos',
            'A carteira está ' || carteira_defasagem_meses
            || ' meses atrás do mês de referência — defasagem grande demais para reportar a posição como se fosse a do mês.'
@@ -181,10 +187,12 @@ b_meta AS (
             SELECT json_build_object(
                 'pronto', (dre_presente
                        AND dre_com_variaveis
+                       AND NOT mes_aberto
                        AND COALESCE(dias_sem_lancamento_no_fim, 99) <= 2
                        AND carteira_defasagem_meses <= 2),
                 'pronto_orcamento', (dre_presente
                        AND dre_com_variaveis
+                       AND NOT mes_aberto
                        AND COALESCE(dias_sem_lancamento_no_fim, 99) <= 2),
                 'pronto_investimentos', (carteira_defasagem_meses <= 2),
                 'dre_presente',               dre_presente,
@@ -267,7 +275,8 @@ b_dividendos AS (
         SELECT *
         FROM presentation_financas.dividendos
         WHERE mes_base <= (SELECT mes_ref FROM params)
-          AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
+          -- 12 e não 13 meses: a soma vira o KPI "Renda passiva 12m" e o yield
+          AND mes_base >  (SELECT mes_ref FROM params) - interval '12 months'
     ) AS t
 ),
 

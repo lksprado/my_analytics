@@ -17,10 +17,10 @@ replaced by a pointer.
 
 ## Domain-specific rules
 
-- **Finanças** — `models/marts/financas/_docs_financas.md` is the single source of truth for
-  spending categories, investment layers and the investment policy. Change the rule there, then
-  propagate to the duplicated constants in
-  `.claude/skills/relatorio-financas/scripts/montar_relatorio.py`.
+- **Finanças** — `models/presentation/financas/_docs_financas.md` is the single source of truth for
+  spending categories, investment layers, the investment policy and dated relevant facts.
+  `scripts/relatorios/politica.py` parses its policy tables and glossary lines, so keep their
+  headings and column names.
 - **PostgreSQL only** — date arithmetic is `- interval '3 days'`, never `dateadd()`.
 - **Never hardcode schemas** — use `{{ ref('stg_xxx') }}` and
   `{{ source('raw', 'xxx') }}`; schema routing is handled by `dbt_project.yml` and the
