@@ -1,32 +1,13 @@
 {#
-  Regras de interpretação do domínio FINANÇAS. Fonte única: categorias de gasto, camadas de
-  investimento, política de investimento e armadilhas de leitura do dado.
+  Regras estáveis do domínio FINANÇAS: categorias de gasto, camadas de investimento, regras fixas,
+  benchmark e armadilhas de leitura do dado. O que muda com frequência mora fora daqui: a política
+  econômica em `_politicas_financas.md`, os fatos em `_fatos_relevantes.md`; como interpretar os dois
+  em `_interpretacao_financas.md`.
 
   Quem lê: `dbt docs` (via `doc()` no `_schema.yml`), as skills `/relatorio-financas` e
-  `/relatorio-meio-mes`, e `scripts/relatorios/politica.py`, que extrai daqui os parâmetros e o
-  glossário dos PDFs. Por isso não renomeie os títulos `###` nem as colunas das tabelas da
-  política, e mantenha as linhas `Entra:` / `Não entra:` e `` `CAMADA` — `` em uma linha só.
-  Fato novo é uma linha em `fatos_relevantes`; revise a tabela a cada fechamento. #}
-
-{% docs fatos_relevantes %}
-
-**Fatos relevantes** — eventos datados, fora da rotina, que explicam variação brusca e não estão no dado.
-
-| Período | Categoria | Fato | Valor (R$) | Status |
-| --- | --- | --- | --- | --- |
-| 05/2026 | educacao | Festa do Livro UNESP, 50% de desconto | ~900 | realizado |
-| 08/2026 | role, diversos | Viagem a Ouro Preto (06 a 11/08) | ~15.000 | realizado |
-| 09/2026 | saude | Transplante capilar de Lucas, parcela 1/2 | 11.000 | realizado |
-| 10/2026 | saude | Transplante capilar de Lucas, parcela 2/2 | 11.000 | realizado |
-| 10-11/2026 | transporte | Troca de carro | ~15.000 | previsto |
-
-- Status é `previsto` ou `realizado`; quando o previsto acontece, troque o status e anote o valor efetivo.
-- Fato muda a leitura, não o número: nada sai de média, mediana ou reserva-alvo. Desvio até o valor
-  declarado é execução de plano; só o excedente pede explicação.
-- Fato pago com a `RESERVA` de alguém: a calibragem da carteira usa a reserva menos o compromisso, e a
-  queda no mês da saída não é desenquadramento.
-
-{% enddocs %}
+  `/relatorio-meio-mes`, e `scripts/relatorios/politica.py`, que extrai daqui as regras fixas e o
+  glossário dos PDFs. Por isso não renomeie os títulos `###` nem as colunas das tabelas de
+  `regras_fixas`, e mantenha as linhas `Entra:` / `Não entra:` e `` `CAMADA` — `` em uma linha só. #}
 
 {% docs categoria_mercado %}
 
@@ -165,7 +146,7 @@ Lucas classifica à mão na aba `classificacao` da planilha; o mart `carteira` l
 
 `RESERVA` — liquidez e preservação de capital: resgate em até D+1, sem marcação a mercado negativa, para cobrir despesa e não para carregar o papel até o vencimento.
 
-A intenção decide os casos ambíguos: CDB de 3 anos com liquidez D+1 levado ao vencimento é `CRESCIMENTO`. O tamanho da reserva é em meses de despesa (ver `politica_investimentos`), não em percentual da carteira.
+A intenção decide os casos ambíguos: CDB de 3 anos com liquidez D+1 levado ao vencimento é `CRESCIMENTO`. O tamanho da reserva é em meses de despesa (ver `regras_fixas`), não em percentual da carteira.
 
 `RESERVA ESTRATEGICA` — reserva de valor em cripto, moeda estrangeira e cashback: líquida, mas depende de cenário favorável para ser liquidada e não recebe aporte, por isso fica fora da alocação-alvo.
 
@@ -179,31 +160,11 @@ Um ativo cai em `NAO CLASSIFICADO` quando é novo ou quando a chave mudou (`pess
 
 {% enddocs %}
 
-{% docs politica_investimentos %}
+{% docs regras_fixas %}
 
-**Política de investimento** — parâmetros que transformam o diagnóstico da carteira em recomendação de aporte.
+**Regras fixas** — parâmetros declarados que não dependem da política econômica vigente.
 
-### Aporte mensal estimado
-
-| Pessoa | Aporte alvo (R$/mês) | Origem |
-| --- | --- | --- |
-| Lucas | 4.000 | Resultado mensal (receita - despesa) |
-| Jéssica | 2.000 | Resultado mensal (receita - despesa) |
-| Deusa | 3.000 | Renda própria |
-
-O aporte efetivo é o resultado do mart `resultado`; o alvo mede aderência, e quando o resultado fica abaixo o relatório aponta a categoria que explica a diferença.
-
-### Alocação-alvo por camada
-
-| Pessoa | RESERVA | CRESCIMENTO | RENDA | Razão |
-| --- | --- | --- | --- | --- |
-| Lucas | 30% | 50% | 20% | Horizonte longo; `RENDA` começa a formar fluxo de caixa antes de precisar dele |
-| Jéssica | 30% | 70% | 0% | Acumulação pura, sem necessidade de fluxo corrente |
-| Deusa | 30% | 60% | 10% | Aposentada, reserva formada e renda própria cobrindo a despesa; crescimento serve à sucessão |
-
-Base: carteira sem `RESERVA ESTRATEGICA` e `NAO CLASSIFICADO`, que são reportadas à parte em reais e em % da carteira total. Fora da banda, rebalanceia-se por aporte; venda só com desvio acima de 15 p.p. do alvo (alvo 50% autoriza venda abaixo de 35% ou acima de 65%).
-
-### Metas e limites
+### Reserva de emergência
 
 Reserva-alvo = o maior entre N × mediana da despesa total dos últimos 6 meses fechados e o piso da tabela abaixo. Mediana para que um mês atípico não infle a meta; meses futuros pré-lançados não entram.
 
@@ -212,19 +173,24 @@ Reserva-alvo = o maior entre N × mediana da despesa total dos últimos 6 meses 
 | Lucas e Jéssica | 6 | Despesa do casal, em conjunto |
 | Deusa | 12 | Sem despesa no warehouse: na prática vale o piso |
 
-### Demais parâmetros
+### Parâmetros
 
 | Parâmetro | Valor | Aplicação |
 | --- | --- | --- |
 | Piso da reserva-alvo | R$ 100.000 | Todos |
-| Banda de tolerância da alocação | 5 p.p. | Todos |
 | Limite FGC por conglomerado | R$ 250.000 | Todos |
 | Folga mínima sobre o limite FGC | R$ 50.000 | Todos; limiar dos marts `risco_fgc_*` |
-| Exposição internacional alvo | 15% da carteira | Lucas e Jéssica |
-| Exposição internacional alvo | 10% da carteira | Deusa |
 | Taxa de poupança alvo | 35% da receita líquida | Lucas e Jéssica |
 
-### Benchmark
+### Base da alocação
+
+A alocação por camada da política vigente é medida sobre a carteira sem `RESERVA ESTRATEGICA` e `NAO CLASSIFICADO`, que são reportadas à parte em reais e em % da carteira total. O aporte efetivo é o resultado do mart `resultado`; o aporte da calibragem mede aderência, e quando o resultado fica abaixo o relatório aponta a categoria que explica a diferença.
+
+{% enddocs %}
+
+{% docs benchmark %}
+
+**Benchmark** — contra o que se mede o patrimônio.
 
 Bater o CDI é a meta da carteira; bater a inflação pessoal (`minha_inflacao`) é a meta do patrimônio. As duas saem do mart `riqueza` e são reportadas separadamente.
 

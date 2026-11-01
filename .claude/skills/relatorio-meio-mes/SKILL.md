@@ -24,9 +24,11 @@ Acionamento sob demanda. Sem sessão interativa: `scripts/gerar_relatorio_meio_m
 
 ## Passo 0 — Ler as regras do domínio
 
-Leia `models/presentation/financas/_docs_financas.md`, começando por `fatos_relevantes`: aqui eles
-pesam mais, porque o relatório alerta sobre o mês em curso e um pico previsto não é descontrole.
-Categorias, benchmark e as armadilhas do índice estão lá, não aqui. Fato usado entra em `premissas`
+Leia `models/presentation/financas/_fatos_relevantes.md` primeiro: aqui os fatos pesam mais, porque
+o relatório alerta sobre o mês em curso e um pico previsto não é descontrole. Depois
+`_docs_financas.md`: categorias, regras fixas (taxa de poupança), benchmark e as armadilhas do índice
+estão lá, não aqui. Da política vigente no mês corrente (`_politicas_financas.md`) entra só a seção
+`### Gastos`: a postura e as diretrizes, lidas como manda `_interpretacao_financas.md`. Fato usado entra em `premissas`
 com o status; `[CONFIRMAR]` é usado e sinalizado em `premissas`.
 
 ## Passo 1 — Resolver a data
@@ -89,7 +91,8 @@ Declare a regra em `premissas`.
 - **Ritmo:** o acumulado está na faixa dos 6 meses fechados no mesmo dia do ciclo? Se saiu, quando e por quê.
 - **Categorias:** quais projeções destoam da mediana do mês cheio, e quanto disso é `agendado` contra decisão.
 - **Margem (prioridade):** quanto ainda cabe em `role`, `diversos` e `mercado` para fechar no padrão e
-  na meta de poupança.
+  na meta de poupança. A postura de gasto decide o tom: em austeridade, o que "ainda cabe" nas
+  categorias a cortar é teto, não convite.
 - **Desempenho** (se `pronto_indicadores`): patrimônio do casal contra CDI e inflação pessoal,
   separadamente, com a ressalva do aporte; olhe também os últimos meses isolados.
 - **Deusa** (se `pronto_deusa`): índice contra os mesmos benchmarks; quanto está parado em conta e

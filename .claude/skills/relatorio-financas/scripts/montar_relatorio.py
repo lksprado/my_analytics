@@ -64,8 +64,6 @@ from relatorios.calculo import media, mediana, variacao
 from relatorios.formato import brl, classe_delta, data_br, esc, mes_curto, mes_extenso, pct, sinal
 from relatorios.graficos import barras_agrupadas, barras_alvo, barras_empilhadas, legenda
 from relatorios.politica import (
-    ALVOS_CAMADA,
-    APORTE_ALVO,
     CAMADAS_COM_ALVO,
     CAMADAS_SEM_ALVO,
     CATEGORIAS,
@@ -73,7 +71,6 @@ from relatorios.politica import (
     COR_CAMADA,
     COR_CAT,
     ESCOPOS_INVESTIMENTO,
-    META_INTERNACIONAL_PCT,
     META_RESERVA_MESES,
     META_RESERVA_PISO,
     NOME,
@@ -81,6 +78,7 @@ from relatorios.politica import (
     ROTULO_CAT,
     SERIES,
     TEXTO_CAMADA,
+    politica_vigente,
 )
 from relatorios.saida import escrever
 
@@ -99,12 +97,14 @@ def nota_bases(base_alvo, total):
     )
 
 
-def secao_carteira(d, pessoa):
+def secao_carteira(d, pessoa, cal):
+    """`cal` é a calibragem do titular na política vigente; None é calibragem
+    pendente, e a tabela sai sem alvo, desvio e banda."""
     camadas = [c for c in d["carteira_camada"] if c["pessoa"] == pessoa]
     total = sum(c["valor"] for c in camadas)
     if not total:
         return ""
-    alvos = ALVOS_CAMADA[pessoa]
+    alvos = cal["alvos"] if cal else {}
     valores = {c["camada"]: c["valor"] for c in camadas}
 
     # O alvo da política é sobre a carteira SEM as camadas que não têm alvo, e
@@ -120,8 +120,12 @@ def secao_carteira(d, pessoa):
 
     lin = []
     for cm, cor, a, alvo in dados_alvo:
+        if not cal:
+            lin.append([rotulo_chip(cor, ROTULO_CAMADA[cm]), brl(valores.get(cm, 0)), pct(a),
+                        '<span class="tag">calibragem pendente</span>'])
+            continue
         desvio = a - alvo
-        dentro = abs(desvio) <= 5
+        dentro = abs(desvio) <= cal["banda"]
         lin.append(
             [
                 rotulo_chip(cor, ROTULO_CAMADA[cm]),
@@ -146,8 +150,7 @@ def secao_carteira(d, pessoa):
                 rotulo_chip(COR_CAMADA[cm], ROTULO_CAMADA[cm]),
                 brl(valores[cm]),
                 pct(atual_total.get(cm, 0.0)),
-                "—",
-                "—",
+                *(["—", "—"] if cal else []),
                 '<span class="tag tag-atencao">▲ classificar</span>'
                 if pendencia
                 else '<span class="tag">sem alvo</span>',
@@ -167,11 +170,22 @@ def secao_carteira(d, pessoa):
             inst[0]["instituicao"].title() if inst else "—",
             f"{pct(inst[0]['pct_da_carteira'])} da carteira" if inst else "",
         ),
-        kpi("Exposição em dólar", pct(moedas.get("USD", 0)), f"alvo {META_INTERNACIONAL_PCT[pessoa]}%"),
+        kpi("Exposição em dólar", pct(moedas.get("USD", 0)), f"alvo {cal['internacional']}%" if cal else ""),
         "</div>",
-        "<h3>Alocação por camada contra a política</h3>",
-        f"<figure>{barras_alvo(dados_alvo)}</figure>",
-        tabela(["Camada", "Valor", "Atual", "Alvo", "Desvio", "Situação"], lin),
+        *(
+            [
+                "<h3>Alocação por camada contra a política</h3>",
+                f"<figure>{barras_alvo(dados_alvo)}</figure>",
+                tabela(["Camada", "Valor", "Atual", "Alvo", "Desvio", "Situação"], lin),
+            ]
+            if cal
+            else [
+                "<h3>Alocação por camada</h3>",
+                "<p class='sub'>A política vigente ainda não tem calibragem aprovada para este "
+                "titular: a alocação sai sem alvo e as recomendações partem dos objetivos.</p>",
+                tabela(["Camada", "Valor", "Atual", "Situação"], lin),
+            ]
+        ),
         nota_bases(base_alvo, total),
         "<h3>Concentração</h3>",
         tabela(
@@ -309,6 +323,15 @@ def cabecalho(titulo, subtitulo, meta, destinatarios, escopo):
 
 
 def rodape(meta, premissas, escopo):
+    pol = politica_vigente(meta["mes_ref"])
+    vigente = (
+        f"<p>Política econômica vigente em {mes_extenso(meta['mes_ref'])}: "
+        f"<strong>{esc(pol['nome'])}</strong>, desde {data_br(pol['inicio'].isoformat())}"
+        + (f"; gastos em {esc(pol['postura'])}" if escopo == "orcamento" and pol["postura"] else "")
+        + ".</p>"
+        if pol["nome"]
+        else f"<p>Nenhuma política econômica vigente em {mes_extenso(meta['mes_ref'])}.</p>"
+    )
     pr = ""
     if premissas:
         itens = "".join(f"<li>{esc(p)}</li>" for p in premissas)
@@ -361,11 +384,12 @@ def rodape(meta, premissas, escopo):
         )
 
     return f"""<section class="quebra"><h2><span class="num">—</span>Notas e procedência</h2>
-<div class="rodape-doc">{incompleto}{pr}{sazonal}
+<div class="rodape-doc">{incompleto}{vigente}{pr}{sazonal}
   <p>Origem: camada <code>marts</code> do data warehouse pessoal (PostgreSQL),
   domínio finanças. {procedencia}</p>
   <p>Definições de categoria de gasto e de camada de investimento conforme
-  <code>models/presentation/financas/_docs_financas.md</code>, fonte única do domínio.
+  <code>models/presentation/financas/_docs_financas.md</code>; calibragem da carteira conforme
+  <code>_politicas_financas.md</code>, na mesma pasta.
   Meses posteriores ao de referência existem na base como lançamentos futuros
   pré-agendados e foram excluídos de todos os números.</p>
   <p>Este documento é gerado automaticamente a partir de dados próprios e não
@@ -684,6 +708,7 @@ def montar_investimentos(d, n, pessoa):
     sv = [sum(r["vlr_liquido_brl"] for r in div if r["mes_base"] == m) for m in mdiv]
     tot12 = sum(sv)
     reserva = next((c["valor"] for c in camadas if c["camada"] == "RESERVA"), 0)
+    cal = politica_vigente(meta["mes_ref"])["calibragem"].get(pessoa)
 
     pat = d["patrimonio"] if tem_patrimonio else []
     col_pat = f"patrimonio_liquido_{pessoa}"
@@ -773,7 +798,7 @@ def montar_investimentos(d, n, pessoa):
             prox(),
             "Carteira",
             f"Posição em {mes_extenso(meta['mes_carteira'])}",
-            secao_carteira(d, pessoa) + bloco("Leitura da carteira", n.get("diagnostico_carteira", "")),
+            secao_carteira(d, pessoa, cal) + bloco("Leitura da carteira", n.get("diagnostico_carteira", "")),
             quebra=True,
         )
     )
@@ -793,10 +818,8 @@ def montar_investimentos(d, n, pessoa):
         )
     else:
         corpo_renda = (
-            "<p>Nenhum provento recebido nos últimos 12 meses. A "
-            "carteira não tem posição pagadora de renda — o que é "
-            "coerente com uma alocação-alvo sem camada de renda, mas "
-            "vira lacuna se o alvo mudar.</p>"
+            "<p>Nenhum provento recebido nos últimos 12 meses: a "
+            "carteira não tem posição pagadora de renda.</p>"
         )
     partes.append(
         secao(prox(), "Renda passiva", "Dividendos e proventos líquidos · últimos 12 meses", corpo_renda, quebra=True)
@@ -817,7 +840,7 @@ def montar_investimentos(d, n, pessoa):
         secao(
             prox(),
             "Recomendações",
-            f"Destino sugerido para o aporte · aporte-alvo {brl(APORTE_ALVO[pessoa])}/mês",
+            "Destino sugerido para o aporte" + (f" · aporte-alvo {brl(cal['aporte'])}/mês" if cal else ""),
             recomendacoes_html(n.get("recomendacoes", [])),
             quebra=True,
         )

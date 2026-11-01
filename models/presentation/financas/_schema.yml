@@ -527,7 +527,7 @@ models:
   - name: riqueza
     description: >
       Índice acumulado do patrimônio do casal (com Lucas e Jéssica) e de Deusa contra os indexadores,
-      um registro por mês. Inclui aportes, então não é rentabilidade; ver politica_investimentos.
+      um registro por mês. Inclui aportes, então não é rentabilidade; ver benchmark.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base."

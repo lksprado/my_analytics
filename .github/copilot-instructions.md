@@ -17,10 +17,11 @@ replaced by a pointer.
 
 ## Domain-specific rules
 
-- **Finanças** — `models/presentation/financas/_docs_financas.md` is the single source of truth for
-  spending categories, investment layers, the investment policy and dated relevant facts.
-  `scripts/relatorios/politica.py` parses its policy tables and glossary lines, so keep their
-  headings and column names.
+- **Finanças** — `models/presentation/financas/` splits stable from mutable: `_docs_financas.md`
+  (glossary, fixed rules, benchmark), `_interpretacao_financas.md` (how to read and apply the policy),
+  `_politicas_financas.md` (dated economic policies, current one on top) and `_fatos_relevantes.md`.
+  `scripts/relatorios/politica.py` parses `regras_fixas`, the glossary lines and each policy's
+  `- Início:` / `### Calibragem`, so keep those headings and column names.
 - **PostgreSQL only** — date arithmetic is `- interval '3 days'`, never `dateadd()`.
 - **Never hardcode schemas** — use `{{ ref('stg_xxx') }}` and
   `{{ source('raw', 'xxx') }}`; schema routing is handled by `dbt_project.yml` and the

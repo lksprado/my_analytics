@@ -13,7 +13,8 @@ gráficos SVG (`graficos`) e os blocos de HTML (`blocos`). O que é específico 
 um relatório — capa, rodapé, tarja de prontidão, ordem das seções — fica no
 montador daquele relatório.
 
-Os parâmetros da política e os verbetes do glossário não são copiados: `politica`
-os lê de `models/presentation/financas/_docs_financas.md` a cada execução.
+As regras fixas, a política vigente e os verbetes do glossário não são copiados:
+`politica` os lê de `models/presentation/financas/_docs_financas.md` e
+`_politicas_financas.md` a cada execução.
 """
 

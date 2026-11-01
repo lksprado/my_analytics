@@ -85,6 +85,7 @@ from relatorios.politica import (
     META_POUPANCA_PCT,
     ROTULO_CAT,
     SERIES,
+    politica_vigente,
 )
 from relatorios.saida import escrever
 
@@ -815,8 +816,18 @@ def rodape(d, premissas):
         else ""
     )
 
+    pol = politica_vigente(meta["mes_corrente"])
+    vigente = (
+        f"<p>Política econômica vigente em {mes_extenso(meta['mes_corrente'])}: "
+        f"<strong>{esc(pol['nome'])}</strong>"
+        + (f"; gastos em {esc(pol['postura'])}" if pol["postura"] else "")
+        + ".</p>"
+        if pol["nome"]
+        else ""
+    )
+
     return f"""<section class="quebra"><h2><span class="num">—</span>Notas e procedência</h2>
-<div class="rodape-doc">{incompleto}{bloco_prem}{sazonal}
+<div class="rodape-doc">{incompleto}{vigente}{bloco_prem}{sazonal}
   <p>Origem: camada <code>marts</code> do data warehouse pessoal (PostgreSQL),
   domínio finanças. Ritmo, categorias e margem apurados em
   {mes_extenso(meta["mes_corrente"])} até {data_br(meta["hoje"])}, no dia
@@ -833,8 +844,8 @@ def rodape(d, premissas):
   nem cobertura da reserva de emergência — nem para o casal, nem para Deusa.
   Esses são assunto dos relatórios de fechamento, gerados no início do mês. A
   composição de ativos de Deusa aqui é posição, não política.</p>
-  <p>Definições de categoria de gasto conforme
-  <code>models/presentation/financas/_docs_financas.md</code>, fonte única do domínio.
+  <p>Definições de categoria de gasto e meta de poupança conforme
+  <code>models/presentation/financas/_docs_financas.md</code>.
   Meses posteriores ao corrente existem na base como lançamentos futuros
   pré-agendados e foram excluídos de todos os números.</p>
   <p>Este documento é gerado automaticamente a partir de dados próprios e não

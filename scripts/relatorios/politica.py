@@ -1,18 +1,22 @@
-"""Parâmetros da política de investimento e vocabulário do domínio.
+"""Regras fixas, política econômica vigente e vocabulário do domínio.
 
-Os números da política e os verbetes do glossário são lidos de
-`models/presentation/financas/_docs_financas.md`, a fonte única. Aqui ficam só
-as escolhas de apresentação: cores, rótulos e ordem.
+As regras fixas e os verbetes do glossário são lidos de
+`models/presentation/financas/_docs_financas.md`; a calibragem da carteira, da
+política vigente no mês em `_politicas_financas.md`. Aqui ficam só as escolhas
+de apresentação: cores, rótulos e ordem.
 """
 
 from __future__ import annotations
 
+import calendar
 import re
 import unicodedata
+from datetime import date
 from pathlib import Path
 
-_DOC = Path(__file__).resolve().parents[2] / "models/presentation/financas/_docs_financas.md"
-_TEXTO_DOC = _DOC.read_text(encoding="utf-8")
+_PASTA = Path(__file__).resolve().parents[2] / "models/presentation/financas"
+_TEXTO_DOC = (_PASTA / "_docs_financas.md").read_text(encoding="utf-8")
+_TEXTO_POLITICAS = (_PASTA / "_politicas_financas.md").read_text(encoding="utf-8")
 
 
 def _chave(texto):
@@ -26,13 +30,20 @@ def _bloco(nome):
     return m.group(1)
 
 
-def _tabela(bloco, titulo):
-    m = re.search(r"^### " + re.escape(titulo) + r"\n(.*?)(?=^### |\Z)", _bloco(bloco), re.S | re.M)
+def _linhas_tabela(texto, titulo):
+    m = re.search(r"^### " + re.escape(titulo) + r"\n(.*?)(?=^##|\Z)", texto, re.S | re.M)
     linhas = [ln for ln in (m.group(1).splitlines() if m else []) if ln.startswith("|")]
-    if len(linhas) < 3:
-        raise ValueError(f"_docs_financas.md: tabela sob `### {titulo}` em `{bloco}` não encontrada")
+    if len(linhas) < 2:
+        return None
     celulas = [[c.strip() for c in ln.strip().strip("|").split("|")] for ln in linhas]
     return [dict(zip(celulas[0], linha)) for linha in celulas[2:]]
+
+
+def _tabela(bloco, titulo):
+    linhas = _linhas_tabela(_bloco(bloco), titulo)
+    if not linhas:
+        raise ValueError(f"_docs_financas.md: tabela sob `### {titulo}` em `{bloco}` não encontrada")
+    return linhas
 
 
 def _numero(texto):
@@ -44,9 +55,9 @@ def _numero(texto):
 
 
 def _parametro(nome):
-    achados = [ln for ln in _tabela("politica_investimentos", "Demais parâmetros") if ln["Parâmetro"] == nome]
+    achados = [ln for ln in _tabela("regras_fixas", "Parâmetros") if ln["Parâmetro"] == nome]
     if not achados:
-        raise ValueError(f"_docs_financas.md: parâmetro `{nome}` ausente em `### Demais parâmetros`")
+        raise ValueError(f"_docs_financas.md: parâmetro `{nome}` ausente em `### Parâmetros`")
     return achados
 
 
@@ -119,30 +130,69 @@ ROTULO_CAMADA = {
     "NAO CLASSIFICADO": "Não classificado",
 }
 
-# --------------------------------------------------- política (lida do doc) ---
+# ------------------------------------------------ regras fixas (lidas do doc) ---
 
-ALVOS_CAMADA = {
-    _chave(ln["Pessoa"]): {cm: _numero(ln[cm]) for cm in CAMADAS_COM_ALVO}
-    for ln in _tabela("politica_investimentos", "Alocação-alvo por camada")
-}
-APORTE_ALVO = {
-    _chave(ln["Pessoa"]): _numero(ln["Aporte alvo (R$/mês)"])
-    for ln in _tabela("politica_investimentos", "Aporte mensal estimado")
-}
 # "Lucas e Jéssica" é a reserva do casal.
 META_RESERVA_MESES = {
     ("casal" if " e " in ln["Pessoa"] else _chave(ln["Pessoa"])): _numero(ln["N (meses)"])
-    for ln in _tabela("politica_investimentos", "Metas e limites")
+    for ln in _tabela("regras_fixas", "Reserva de emergência")
 }
 META_RESERVA_PISO = _numero(_parametro("Piso da reserva-alvo")[0]["Valor"])
-BANDA_CAMADA_PP = _numero(_parametro("Banda de tolerância da alocação")[0]["Valor"])
 FGC_FOLGA_MINIMA = _numero(_parametro("Folga mínima sobre o limite FGC")[0]["Valor"])
 META_POUPANCA_PCT = _numero(_parametro("Taxa de poupança alvo")[0]["Valor"])
-META_INTERNACIONAL_PCT = {
-    _chave(pessoa): _numero(ln["Valor"])
-    for ln in _parametro("Exposição internacional alvo")
-    for pessoa in ln["Aplicação"].split(" e ")
-}
+
+# ------------------------------------------------- política vigente (lida do doc) ---
+
+
+def _campo(secao, nome):
+    m = re.search(r"^- " + nome + r":[ \t]*(\d{4}-\d{2}-\d{2})?", secao, re.M)
+    if not m:
+        raise ValueError(f"_politicas_financas.md: linha `- {nome}:` ausente")
+    return date.fromisoformat(m.group(1)) if m.group(1) else None
+
+
+def _postura(secao):
+    m = re.search(r"^### Gastos\n(.*?)(?=^##|\Z)", secao, re.S | re.M)
+    p = re.search(r"^- Postura:[ \t]*(\S+)", m.group(1), re.M) if m else None
+    return p.group(1) if p else None
+
+
+def _politicas():
+    for secao in re.split(r"^## ", _TEXTO_POLITICAS, flags=re.M)[1:]:
+        nome = secao.splitlines()[0].strip()
+        linhas = _linhas_tabela(secao, "Calibragem")
+        if linhas is None:
+            raise ValueError(f"_politicas_financas.md: `{nome}` sem tabela sob `### Calibragem`")
+        calibragem = {
+            _chave(ln["Titular"]): {
+                "alvos": {cm: _numero(ln[cm]) for cm in CAMADAS_COM_ALVO},
+                "banda": _numero(ln["Banda (p.p.)"]),
+                "aporte": _numero(ln["Aporte (R$/mês)"]),
+                "internacional": _numero(ln["Exposição internacional"]),
+            }
+            for ln in linhas
+        }
+        yield {
+            "nome": nome,
+            "inicio": _campo(secao, "Início"),
+            "fim": _campo(secao, "Fim"),
+            "postura": _postura(secao),
+            "calibragem": calibragem,
+        }
+
+
+def politica_vigente(mes_ref):
+    """Política de maior início até o fim de `mes_ref` (AAAA-MM ou AAAA-MM-DD).
+    Titular ausente de `calibragem` está com calibragem pendente; `postura` é a
+    postura de gasto (None se a política não declara). Mês anterior a toda
+    política volta com `nome` None e nenhuma calibragem."""
+    ano, mes = int(mes_ref[:4]), int(mes_ref[5:7])
+    fim_mes = date(ano, mes, calendar.monthrange(ano, mes)[1])
+    candidatas = [p for p in _politicas() if p["inicio"] <= fim_mes]
+    if not candidatas:
+        return {"nome": None, "inicio": None, "fim": None, "postura": None, "calibragem": {}}
+    return max(candidatas, key=lambda p: p["inicio"])
+
 
 # ---------------------------------------------------- glossário (lido do doc) ---
 

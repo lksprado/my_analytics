@@ -27,10 +27,17 @@ Acionamento sob demanda. Para refazer meses em lote sem sessão interativa:
 
 ## Passo 0 — Ler as regras do domínio
 
-Leia `models/presentation/financas/_docs_financas.md` antes de qualquer análise, começando por
-`fatos_relevantes`. Categorias, camadas, alvos, reserva-alvo, limites e armadilhas de leitura estão
-lá; não estão repetidos aqui. Fato usado no diagnóstico entra em `premissas` com o status.
-Parâmetro marcado `[CONFIRMAR]` é usado assim mesmo e sinalizado em `premissas`.
+Leia, nesta ordem, em `models/presentation/financas/`:
+
+1. `_interpretacao_financas.md`: como a política vira recomendação, hierarquia de autoridade,
+   ambiguidade e limites. Vale para todo o relatório.
+2. `_politicas_financas.md`: só a política vigente no mês de referência (maior `Início` até o fim do
+   mês). Objetivos, leitura do titular, restrições, postura de gasto, calibragem e gatilhos de revisão.
+3. `_fatos_relevantes.md`.
+4. `_docs_financas.md`: categorias, camadas, regras fixas (reserva, FGC, poupança), armadilhas.
+
+Nada disso está repetido aqui. Fato usado no diagnóstico entra em `premissas` com o status.
+Valor marcado `[CONFIRMAR]` é usado assim mesmo e sinalizado em `premissas`.
 
 ## Passo 1 — Resolver o mês de referência
 
@@ -79,17 +86,23 @@ imprime a tarja de dados incompletos e o diagnóstico diz que os valores são pa
 **Orçamento (casal):** taxa de poupança do mês e de 12 meses contra a meta; categorias por
 participação, contra a média de 6 meses e o mesmo mês do ano anterior; fixo × variável e essencial ×
 discricionário; cobertura da reserva contra a reserva-alvo, dizendo qual regra vale (N meses ou piso);
-luz separando preço (`preco_kwh`) de consumo (`kwh_dia`).
+luz separando preço (`preco_kwh`) de consumo (`kwh_dia`). O tom e a prioridade das recomendações de
+gasto seguem a postura de gasto da política vigente (`_interpretacao_financas.md`).
 
-**Investimentos (um por titular, contra o alvo daquela pessoa):** camada contra alvo, com desvio em
-p.p. e banda; concentração por instituição, emissor e conglomerado; moeda; FGC sem folga; vencimentos
-em 12 meses e destino do principal; **destino do aporte do mês**, em valor e camada.
+**Investimentos (um por titular, contra a calibragem da política vigente):** camada contra alvo,
+com desvio em p.p. e a banda da calibragem (desvio conta desde o início da política, sem transição);
+concentração por instituição, emissor e conglomerado; moeda; FGC sem folga; vencimentos em 12 meses
+e destino do principal; **destino do aporte do mês**, em valor e camada, dizendo qual objetivo serve.
+Com calibragem pendente o montador omite alvo e desvio: a recomendação parte dos objetivos e da
+leitura do titular, sem inventar número.
 
 Conduta:
 - Não transporte a leitura de uma carteira para outra.
 - Não recomende produto ou emissor que não esteja na carteira nem seja instrumento genérico da
   camada ("Tesouro Selic" sim; "CDB do banco X a 112% do CDI" não).
 - Quando o dado não sustenta a conclusão, diga que não sustenta.
+- Gatilho de revisão ocorrido ou objetivo que o dado contradiz vira recomendação "Revisar política"
+  com o motivo em uma frase. Nunca edite a política.
 
 ## Passo 4 — Narrativa
 
@@ -109,8 +122,8 @@ O montador renderiza KPIs, tabelas, gráficos e glossário. Você escreve só o 
 - Número citado confere com o JSON.
 - No máximo 6 recomendações, cada uma com valor em R$ e a razão em uma frase. Orçamento recomenda
   gasto, poupança e reserva; individuais recomendam destino do aporte. Sem repetir entre os dois.
-- `premissas`: regra de reserva-alvo vigente, `[CONFIRMAR]` usados, fatos relevantes usados e
-  limitações do dado.
+- `premissas`: regra de reserva-alvo, `[INTERPRETAÇÃO]` adotadas, `[CONFIRMAR]` usados, fatos
+  relevantes usados e limitações do dado. A política vigente o montador já imprime nas notas.
 
 Seções que o montador já produz (não duplique): capa, sumário com KPIs, resultado do mês e 13 meses,
 categorias e luz, reserva, recomendações, glossário e notas. Nos individuais: patrimônio (só Lucas e
@@ -149,4 +162,5 @@ Texto errado: corrija a narrativa. Layout ou número errado: `montar_relatorio.p
 ## Encerramento
 
 Caminhos dos PDFs, mês de cada bloco, escopos que ficaram de fora pelo portão e pendências por titular:
-ativos não classificados, conglomerados sem folga FGC, `[CONFIRMAR]` que sustentaram recomendação.
+ativos não classificados, conglomerados sem folga FGC, `[CONFIRMAR]` que sustentaram recomendação,
+calibragem pendente e sinalizações "Revisar política".
