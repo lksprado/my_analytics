@@ -123,6 +123,31 @@ models:
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
+  - name: stg_ativos_lastro
+    description: "Fundos e ETFs listados, uma linha por ativo: o que o ativo é e onde investe, que o tipo do relatório da B3 não diz."
+    columns:
+      - name: codigo_ativo
+        description: "Código do ativo na fonte (ticker B3 ou da Avenue)."
+        meta:
+          source_column: "codigo_ativo"
+        data_tests:
+          - unique
+          - not_null
+      - name: veiculo
+        description: "Veículo do ativo (ETF, FII)."
+        meta:
+          source_column: "veiculo"
+      - name: lastro
+        description: "Onde o ativo investe (ex.: TITULOS PUBLICOS IPCA+, OURO, RECEBIVEIS IMOBILIARIOS)."
+        meta:
+          source_column: "lastro"
+      - name: classe_referencia
+        description: "Classe do ativo na taxonomia do perfil de referência."
+        meta:
+          source_column: "classe_referencia"
+      - name: model_run_at
+        description: "Início do dbt run que materializou o modelo."
+
   - name: stg_datas_especiais
     description: >
       Datas especiais da família (aniversários e efemérides), um registro por evento recorrente

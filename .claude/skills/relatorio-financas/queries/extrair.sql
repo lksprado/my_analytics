@@ -13,9 +13,7 @@
 -- presentation_financas.riqueza NÃO entra aqui. Ela faz INNER JOIN com os indexadores, que são
 -- preenchidos na planilha depois da publicação do IPCA, por volta do dia 10 —
 -- ou seja, no dia em que este relatório roda o mês de referência ainda não
--- existe naquela tabela, e a série encolheria um mês em silêncio. A leitura de
--- desempenho contra CDI e inflação pessoal é do relatório de meio de mês, em
--- .claude/skills/relatorio-meio-mes/queries/extrair_meio_mes.sql.
+-- existe naquela tabela, e a série encolheria um mês em silêncio.
 
 \set ON_ERROR_STOP on
 
@@ -30,19 +28,19 @@ params AS (
 carteira AS (
     SELECT
         mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
-        classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
+        classe_ativo, tipo_ativo, camada, veiculo, lastro, classe_referencia, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
     FROM presentation_financas.carteira_lucas
     UNION ALL
     SELECT
         mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
-        classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
+        classe_ativo, tipo_ativo, camada, veiculo, lastro, classe_referencia, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
     FROM presentation_financas.carteira_jessica
     UNION ALL
     SELECT
         mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado_fgc,
-        classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
+        classe_ativo, tipo_ativo, camada, veiculo, lastro, classe_referencia, ativo, indexador, data_vencimento,
         vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
     FROM presentation_financas.carteira_deusa
 ),
@@ -163,6 +161,39 @@ pendencias AS (
            'A carteira está ' || carteira_defasagem_meses
            || ' meses atrás do mês de referência — defasagem grande demais para reportar a posição como se fosse a do mês.'
     FROM prontidao WHERE carteira_defasagem_meses > 2
+    UNION ALL
+    -- Ativo sem camada distorce camada e perfil só daquele titular; bloqueia o relatório dele, não os demais.
+    SELECT c.pessoa,
+           COUNT(*) || ' ativo(s) sem camada (R$ ' || replace(to_char(SUM(c.vlr_atualizado_brl), 'FM999,999,990'), ',', '.')
+           || '): classificar na aba classificacao, ver presentation_financas.ativos_sem_classificacao.'
+    FROM carteira_ref AS c
+    WHERE c.camada = 'NAO CLASSIFICADO'
+    GROUP BY c.pessoa
+    UNION ALL
+    -- A Avenue manda ETF como ACAO: sem a seed não há como saber o lastro, e a classe cai na regra errada.
+    SELECT c.pessoa,
+           COUNT(*) || ' fundo(s) ou ativo(s) de renda variável no exterior sem lastro ('
+           || string_agg(DISTINCT c.ativo, ', ') || '): cadastrar em seeds/seed_ativos_lastro.csv '
+           || 'e rodar dbt seed -s seed_ativos_lastro && dbt build -s stg_ativos_lastro+.'
+    FROM carteira_ref AS c
+    WHERE c.lastro IS NULL
+      AND (c.tipo_ativo = 'FUNDO' OR (c.moeda_ativo <> 'BRL' AND c.classe_ativo = 'RENDA VARIAVEL'))
+    GROUP BY c.pessoa
+),
+
+titulares AS (
+    SELECT unnest(ARRAY['lucas', 'jessica', 'deusa']) AS pessoa
+),
+
+-- Aviso, não trava: diferença de centavos entre planilha e relatório é rotina; R$ 1.000 separa o que distorce a leitura.
+avisos AS (
+    SELECT f.pessoa,
+           f.instituicao || ': planilha R$ ' || replace(to_char(f.vlr_faltante_brl, 'FM999,999,990'), ',', '.')
+           || ' acima da carteira (investimentos_faltantes_identificados).' AS frase
+    FROM presentation_financas.investimentos_faltantes_identificados AS f
+    CROSS JOIN mes_carteira AS m
+    WHERE f.mes_base = m.mes_carteira
+      AND f.vlr_faltante_brl >= 1000
 ),
 
 -- ---------------------------------------------------------------- blocos ---
@@ -213,6 +244,24 @@ b_meta AS (
                 'pendencias_investimentos', (
                     SELECT COALESCE(json_agg(frase), '[]'::json)
                     FROM pendencias WHERE escopo = 'investimentos'
+                ),
+                'por_titular', (
+                    SELECT json_object_agg(
+                        tt.pessoa,
+                        json_build_object(
+                            'pronto', carteira_defasagem_meses <= 2
+                                AND NOT EXISTS (SELECT 1 FROM pendencias pe WHERE pe.escopo = tt.pessoa),
+                            'pendencias', (
+                                SELECT COALESCE(json_agg(pe.frase), '[]'::json)
+                                FROM pendencias pe WHERE pe.escopo IN ('investimentos', tt.pessoa)
+                            ),
+                            'avisos', (
+                                SELECT COALESCE(json_agg(a.frase), '[]'::json)
+                                FROM avisos a WHERE a.pessoa = tt.pessoa
+                            )
+                        )
+                    )
+                    FROM titulares AS tt
                 )
             )
             FROM prontidao
@@ -307,24 +356,109 @@ b_carteira_instituicao AS (
     ) AS t
 ),
 
-b_carteira_tipo AS (
+-- Base do perfil de referência: sem a reserva de emergência, que o perfil põe fora da alocação.
+b_carteira_referencia AS (
     SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.valor DESC), '[]'::json) AS j
     FROM (
         SELECT c.pessoa,
-               c.classe_ativo,
-               c.tipo_ativo,
+               c.classe_referencia,
                SUM(c.vlr_atualizado_brl) AS valor,
-               ROUND(100.0 * SUM(c.vlr_atualizado_brl) / NULLIF(p.total, 0), 1) AS pct_da_carteira
+               ROUND(100.0 * SUM(c.vlr_atualizado_brl)
+                     / NULLIF(SUM(SUM(c.vlr_atualizado_brl)) OVER (PARTITION BY c.pessoa), 0), 1) AS pct_da_base
         FROM carteira_ref AS c
-        JOIN total_por_pessoa AS p USING (pessoa)
-        GROUP BY c.pessoa, c.classe_ativo, c.tipo_ativo, p.total
+        WHERE c.camada NOT IN ('RESERVA', 'NAO CLASSIFICADO')
+        GROUP BY c.pessoa, c.classe_referencia
+    ) AS t
+),
+
+-- Mês de carteira anterior, para o acompanhamento ver para onde a carteira andou por classe.
+b_carteira_referencia_anterior AS (
+    SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.valor DESC), '[]'::json) AS j
+    FROM (
+        SELECT c.pessoa,
+               c.mes_base,
+               c.classe_referencia,
+               SUM(c.vlr_atualizado_brl) AS valor
+        FROM carteira AS c
+        CROSS JOIN mes_carteira AS m
+        WHERE c.mes_base = (m.mes_carteira - interval '1 month')::date
+          AND c.camada NOT IN ('RESERVA', 'NAO CLASSIFICADO')
+        GROUP BY c.pessoa, c.mes_base, c.classe_referencia
+    ) AS t
+),
+
+-- Variação do patrimônio inclui aporte: mede se o patrimônio cresceu mais que a inflação, não a rentabilidade.
+-- Níveis em R$ e taxas compostas, não os *_acum de riqueza, que vêm da planilha com três casas.
+mes_desempenho AS (
+    SELECT MAX(i.mes_base) AS mes
+    FROM presentation_financas.indicadores AS i
+    INNER JOIN staging_google_sheets.stg_patrimonio AS p ON p.mes_base = i.mes_base
+    WHERE i.mes_base <= (SELECT mes_ref FROM params)
+      AND i.cdi IS NOT NULL
+),
+
+niveis AS (
+    SELECT p.mes_base,
+           p.total_patrimonio_liquido   AS casal,
+           p.patrimonio_liquido_lucas   AS lucas,
+           p.patrimonio_liquido_jessica AS jessica,
+           d.total_patrimonio_liquido   AS deusa
+    FROM staging_google_sheets.stg_patrimonio AS p
+    LEFT JOIN staging_google_sheets.stg_patrimonio_deusa AS d ON d.mes_base = p.mes_base
+),
+
+taxas_12m AS (
+    SELECT EXP(SUM(LN(1 + i.minha_inflacao))) - 1 AS minha_inflacao,
+           EXP(SUM(LN(1 + i.ipca))) - 1           AS ipca,
+           EXP(SUM(LN(1 + i.cdi))) - 1            AS cdi,
+           COUNT(*)                               AS meses
+    FROM presentation_financas.indicadores AS i
+    CROSS JOIN mes_desempenho AS m
+    WHERE i.mes_base > (m.mes - interval '12 months')::date
+      AND i.mes_base <= m.mes
+),
+
+b_desempenho AS (
+    SELECT CASE WHEN m.mes IS NULL THEN NULL ELSE json_build_object(
+        'mes', m.mes,
+        'series', json_build_object(
+            'casal',   json_build_object('mes', n.casal::numeric / NULLIF(n1.casal, 0) - 1,
+                                         '12m', n.casal::numeric / NULLIF(n12.casal, 0) - 1),
+            'lucas',   json_build_object('mes', n.lucas::numeric / NULLIF(n1.lucas, 0) - 1,
+                                         '12m', n.lucas::numeric / NULLIF(n12.lucas, 0) - 1),
+            'jessica', json_build_object('mes', n.jessica::numeric / NULLIF(n1.jessica, 0) - 1,
+                                         '12m', n.jessica::numeric / NULLIF(n12.jessica, 0) - 1),
+            'deusa',   json_build_object('mes', n.deusa::numeric / NULLIF(n1.deusa, 0) - 1,
+                                         '12m', n.deusa::numeric / NULLIF(n12.deusa, 0) - 1),
+            'minha_inflacao', json_build_object('mes', i.minha_inflacao,
+                                                '12m', CASE WHEN tx.meses = 12 THEN tx.minha_inflacao END),
+            'ipca',           json_build_object('mes', i.ipca, '12m', CASE WHEN tx.meses = 12 THEN tx.ipca END),
+            'cdi',            json_build_object('mes', i.cdi, '12m', CASE WHEN tx.meses = 12 THEN tx.cdi END)
+        )
+    ) END AS j
+    FROM mes_desempenho AS m
+    CROSS JOIN taxas_12m AS tx
+    LEFT JOIN presentation_financas.indicadores AS i ON i.mes_base = m.mes
+    LEFT JOIN niveis AS n   ON n.mes_base   = m.mes
+    LEFT JOIN niveis AS n1  ON n1.mes_base  = (m.mes - interval '1 month')::date
+    LEFT JOIN niveis AS n12 ON n12.mes_base = (m.mes - interval '12 months')::date
+),
+
+-- Receita por titular só existe no intermediate; o mart resultado é do casal.
+b_receita_titular AS (
+    SELECT COALESCE(json_agg(t ORDER BY t.pessoa), '[]'::json) AS j
+    FROM (
+        SELECT d.pessoa, SUM(d.receita_total) AS receita_total
+        FROM intermediate_financas.int_dre_consolidado AS d
+        WHERE d.mes_debito = (SELECT mes_ref FROM params)
+        GROUP BY d.pessoa
     ) AS t
 ),
 
 b_posicoes AS (
     SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.vlr_atualizado_brl DESC), '[]'::json) AS j
     FROM (
-        SELECT pessoa, camada, classe_ativo, tipo_ativo,
+        SELECT pessoa, camada, classe_referencia, classe_ativo, tipo_ativo, veiculo, lastro,
                ativo, instituicao, emissor, conglomerado_fgc, indexador,
                data_vencimento, vencimento_em_dias, vlr_atualizado_brl, moeda_ativo
         FROM carteira_ref
@@ -395,7 +529,10 @@ SELECT json_build_object(
     'dividendos',            (SELECT j FROM b_dividendos),
     'carteira_camada',       (SELECT j FROM b_carteira_camada),
     'carteira_instituicao',  (SELECT j FROM b_carteira_instituicao),
-    'carteira_tipo',         (SELECT j FROM b_carteira_tipo),
+    'carteira_referencia',   (SELECT j FROM b_carteira_referencia),
+    'carteira_referencia_anterior', (SELECT j FROM b_carteira_referencia_anterior),
+    'desempenho',            (SELECT j FROM b_desempenho),
+    'receita_titular',       (SELECT j FROM b_receita_titular),
     'carteira_moeda',        (SELECT j FROM b_moeda),
     'posicoes',              (SELECT j FROM b_posicoes),
     'nao_classificados',     (SELECT j FROM b_nao_classificados),

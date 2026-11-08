@@ -49,13 +49,6 @@ def data_br(s):
     return d.strftime("%d/%m/%Y")
 
 
-def dia_mes_br(s):
-    """dd/mm — para o corte do meio de mês, onde o ano é redundante."""
-    if not s:
-        return "—"
-    return datetime.strptime(s[:10], "%Y-%m-%d").date().strftime("%d/%m")
-
-
 def mes_extenso(s):
     d = datetime.strptime(s[:10], "%Y-%m-%d").date()
     return f"{MESES[d.month]} de {d.year}"

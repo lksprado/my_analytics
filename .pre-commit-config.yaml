@@ -1,4 +1,8 @@
 # Instale uma vez por clone: pre-commit install
+# dbt 1.11 quebra em Python 3.14 (mashumaro); os hooks usam a versão do projeto.
+default_language_version:
+  python: python3.12
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0

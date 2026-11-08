@@ -13,7 +13,6 @@ faltam_classificar AS (
         c.pessoa,
         c.instituicao,
         c.classe_ativo,
-        c.tipo_ativo,
         c.codigo_ativo,
         c.ativo,
         c.data_vencimento,

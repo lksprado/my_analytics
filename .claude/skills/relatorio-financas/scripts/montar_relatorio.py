@@ -8,15 +8,22 @@ São quatro relatórios, separados por assunto e por titular:
 
     orcamento          casal — receita, despesa, resultado, poupança, gasto por
                        categoria, conta de luz e cobertura da reserva
-    lucas | jessica    investimentos do titular — patrimônio, carteira, renda
-                       passiva, riscos, aporte
+    lucas | jessica    investimentos do titular — camadas, classe contra o
+                       perfil de referência, riscos, patrimônio e renda passiva
     deusa              idem, sem patrimônio: não há dado dela em
                        staging_google_sheets.stg_patrimonio
 
-O desempenho contra CDI e inflação pessoal não sai aqui. Os indexadores do mês
-só são publicados por volta do dia 10 e a planilha é preenchida depois — no
-dia em que este relatório roda eles ainda não existem. A leitura de benchmark
-é do relatório de meio de mês (`.claude/skills/relatorio-meio-mes/`).
+Cada PDF cabe em até 3 páginas: sem capa, sem glossário, sem lista posição a
+posição. A carteira é lida por camada (papel na política) e por classe de
+referência (a taxonomia do perfil em `_perfis_de_investimento.md`); só
+vencimento e FGC descem ao ativo, porque é lá que a ação acontece.
+
+A política que orienta o relatório é a vigente na data de geração: as
+recomendações olham para o próximo aporte, não para o mês fechado.
+
+O desempenho é do último mês com indexador publicado, que pode ser anterior
+ao de referência. Como a variação do patrimônio inclui aportes, ele compara o
+patrimônio com a inflação pessoal; não é rentabilidade da carteira.
 
 Divisão de responsabilidades: este script renderiza tudo que é *calculável*
 — KPIs, tabelas, gráficos SVG — direto dos dados, para que nenhum número do
@@ -31,8 +38,12 @@ Estrutura do arquivo de narrativa (todas as chaves opcionais):
       "diagnostico_carteira": "<p>…</p>",    # só nos escopos de investimento
       "diagnostico_riscos": "<p>…</p>",      # idem
       "recomendacoes": [{"titulo": "…", "texto": "…"}],
+      "acompanhamento": [{"recomendacao": "…", "situacao": "…", "evidencia": "…"}],
       "premissas": ["…"]
     }
+
+Com saída em PDF, a narrativa é copiada para a pasta do PDF: o relatório do mês
+seguinte a lê para acompanhar as recomendações.
 """
 
 from __future__ import annotations
@@ -42,17 +53,15 @@ import json
 import sys
 from pathlib import Path
 
-# A camada compartilhada com o relatório de meio de mês mora no repositório, em
+# A camada compartilhada mora no repositório, em
 # scripts/relatorios/ — parâmetros da política, formatação pt-BR, gráficos SVG e
-# blocos de HTML. Aqui fica só o que é específico do fechamento: capa, rodapé,
-# tarja de prontidão e a ordem das seções.
+# blocos de HTML. Aqui fica só o que é específico do fechamento: cabeçalho,
+# notas, tarja de prontidão e a ordem das seções.
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "scripts"))
 
 from relatorios.blocos import (
     bloco,
     css_inline,
-    glossario_camadas,
-    glossario_categorias,
     kpi,
     recomendacoes_html,
     rotulo_chip,
@@ -64,47 +73,64 @@ from relatorios.calculo import media, mediana, variacao
 from relatorios.formato import brl, classe_delta, data_br, esc, mes_curto, mes_extenso, pct, sinal
 from relatorios.graficos import barras_agrupadas, barras_alvo, barras_empilhadas, legenda
 from relatorios.politica import (
-    ALVOS_CAMADA,
-    APORTE_ALVO,
     CAMADAS_COM_ALVO,
     CAMADAS_SEM_ALVO,
     CATEGORIAS,
+    CLASSES_INTERNACIONAIS,
+    CLASSES_REFERENCIA,
+    CLASSES_RENDA_FIXA,
+    CLASSES_RISCO,
     COM_PATRIMONIO,
     COR_CAMADA,
     COR_CAT,
     ESCOPOS_INVESTIMENTO,
-    META_INTERNACIONAL_PCT,
-    META_RESERVA_MESES,
-    META_RESERVA_PISO,
+    FGC_FOLGA_MINIMA,
+    FGC_LIMITE,
+    ISENCAO_ACOES_BR,
+    META_POUPANCA_PCT,
+    NATUREZA_CAT,
     NOME,
+    RESERVA_MIN_MESES,
+    RESERVA_TETO,
     ROTULO_CAMADA,
     ROTULO_CAT,
+    ROTULO_CLASSE,
     SERIES,
-    TEXTO_CAMADA,
+    extraordinario_casal,
+    fatos_do_mes,
+    perfil_referencia,
+    politica_vigente,
 )
 from relatorios.saida import escrever
+
+def grade_2(esquerda, direita):
+    return f'<div class="grade-2"><div>{esquerda}</div><div>{direita}</div></div>'
+
 
 # ----------------------------------------------------------------- carteira ---
 
 
-def nota_bases(base_alvo, total):
-    """A tabela de camadas usa duas bases; sem esta nota ela engana."""
-    if base_alvo >= total:
-        return ""
-    return (
-        f"<p class='sub'>As camadas com alvo somam 100% da base de "
-        f"rebalanceamento ({brl(base_alvo)}), que exclui reserva "
-        f"estratégica e não classificados. As duas últimas linhas estão em "
-        f"% da carteira total ({brl(total)}).</p>"
-    )
-
-
-def secao_carteira(d, pessoa):
+def secao_camadas(d, pessoa, cal):
+    """`cal` é a calibragem do titular na política vigente; sem ela a tabela mostra só valor e %
+    da carteira, e a comparação fica com o perfil de referência."""
     camadas = [c for c in d["carteira_camada"] if c["pessoa"] == pessoa]
     total = sum(c["valor"] for c in camadas)
     if not total:
         return ""
-    alvos = ALVOS_CAMADA[pessoa]
+    if not cal:
+        lin = [
+            [
+                rotulo_chip(COR_CAMADA[cm], ROTULO_CAMADA[cm])
+                + (' <span class="tag tag-atencao">▲ classificar</span>' if cm == "NAO CLASSIFICADO" else ""),
+                brl(c["valor"]),
+                pct(c["pct_da_carteira"]),
+            ]
+            for cm in CAMADAS_COM_ALVO + CAMADAS_SEM_ALVO
+            for c in camadas
+            if c["camada"] == cm
+        ]
+        return tabela(["Camada", "Valor", "% da carteira"], lin, ["Total", brl(total), "100,0%"])
+    alvos = cal["alvos"] if cal else {}
     valores = {c["camada"]: c["valor"] for c in camadas}
 
     # O alvo da política é sobre a carteira SEM as camadas que não têm alvo, e
@@ -115,13 +141,12 @@ def secao_carteira(d, pessoa):
         (cm, COR_CAMADA[cm], float(valores.get(cm, 0)) / base_alvo * 100 if base_alvo else 0.0, alvos.get(cm, 0))
         for cm in CAMADAS_COM_ALVO
     ]
-    # Estas seguem em % da carteira total — é o valor que elas de fato ocupam.
     atual_total = {c["camada"]: float(c["pct_da_carteira"]) for c in camadas}
 
     lin = []
     for cm, cor, a, alvo in dados_alvo:
         desvio = a - alvo
-        dentro = abs(desvio) <= 5
+        dentro = abs(desvio) <= cal["banda"]
         lin.append(
             [
                 rotulo_chip(cor, ROTULO_CAMADA[cm]),
@@ -135,8 +160,7 @@ def secao_carteira(d, pessoa):
                 else '<span class="tag tag-atencao">▲ fora da banda</span>',
             ]
         )
-    # Camadas sem alvo: entram na tabela para que o valor não desapareça do
-    # relatório, mas com alvo "—" e percentual sobre a carteira toda.
+    # Camadas sem alvo entram para o valor não sumir, em % da carteira toda.
     for cm in CAMADAS_SEM_ALVO:
         if not valores.get(cm):
             continue
@@ -154,62 +178,192 @@ def secao_carteira(d, pessoa):
             ]
         )
 
-    inst = [i for i in d["carteira_instituicao"] if i["pessoa"] == pessoa]
-    tipos = [t for t in d["carteira_tipo"] if t["pessoa"] == pessoa]
-    moedas = {m["moeda_ativo"]: float(m["pct_da_carteira"]) for m in d["carteira_moeda"] if m["pessoa"] == pessoa}
-    posicoes = [p for p in d["posicoes"] if p["pessoa"] == pessoa]
+    nota = (
+        f"<p class='sub'>Percentual sobre a base de rebalanceamento ({brl(base_alvo)}); "
+        f"as camadas sem alvo estão em % da carteira total.</p>"
+        if base_alvo < total
+        else ""
+    )
+    return (
+        f"<figure>{barras_alvo([(ROTULO_CAMADA[cm], *r) for cm, *r in dados_alvo])}</figure>"
+        + tabela(["Camada", "Valor", "Atual", "Alvo", "Desvio", "Situação"], lin)
+        + nota
+    )
 
-    html = [
-        '<div class="kpis tres">',
-        kpi("Carteira total", brl(total), f"{len(posicoes)} posições"),
-        kpi(
-            "Maior instituição",
-            inst[0]["instituicao"].title() if inst else "—",
-            f"{pct(inst[0]['pct_da_carteira'])} da carteira" if inst else "",
-        ),
-        kpi("Exposição em dólar", pct(moedas.get("USD", 0)), f"alvo {META_INTERNACIONAL_PCT[pessoa]}%"),
-        "</div>",
-        "<h3>Alocação por camada contra a política</h3>",
-        f"<figure>{barras_alvo(dados_alvo)}</figure>",
-        tabela(["Camada", "Valor", "Atual", "Alvo", "Desvio", "Situação"], lin),
-        nota_bases(base_alvo, total),
-        "<h3>Concentração</h3>",
-        tabela(
-            ["Instituição", "Valor", "% da carteira"],
-            [[i["instituicao"].title(), brl(i["valor"]), pct(i["pct_da_carteira"])] for i in inst],
-            ["Total", brl(total), "100,0%"],
-        ),
-        tabela(
-            ["Categoria", "Tipo", "Valor", "% da carteira"],
-            [
-                [t["classe_ativo"].title(), t["tipo_ativo"].title(), brl(t["valor"]), pct(t["pct_da_carteira"])]
-                for t in tipos
-            ],
-            None,
-            ["l", "l", "n", "n"],
-        ),
-        "<h3>Posições</h3>",
-        tabela(
-            ["Investimento", "Camada", "Instituição", "Indexador", "Vencimento", "Valor"],
-            [
-                [
-                    esc(p["ativo"]),
-                    p["camada"].capitalize(),
-                    p["instituicao"].title(),
-                    p["indexador"] or "—",
-                    data_br(p["data_vencimento"]) if p["data_vencimento"] else "—",
-                    brl(p["vlr_atualizado_brl"]),
-                ]
-                for p in posicoes
-            ],
-            ["Total", "", "", "", "", brl(total)],
-            ["l", "l", "l", "l", "l", "n"],
-        ),
+
+def secao_perfil(d, pessoa, nome_perfil):
+    """Carteira na taxonomia do perfil de referência, sem a reserva de emergência. O internacional
+    sai sem faixa: a política pede dolarização e vence o perfil, mas RF e RV em dólar ficam
+    separados porque um protege e o outro é risco."""
+    linhas_ref = {r["classe_referencia"]: r for r in d["carteira_referencia"] if r["pessoa"] == pessoa}
+    base = sum(r["valor"] for r in linhas_ref.values())
+    if not base:
+        return ""
+    perfil = perfil_referencia(nome_perfil) if nome_perfil else None
+
+    def atual(classes):
+        return sum(linhas_ref[c]["valor"] for c in classes if c in linhas_ref) / base * 100
+
+    lin = []
+    for c in CLASSES_REFERENCIA:
+        valor = linhas_ref.get(c, {}).get("valor", 0)
+        medio = perfil["medio"].get(c) if perfil else None
+        if not valor and not medio:
+            continue
+        a = valor / base * 100
+        if not perfil:
+            lin.append([ROTULO_CLASSE[c], brl(valor) if valor else "—", pct(a)])
+            continue
+        if c in CLASSES_INTERNACIONAIS:
+            lin.append([ROTULO_CLASSE[c], brl(valor) if valor else "—", pct(a), "—", "—",
+                        '<span class="tag">política: dolarização</span>'])
+            continue
+        lo, hi = perfil["faixa"].get(c, (None, None))
+        if lo is None:
+            situacao = ""
+        elif lo <= a <= hi:
+            situacao = '<span class="tag tag-ok">✓ na faixa</span>'
+        elif a > 2 * hi:
+            # Critério da política: acima do dobro do teto a venda é sugerida, não só o aporte.
+            situacao = '<span class="tag tag-critico">▲ venda sugerida</span>'
+        else:
+            situacao = f'<span class="tag tag-atencao">{"▲ acima" if a > hi else "▼ abaixo"} da faixa</span>'
+        lin.append([ROTULO_CLASSE[c], brl(valor) if valor else "—", pct(a), f"{medio}%",
+                    f"{lo}–{hi}%" if lo is not None else "—", situacao])
+
+    rf, risco = atual(CLASSES_RENDA_FIXA), atual(CLASSES_RISCO)
+    if perfil:
+        m_rf, m_risco = perfil["medio"]["TOTAL RF"], perfil["medio"]["TOTAL RISCO"]
+        lin.append({"cels": ["Renda fixa e caixa", "", pct(rf), f"{m_rf}%", "",
+                             sinal(rf - m_rf, 0, " p.p.")]})
+        lin.append({"cels": ["Risco", "", pct(risco), f"~{m_risco}%", "",
+                             f'<span class="{"delta-neg" if risco > m_risco else ""}">'
+                             f'{sinal(risco - m_risco, 0, " p.p.")}</span>']})
+        cab = ["Classe", "Valor", "Atual", "Perfil", "Faixa", "Situação"]
+        intl = perfil["medio"]["INTERNACIONAL"]
+        lo_i, hi_i = perfil["faixa"].get("INTERNACIONAL", ("?", "?"))
+        nota = (
+            f"<p class='sub'>Perfil {esc(perfil['nome'].lower())} de {esc(perfil['data'] or 's/d')}, sobre "
+            f"{brl(base)} (carteira sem a reserva de emergência). Risco soma ações, FII, internacional RV e "
+            f"alternativos. O perfil põe o internacional somado em {intl}% (faixa {lo_i}–{hi_i}%); a política "
+            f"pede dolarização, por isso ele não é comparado à faixa.</p>"
+        )
+        acoes_br = linhas_ref.get("ACOES BRASIL", {}).get("valor", 0)
+        if acoes_br and risco > m_risco:
+            nota += (
+                f"<p class='sub'>Ações Brasil: {brl(acoes_br)}. Venda de até {brl(ISENCAO_ACOES_BR)} por mês em "
+                f"ações brasileiras é isenta de IR sobre o ganho.</p>"
+            )
+    else:
+        lin.append({"cels": ["Renda fixa e caixa", "", pct(rf)]})
+        lin.append({"cels": ["Risco", "", pct(risco)]})
+        cab = ["Classe", "Valor", "Atual"]
+        nota = f"<p class='sub'>Política sem perfil de referência para este titular; base {brl(base)}.</p>"
+    return tabela(cab, lin, ["Total", brl(base), "100,0%", *([""] * (len(cab) - 3))]) + nota
+
+
+def secao_riscos(d, pessoa):
+    inst = [i for i in d["carteira_instituicao"] if i["pessoa"] == pessoa]
+    total = sum(i["valor"] for i in inst)
+    fgc = [f for f in d["fgc"] if f["pessoa"] == pessoa]
+    venc = [v for v in d["vencimentos_12m"] if v["pessoa"] == pessoa]
+    nc = [x for x in d["nao_classificados"] if x["pessoa"] == pessoa]
+
+    # Cauda de instituições pequenas vira uma linha: o risco está nas maiores.
+    topo, cauda = inst[:5], inst[5:]
+    lin_inst = [[i["instituicao"].title(), brl(i["valor"]), pct(i["pct_da_carteira"])] for i in topo]
+    if cauda:
+        v = sum(i["valor"] for i in cauda)
+        lin_inst.append([f"Demais ({len(cauda)})", brl(v), pct(v / total * 100 if total else 0)])
+
+    h = [
+        grade_2(
+            "<h3>Concentração por instituição</h3>"
+            + tabela(["Instituição", "Valor", "%"], lin_inst, ["Total", brl(total), "100,0%"]),
+            "<h3>FGC por conglomerado</h3>"
+            + tabela(
+                ["Conglomerado", "Cobertura livre", "Situação"],
+                [[f["conglomerado_fgc"].title(), brl(f["vlr_liberado"]), tag_risco(f["risco_fgc"])] for f in fgc],
+                None,
+                ["l", "n", "l"],
+            )
+            + f'<p class="sub">Limite de {brl(FGC_LIMITE)} por CPF e conglomerado; folga mínima de '
+            f"{brl(FGC_FOLGA_MINIMA)}.</p>",
+        )
     ]
-    return "".join(html)
+    if venc:
+        h.append("<h3>Vencimentos nos próximos 12 meses</h3>")
+        h.append(
+            tabela(
+                ["Investimento", "Camada", "Vencimento", "Valor"],
+                [
+                    [esc(v["ativo"]), ROTULO_CAMADA.get(v["camada"], v["camada"]), data_br(v["data_vencimento"]),
+                     brl(v["vlr_atualizado_brl"])]
+                    for v in venc
+                ],
+                ["Total", "", "", brl(sum(v["vlr_atualizado_brl"] for v in venc))],
+                ["l", "l", "l", "n"],
+            )
+        )
+    if nc:
+        h.append("<h3>Ativos sem camada</h3>")
+        h.append(
+            tabela(
+                ["Investimento", "Instituição", "Valor"],
+                [[esc(x["ativo"]), x["instituicao"].title(), brl(x["vlr_atualizado_brl"])] for x in nc],
+            )
+        )
+        h.append('<p class="sub">Classificar na aba <code>classificacao</code> da planilha.</p>')
+    return "".join(h)
 
 
 # ------------------------------------------------------------------ montagem ---
+
+
+def familia(escopo):
+    return "orcamento" if escopo == "orcamento" else "investimentos"
+
+
+def portao(meta, escopo):
+    """(pronto, pendências) do escopo. Investimento é por titular: ativo sem camada de um
+    titular não segura o relatório dos outros."""
+    pr = meta.get("prontidao") or {}
+    if escopo == "orcamento":
+        return pr.get("pronto_orcamento", True), pr.get("pendencias_orcamento") or []
+    tit = (pr.get("por_titular") or {}).get(escopo)
+    if tit:
+        return tit["pronto"], tit["pendencias"]
+    return pr.get("pronto_investimentos", True), pr.get("pendencias_investimentos") or []
+
+
+def reserva_casal(d):
+    """Reserva do casal contra mínimo (N x mediana da despesa de 6 meses) e teto. Mediana para
+    que um mês atípico não infle o mínimo; se o mínimo passar do teto, vale o mínimo."""
+    dre = d["dre_mensal"]
+    mediana6 = mediana([r["total_despesas"] for r in dre[-7:-1]])
+    por_pessoa = {
+        p: sum(c["valor"] for c in d["carteira_camada"] if c["pessoa"] == p and c["camada"] == "RESERVA")
+        for p in ("lucas", "jessica")
+    }
+    total = sum(por_pessoa.values())
+    minimo = RESERVA_MIN_MESES * mediana6
+    teto = max(RESERVA_TETO, minimo)
+    if total < minimo:
+        situacao = f"faltam {brl(minimo - total)} para o mínimo"
+    elif total > teto:
+        situacao = f"excedente de {brl(total - teto)} acima do teto, que orienta novos aportes"
+    else:
+        situacao = "entre o mínimo e o teto"
+    return {"por_pessoa": por_pessoa, "total": total, "mediana6": mediana6, "minimo": minimo,
+            "teto": teto, "excedente": max(total - teto, 0), "falta": max(minimo - total, 0),
+            "situacao": situacao}
+
+
+def fatos_html(fatos):
+    if not fatos:
+        return ""
+    itens = "".join(f"<li>{esc(f['fato'].rstrip('.'))} ({esc(f.get('valor', ''))})</li>" for f in fatos)
+    return f"<p><strong>Fatos relevantes do mês.</strong></p><ul>{itens}</ul>"
 
 
 def aviso_prontidao(meta, escopo):
@@ -220,176 +374,111 @@ def aviso_prontidao(meta, escopo):
     Os portões são dois e independentes: o relatório de carteira não carrega
     tarja de mês de gasto não fechado, e vice-versa."""
     pr = meta.get("prontidao") or {}
-    familia = "orcamento" if escopo == "orcamento" else "investimentos"
-    if pr.get(f"pronto_{familia}", pr.get("pronto", True)):
+    fam = familia(escopo)
+    pronto, pendencias = portao(meta, escopo)
+    if pronto:
         return ""
-    itens = "".join(f"<li>{esc(p)}</li>" for p in pr.get(f"pendencias_{familia}") or [])
-    if familia == "orcamento":
-        titulo = "Dados incompletos — mês não fechado"
+    itens = "".join(f"<li>{esc(p)}</li>" for p in pendencias)
+    if fam == "orcamento":
+        titulo = "Dados incompletos: mês não fechado"
         corpo = (
-            "<p>Este relatório foi gerado sobre um mês de referência que "
-            "ainda não terminou de carregar. Totais, médias e taxa de "
-            "poupança estão subestimados e nenhuma comparação com meses "
-            "anteriores é válida.</p>"
+            "<p>Totais, médias e taxa de poupança estão subestimados e nenhuma "
+            "comparação com meses anteriores é válida.</p>"
         )
         fechado = pr.get("ultimo_mes_fechado")
-        alt = (
-            (f"<p>Último mês integralmente carregado: <strong>{mes_extenso(fechado)}</strong>.</p>") if fechado else ""
-        )
-    else:
+        alt = f"<p>Último mês integralmente carregado: <strong>{mes_extenso(fechado)}</strong>.</p>" if fechado else ""
+    elif meta["defasagem_carteira_meses"] > 2:
         titulo = "Carteira defasada"
         corpo = (
-            f"<p>A posição de carteira mais recente é de "
-            f"<strong>{mes_extenso(meta['mes_carteira'])}</strong>, "
-            f"{meta['defasagem_carteira_meses']} meses atrás do mês de "
-            f"referência. Os valores são reais, mas não são os de "
-            f"{mes_extenso(meta['mes_ref'])}.</p>"
+            f"<p>Posição mais recente em <strong>{mes_extenso(meta['mes_carteira'])}</strong>, "
+            f"{meta['defasagem_carteira_meses']} meses antes de {mes_extenso(meta['mes_ref'])}.</p>"
         )
+        alt = ""
+    else:
+        titulo = "Carteira incompleta"
+        corpo = "<p>Há ativos sem camada: alocação e perfil abaixo estão distorcidos.</p>"
         alt = ""
     return f'<div class="destaque-bloco alerta"><h4>{titulo}</h4>{corpo}<ul>{itens}</ul>{alt}</div>'
 
 
-def cabecalho(titulo, subtitulo, meta, destinatarios, escopo):
-    css = css_inline()
+def cabecalho(titulo, periodo, meta, escopo):
     defasagem = meta["defasagem_carteira_meses"]
-    if escopo == "orcamento":
-        conteudo = (
-            "Reúne a apuração do orçamento do período — receita, "
-            "despesa, resultado e composição do gasto por categoria — "
-            "e a cobertura da reserva de emergência."
-        )
-        # A reserva é o único número do relatório que vem da carteira, e a
-        # carteira fecha em cadência própria: sem esta nota o leitor supõe que
-        # tudo está apurado no mesmo mês.
+    # A carteira fecha em cadência própria: sem o aviso o leitor supõe que
+    # todos os números são do mesmo mês.
+    if not defasagem:
+        aviso = ""
+    elif escopo == "orcamento":
         aviso = (
-            (
-                f"<p style='margin-top:4mm'><strong>Atenção às datas.</strong> "
-                f"Orçamento apurado em {mes_extenso(meta['mes_ref'])}; a "
-                f"reserva de emergência é lida da carteira, posicionada em "
-                f"{mes_extenso(meta['mes_carteira'])}.</p>"
-            )
-            if defasagem
-            else ""
+            f"<p class='aviso-datas'>Orçamento de {mes_extenso(meta['mes_ref'])}; a reserva vem da carteira "
+            f"de {mes_extenso(meta['mes_carteira'])}.</p>"
         )
     else:
-        conteudo = (
-            "Reúne o patrimônio do titular, a posição consolidada da "
-            "carteira, a renda passiva do período, a leitura de riscos "
-            "e o destino recomendado para o aporte."
-            if escopo in COM_PATRIMONIO
-            else "Reúne a posição consolidada da carteira, a renda passiva "
-            "do período, a leitura de riscos e o destino recomendado "
-            "para o aporte."
-        )
         aviso = (
-            (
-                f"<p style='margin-top:4mm'><strong>Atenção às datas.</strong> "
-                f"Todos os números estão posicionados em "
-                f"{mes_extenso(meta['mes_carteira'])}, que é o último "
-                f"fechamento de carteira disponível — {defasagem} mês atrás do "
-                f"mês de referência do relatório.</p>"
-            )
-            if defasagem
-            else ""
+            f"<p class='aviso-datas'>Carteira de {mes_extenso(meta['mes_carteira'])}, último fechamento "
+            f"disponível, {defasagem} mês antes do mês de referência.</p>"
         )
-    return f"""<meta charset="utf-8"><title>{esc(titulo)}</title><style>{css}</style>
-<div class="capa">
-  <div class="eyebrow">Relatório de planejamento financeiro e investimentos</div>
-  <h1>{esc(titulo)}</h1>
-  <div class="periodo">{esc(subtitulo)}</div>
-  <p style="max-width:120mm;color:var(--text-secondary)">
-    Preparado para {esc(destinatarios)}. {conteudo}{aviso}
-  </p>
-  {aviso_prontidao(meta, escopo)}
-  <div class="rodape-capa">
-    Gerado em {data_br(meta["gerado_em"])} a partir da camada <code>marts</code>
-    do data warehouse · mês de referência {meta["mes_ref"][:7]}
-  </div>
-</div>"""
+    return f"""<meta charset="utf-8"><title>{esc(titulo)}</title><style>{css_inline()}</style>
+<div class="compacto">
+<header class="cabecalho-doc">
+  <div><h1>{esc(titulo)}</h1><div class="periodo">{esc(periodo)}</div></div>
+  <div class="meta-doc">Fechamento de {mes_extenso(meta["mes_ref"])}<br>Gerado em {data_br(meta["gerado_em"])}</div>
+</header>
+{aviso}{aviso_prontidao(meta, escopo)}"""
 
 
-def rodape(meta, premissas, escopo):
-    pr = ""
+def notas(meta, premissas, escopo):
+    pol = politica_vigente(meta["gerado_em"])
+    linhas = []
+
+    pronto, pendencias = portao(meta, escopo)
+    if not pronto:
+        rotulo = "Mês não fechado" if escopo == "orcamento" else "Carteira com pendência"
+        linhas.append(
+            f"<p><strong>{rotulo}.</strong> Gerado apesar do portão de prontidão: "
+            f"{esc('; '.join(pendencias))}</p>"
+        )
+
+    if pol["nome"]:
+        detalhe = ""
+        if escopo == "orcamento" and pol["postura"]:
+            detalhe = f"; gastos em {esc(pol['postura'])}"
+        elif escopo != "orcamento" and pol["perfis"].get(escopo):
+            detalhe = f"; perfil de referência {esc(pol['perfis'][escopo].lower())}"
+        linhas.append(
+            f"<p>Política vigente em {data_br(meta['gerado_em'])}: <strong>{esc(pol['nome'])}</strong>, "
+            f"desde {data_br(pol['inicio'].isoformat())}{detalhe}.</p>"
+        )
+    else:
+        linhas.append(f"<p>Nenhuma política econômica vigente em {data_br(meta['gerado_em'])}.</p>")
     if premissas:
-        itens = "".join(f"<li>{esc(p)}</li>" for p in premissas)
-        pr = f"<p><strong>Premissas e critérios adotados neste relatório:</strong></p><ul>{itens}</ul>"
-
-    prd = meta.get("prontidao") or {}
-    familia = "orcamento" if escopo == "orcamento" else "investimentos"
-    incompleto = ""
-    if not prd.get(f"pronto_{familia}", prd.get("pronto", True)):
-        pend = "; ".join(prd.get(f"pendencias_{familia}") or [])
-        rotulo = "Mês não fechado" if familia == "orcamento" else "Carteira defasada"
-        incompleto = (
-            f"<p><strong>{rotulo}.</strong> O portão de prontidão "
-            f"reprovou {mes_extenso(meta['mes_ref'])} e o relatório foi "
-            f"gerado mesmo assim: {esc(pend)}</p>"
-        )
+        linhas.append("<ul>" + "".join(f"<li>{esc(p)}</li>" for p in premissas) + "</ul>")
+    avisos = ((meta.get("prontidao") or {}).get("por_titular") or {}).get(escopo, {}).get("avisos") or []
+    if avisos:
+        lista = "; ".join(esc(a.split(" (")[0]) for a in avisos)
+        linhas.append(f"<p><strong>Posição possivelmente faltando</strong> (planilha acima da carteira, ver "
+                      f"<code>investimentos_faltantes_identificados</code>): {lista}.</p>")
+    if escopo == "orcamento":
+        casal = fatos_do_mes(meta["mes_ref"], "lucas") + fatos_do_mes(meta["mes_ref"], "jessica")
+        linhas.append(fatos_html([f for f in fatos_do_mes(meta["mes_ref"]) if f in casal]))
+    else:
+        linhas.append(fatos_html(fatos_do_mes(meta["mes_carteira"], escopo, "patrim")))
 
     # Data especial explica pico de rolê e diversos — só interessa ao orçamento.
     esp = meta.get("motivos_especiais")
-    sazonal = (
-        (
-            f"<p>{mes_extenso(meta['mes_ref'])} é mês de data especial "
-            f"({esc(esp.capitalize())}), o que costuma elevar rolê e "
-            f"diversos.</p>"
-        )
-        if esp and escopo == "orcamento"
-        else ""
-    )
+    if esp and escopo == "orcamento":
+        linhas.append(f"<p>Mês de data especial ({esc(esp)}), que costuma elevar rolê e diversos.</p>")
 
     if escopo == "orcamento":
-        procedencia = (
-            f"Orçamento e consumo em {mes_extenso(meta['mes_ref'])}; a reserva "
-            f"de emergência sai da carteira, posicionada em "
-            f"{mes_extenso(meta['mes_carteira'])}."
-        )
+        escopo_txt = "Posição de cada carteira nos relatórios de investimento."
     elif escopo in COM_PATRIMONIO:
-        procedencia = (
-            f"Patrimônio, carteira e renda passiva em "
-            f"{mes_extenso(meta['mes_carteira'])}. Este relatório não apura "
-            f"orçamento: receita e despesa são lançadas em conjunto para o "
-            f"casal e saem no relatório de orçamento. O desempenho contra CDI "
-            f"e inflação pessoal sai no relatório de meio de mês, quando os "
-            f"indexadores do mês já foram publicados."
-        )
+        escopo_txt = "Receita e despesa no relatório do casal."
     else:
-        procedencia = (
-            f"Carteira e renda passiva em {mes_extenso(meta['mes_carteira'])}. "
-            f"Não há lançamento de receita ou despesa registrado no warehouse "
-            f"para esta carteira, portanto não há apuração de orçamento."
-        )
-
-    return f"""<section class="quebra"><h2><span class="num">—</span>Notas e procedência</h2>
-<div class="rodape-doc">{incompleto}{pr}{sazonal}
-  <p>Origem: camada <code>marts</code> do data warehouse pessoal (PostgreSQL),
-  domínio finanças. {procedencia}</p>
-  <p>Definições de categoria de gasto e de camada de investimento conforme
-  <code>models/presentation/financas/_docs_financas.md</code>, fonte única do domínio.
-  Meses posteriores ao de referência existem na base como lançamentos futuros
-  pré-agendados e foram excluídos de todos os números.</p>
-  <p>Este documento é gerado automaticamente a partir de dados próprios e não
-  constitui recomendação de investimento de profissional certificado.</p>
-  <p>Gerado em {data_br(meta["gerado_em"])}.</p>
-</div></section>"""
-
-
-def glossario(escopo):
-    """Só entra no glossário o vocabulário que o relatório de fato usa: o de
-    orçamento fala de categoria de gasto e cita uma única camada, a reserva."""
-    if escopo == "orcamento":
-        return (
-            glossario_categorias() + "<h3>Camada citada</h3><dl class='glossario'>"
-            f"<dt>{rotulo_chip(COR_CAMADA['RESERVA'], ROTULO_CAMADA['RESERVA'])}</dt>"
-            f"<dd>{TEXTO_CAMADA['RESERVA']}</dd></dl>"
-            "<p class='sub'>As demais camadas de investimento estão nos "
-            "relatórios individuais de carteira.</p>"
-        )
-    return (
-        glossario_camadas() + "<p class='sub'>A camada descreve o papel do ativo na carteira, "
-        "não o que ele é. Um CDB pode ser reserva ou crescimento conforme "
-        "sua liquidez e exposição a marcação a mercado.</p>"
+        escopo_txt = "Sem lançamento de receita e despesa no warehouse para esta carteira."
+    linhas.append(
+        f"<p>Fonte: camada <code>marts</code> do warehouse pessoal, sem meses posteriores ao de referência. "
+        f"{escopo_txt} Gerado automaticamente; não é recomendação de profissional certificado.</p>"
     )
+    return f'<footer class="notas">{"".join(linhas)}</footer></div>'
 
 
 def montar_orcamento(d, n):
@@ -401,280 +490,254 @@ def montar_orcamento(d, n):
     ult = dre[-1]
     meses = [r["mes_debito"] for r in dre]
 
-    # Média para comparar o gasto do mês; mediana para dimensionar a reserva —
-    # a política pede mediana para que um mês atípico não infle a meta.
     desp6 = media([r["total_despesas"] for r in dre[-7:-1]])
-    desp6_med = mediana([r["total_despesas"] for r in dre[-7:-1]])
     rec6 = media([r["total_receita"] for r in dre[-7:-1]])
     poupanca = ult["resultado"] / ult["total_receita"] * 100 if ult["total_receita"] else 0
     poupanca12 = sum(r["resultado"] for r in dre) / sum(r["total_receita"] for r in dre) * 100
 
-    reserva_pessoa = {
-        p: sum(c["valor"] for c in d["carteira_camada"] if c["pessoa"] == p and c["camada"] == "RESERVA")
-        for p in ("lucas", "jessica")
-    }
-    reserva_casal = sum(reserva_pessoa.values())
-    # Reserva-alvo = max(N x mediana da despesa de 6 meses, piso em R$).
-    cobertura = reserva_casal / desp6_med if desp6_med else 0
-    por_meses = META_RESERVA_MESES["casal"] * desp6_med
-    meta_reserva = max(por_meses, META_RESERVA_PISO)
-    meta_meses = meta_reserva / desp6_med if desp6_med else 0
+    res = reserva_casal(d)
+    cobertura = res["total"] / res["mediana6"] if res["mediana6"] else 0
+
+    # Fato relevante tem valor aproximado: o recorrente lê o padrão, não concilia o mês.
+    extra = {r["mes_debito"]: extraordinario_casal(r["mes_debito"]) for r in dre}
+    rec_mes = ult["resultado"] + extra[ult["mes_debito"]]
+    poupanca12_rec = (
+        sum(r["resultado"] + extra[r["mes_debito"]] for r in dre) / sum(r["total_receita"] for r in dre) * 100
+    )
+    nota_resultado = f"{pct(poupanca)} da receita"
+    if extra[ult["mes_debito"]]:
+        nota_resultado += (
+            f" · sem extraordinários ~{brl(rec_mes)} "
+            f"({pct(rec_mes / ult['total_receita'] * 100 if ult['total_receita'] else 0)})"
+        )
+    alvo_l, alvo_j = aporte_alvo(d, "lucas"), aporte_alvo(d, "jessica")
+    linha_aporte = (
+        f"<p class='sub'>Aporte-alvo do mês ({META_POUPANCA_PCT:g}% da receita de cada um): "
+        f"{brl((alvo_l or 0) + (alvo_j or 0))} (Lucas {brl(alvo_l or 0)}, Jéssica {brl(alvo_j or 0)}); "
+        f"resultado do casal {brl(ult['resultado'])}.</p>"
+        if alvo_l or alvo_j
+        else ""
+    )
+    des = d.get("desempenho")
+    linha_inflacao = (
+        f"<p class='sub'>Inflação pessoal de {mes_extenso(des['mes'])}: "
+        f"{sinal(des['series']['minha_inflacao']['mes'] * 100, 1)} (IPCA "
+        f"{sinal(des['series']['ipca']['mes'] * 100, 1)}).</p>"
+        if des and des["series"]["minha_inflacao"]["mes"] is not None
+        else ""
+    )
 
     partes = [
-        cabecalho(
-            "Relatório de orçamento do casal",
-            f"{mes_extenso(meta['mes_ref']).capitalize()}",
-            meta,
-            "Lucas e Jéssica",
-            escopo="orcamento",
+        cabecalho("Orçamento do casal", mes_extenso(meta["mes_ref"]).capitalize(), meta, "orcamento"),
+        '<div class="kpis">'
+        + kpi(
+            "Receita do mês",
+            brl(ult["total_receita"]),
+            f"{sinal(variacao(ult['total_receita'], rec6))} vs. média 6m",
+            classe_delta(variacao(ult["total_receita"], rec6)),
         )
+        + kpi("Resultado do mês", brl(ult["resultado"]), nota_resultado)
+        + kpi(
+            "Despesa total",
+            brl(ult["total_despesas"]),
+            f"{sinal(variacao(ult['total_despesas'], desp6))} vs. média 6m",
+            classe_delta(variacao(ult["total_despesas"], desp6), bom_se_sobe=False),
+        )
+        + kpi(
+            "Reserva de emergência",
+            f"{cobertura:.1f}".replace(".", ",") + " meses",
+            f"mín. {brl(res['minimo'])} · teto {brl(res['teto'])}",
+            "delta-neg" if res["falta"] else "",
+        )
+        + "</div>"
+        + (n.get("sumario") or ""),
     ]
 
-    # 1 — sumário
     partes.append(
         secao(
-            1,
-            "Sumário executivo",
-            f"Apuração de {mes_extenso(meta['mes_ref'])}",
-            '<div class="kpis">'
-            + kpi(
-                "Receita do mês",
-                brl(ult["total_receita"]),
-                f"{sinal(variacao(ult['total_receita'], rec6))} vs. média 6m",
-                classe_delta(variacao(ult["total_receita"], rec6)),
-            )
-            + kpi("Resultado do mês", brl(ult["resultado"]), f"{pct(poupanca)} da receita")
-            + kpi(
-                "Despesa total",
-                brl(ult["total_despesas"]),
-                f"{sinal(variacao(ult['total_despesas'], desp6))} vs. média 6m",
-                classe_delta(variacao(ult["total_despesas"], desp6), bom_se_sobe=False),
-            )
-            + kpi(
-                "Reserva de emergência",
-                f"{cobertura:.1f}".replace(".", ",") + " meses",
-                f"meta {meta_meses:.0f} meses ({brl(meta_reserva)})",
-                "delta-pos" if reserva_casal >= meta_reserva else "delta-neg",
-            )
-            + "</div>"
-            + (n.get("sumario") or ""),
+            None,
+            "Resultado",
+            "Receita e despesa nos últimos 13 meses",
+            f"<figure>{barras_agrupadas(meses, [('Receita', SERIES[0], [r['total_receita'] for r in dre]), ('Despesa', SERIES[1], [r['total_despesas'] for r in dre])], altura=165)}"
+            f"{legenda([('Receita', SERIES[0]), ('Despesa', SERIES[1])])}</figure>"
+            f"<p class='sub'>Média de 13 meses: receita {brl(media([r['total_receita'] for r in dre]))}, "
+            f"despesa {brl(media([r['total_despesas'] for r in dre]))}, poupança {pct(poupanca12)}, "
+            f"{pct(poupanca12_rec)} sem os fatos extraordinários (meta {META_POUPANCA_PCT:g}%).</p>"
+            + linha_aporte
+            + linha_inflacao,
         )
     )
 
-    # 2 — resultado
     partes.append(
         secao(
-            2,
-            "Resultado do mês",
-            "Receita, despesa e taxa de poupança · últimos 13 meses",
-            f"<figure>{barras_agrupadas(meses, [('Receita', SERIES[0], [r['total_receita'] for r in dre]), ('Despesa', SERIES[1], [r['total_despesas'] for r in dre])])}"
-            f"{legenda([('Receita', SERIES[0]), ('Despesa', SERIES[1])])}"
-            f"<figcaption>Receita e despesa mensais, em reais.</figcaption></figure>"
-            + tabela(
-                ["Mês", "Receita", "Despesa", "Resultado", "Poupança"],
-                [
-                    [
-                        mes_curto(r["mes_debito"]),
-                        brl(r["total_receita"]),
-                        brl(r["total_despesas"]),
-                        f'<span class="{classe_delta(r["resultado"])}">{brl(r["resultado"])}</span>',
-                        pct(r["resultado"] / r["total_receita"] * 100 if r["total_receita"] else 0),
-                    ]
-                    for r in dre
-                ],
-                [
-                    "Média 13m",
-                    brl(media([r["total_receita"] for r in dre])),
-                    brl(media([r["total_despesas"] for r in dre])),
-                    brl(media([r["resultado"] for r in dre])),
-                    pct(poupanca12),
-                ],
-            )
-            + bloco("Leitura do orçamento", n.get("diagnostico_orcamento", "")),
+            None,
+            "Recomendações",
+            "Gasto, poupança e reserva; o destino do aporte está nos relatórios de investimento",
+            acompanhamento_html(n.get("acompanhamento"), mes_anterior(meta["mes_ref"]))
+            + recomendacoes_html(n.get("recomendacoes", [])),
         )
     )
 
-    # 3 — gastos por categoria
     series_cat = [(ROTULO_CAT[c], COR_CAT[c], [r[f"total_{c}"] for r in dre]) for c in CATEGORIAS]
+    nao_essencial = sum(ult[f"total_{c}"] for c in CATEGORIAS if not NATUREZA_CAT[c]["essencial"])
     lin_cat = []
     for c in CATEGORIAS:
         atual = ult[f"total_{c}"]
         m6 = media([r[f"total_{c}"] for r in dre[-7:-1]])
-        part = atual / ult["total_despesas"] * 100 if ult["total_despesas"] else 0
         v = variacao(atual, m6)
         lin_cat.append(
             [
                 rotulo_chip(COR_CAT[c], ROTULO_CAT[c]),
+                "essencial" if NATUREZA_CAT[c]["essencial"] else "não essencial",
                 brl(atual),
-                pct(part),
+                pct(atual / ult["total_despesas"] * 100 if ult["total_despesas"] else 0),
                 brl(m6),
                 f'<span class="{classe_delta(v, bom_se_sobe=False)}">{sinal(v)}</span>',
             ]
         )
     partes.append(
         secao(
-            3,
+            None,
             "Gastos por categoria",
             f"{mes_extenso(meta['mes_ref']).capitalize()} contra a média dos 6 meses anteriores",
-            f"<figure>{barras_empilhadas(meses, series_cat, altura=230)}"
-            f"{legenda([(ROTULO_CAT[c], COR_CAT[c]) for c in CATEGORIAS])}"
-            f"<figcaption>Composição da despesa mensal por categoria, em reais.</figcaption></figure>"
+            f"<figure>{barras_empilhadas(meses, series_cat, altura=185)}"
+            f"{legenda([(ROTULO_CAT[c], COR_CAT[c]) for c in CATEGORIAS])}</figure>"
             + tabela(
-                ["Categoria", "No mês", "% da despesa", "Média 6m", "Var. vs 6m"],
+                ["Categoria", "Natureza", "No mês", "% da despesa", "Média 6m", "Var. vs 6m"],
                 lin_cat,
-                [
-                    "Total",
-                    brl(ult["total_despesas"]),
-                    "100,0%",
-                    brl(desp6),
-                    sinal(variacao(ult["total_despesas"], desp6)),
-                ],
+                ["Total", "", brl(ult["total_despesas"]), "100,0%", brl(desp6),
+                 sinal(variacao(ult["total_despesas"], desp6))],
+                ["l", "l", "n", "n", "n", "n"],
             )
-            + "<h3>Conta de energia</h3>"
-            + tabela(
-                ["Mês", "Fatura", "kWh", "kWh/dia", "Preço kWh"],
-                [
-                    [
-                        mes_curto(r["mes"]),
-                        brl(r["vlr_fatura"], 2),
-                        f"{r['kwh']}",
-                        f"{r['kwh_dia']}".replace(".", ","),
-                        f"R$ {r['preco_kwh']:.2f}".replace(".", ","),
-                    ]
-                    for r in d["luz"][-6:]
-                ],
-            )
-            + '<p class="sub">Separar efeito preço de efeito consumo: variação em '
-            "kWh/dia é comportamento; variação em preço por kWh é tarifa.</p>",
-            quebra=True,
+            + f"<p class='sub'>Não essencial no mês: {brl(nao_essencial)} "
+            f"({pct(nao_essencial / ult['total_despesas'] * 100 if ult['total_despesas'] else 0)} da despesa), "
+            f"pela natureza declarada em cada categoria.</p>",
         )
     )
 
-    # 4 — reserva de emergência
     # A reserva é a única ponte entre orçamento e carteira: o tamanho dela é
     # ditado pela despesa, mas o saldo mora na camada RESERVA dos dois titulares.
-    regra = (
-        f"{META_RESERVA_MESES['casal']} × a mediana da despesa de 6 meses ({brl(desp6_med)})"
-        if por_meses >= META_RESERVA_PISO
-        else f"o piso de {brl(META_RESERVA_PISO)}"
-    )
-    falta = meta_reserva - reserva_casal
-    situacao = (
-        f"Faltam {brl(falta)} para a reserva-alvo." if falta > 0 else f"A reserva já supera o alvo em {brl(-falta)}."
-    )
-    partes.append(
-        secao(
-            4,
-            "Reserva de emergência",
-            f"Camada reserva dos dois titulares · posição em {mes_extenso(meta['mes_carteira'])}",
-            '<div class="kpis tres">'
-            + kpi("Reserva atual", brl(reserva_casal), f"{cobertura:.1f}".replace(".", ",") + " meses de despesa")
-            + kpi("Reserva-alvo", brl(meta_reserva), f"{meta_meses:.0f} meses")
-            + kpi(
-                "Situação",
-                "coberta" if falta <= 0 else "a completar",
-                situacao,
-                "delta-pos" if falta <= 0 else "delta-neg",
-            )
-            + "</div>"
-            + tabela(
-                ["Titular", "Reserva"],
-                [[NOME[p], brl(v)] for p, v in reserva_pessoa.items()],
-                ["Total", brl(reserva_casal)],
-            )
-            + f'<p class="sub">Reserva-alvo = maior entre '
-            f"{META_RESERVA_MESES['casal']} × a mediana da despesa dos 6 meses "
-            f"anteriores e o piso de {brl(META_RESERVA_PISO)}. Neste mês está "
-            f"valendo {regra}. A mediana é usada no lugar da média para que um "
-            f"mês atípico não infle a meta. A composição de cada reserva está no "
-            f"relatório de investimentos do titular.</p>",
+    reserva_html = (
+        "<h3>Reserva de emergência</h3>"
+        + tabela(
+            ["Titular", "Reserva"],
+            [[NOME[p], brl(v)] for p, v in res["por_pessoa"].items()],
+            ["Total", brl(res["total"])],
         )
+        + f"<p class='sub'>Mínimo {brl(res['minimo'])} ({RESERVA_MIN_MESES} × mediana de 6 meses, "
+        f"{brl(res['mediana6'])}); teto {brl(res['teto'])}. Situação: {res['situacao']}. "
+        f"Posição de {mes_extenso(meta['mes_carteira'])}.</p>"
     )
-
-    # 5 — recomendações
-    partes.append(
-        secao(
-            5,
-            "Recomendações",
-            "Ações sobre gasto, poupança e reserva · o destino do aporte por camada "
-            "está nos relatórios de investimento",
-            recomendacoes_html(n.get("recomendacoes", [])),
-            quebra=True,
+    luz_html = (
+        "<h3>Conta de energia</h3>"
+        + tabela(
+            ["Mês", "Fatura", "kWh/dia", "R$/kWh"],
+            [
+                [
+                    mes_curto(r["mes"]),
+                    brl(r["vlr_fatura"], 2),
+                    f"{r['kwh_dia']}".replace(".", ","),
+                    f"{r['preco_kwh']:.2f}".replace(".", ","),
+                ]
+                for r in d["luz"][-6:]
+            ],
         )
+        + "<p class='sub'>kWh/dia é consumo; R$/kWh é tarifa.</p>"
     )
+    partes.append(secao(None, "Reserva e energia", "", grade_2(reserva_html, luz_html)))
 
-    # 6 — glossário
-    partes.append(secao(6, "Glossário", "O que cada categoria de gasto engloba", glossario("orcamento"), quebra=True))
+    if n.get("diagnostico_orcamento"):
+        partes.append(secao(None, "Leitura do orçamento", "", bloco("", n["diagnostico_orcamento"])))
 
-    partes.append(rodape(meta, n.get("premissas", []), escopo="orcamento"))
+    partes.append(notas(meta, n.get("premissas", []), "orcamento"))
     return "\n".join(partes)
 
 
-def bloco_riscos(d, pessoas):
-    fgc = [f for f in d["fgc"] if f["pessoa"] in pessoas]
-    venc = [v for v in d["vencimentos_12m"] if v["pessoa"] in pessoas]
-    nc = [x for x in d["nao_classificados"] if x["pessoa"] in pessoas]
-    h = [
-        "<h3>Exposição ao FGC por conglomerado</h3>",
-        '<p class="sub">Garantia de R$ 250.000 por CPF e por conglomerado. '
-        "A política exige folga mínima de R$ 50.000.</p>",
-        tabela(
-            ["Titular", "Conglomerado", "Valor coberto restante", "Situação"],
-            [
-                [NOME[f["pessoa"]], f["conglomerado_fgc"].title(), brl(f["vlr_liberado"]), tag_risco(f["risco_fgc"])]
-                for f in fgc
-            ],
-            None,
-            ["l", "l", "n", "l"],
-        ),
+def aporte_alvo(d, pessoa):
+    """Meta de poupança aplicada à receita do titular no mês, quando a política vigente pede aporte
+    por meta de poupança. None para quem não tem receita no warehouse (Deusa)."""
+    if not politica_vigente(d["meta"]["gerado_em"]).get("aporte"):
+        return None
+    receita = next((r["receita_total"] for r in d.get("receita_titular") or [] if r["pessoa"] == pessoa), None)
+    return receita * META_POUPANCA_PCT / 100 if receita else None
+
+
+def desempenho_html(d, serie, rotulo):
+    """Patrimônio contra inflação pessoal, IPCA e CDI no último mês com índice publicado."""
+    des = d.get("desempenho")
+    if not des or not des["series"][serie]["mes"]:
+        return ""
+
+    def p100(v):
+        return "—" if v is None else sinal(v * 100, 1)
+
+    lin = [
+        [rotulo, p100(des["series"][serie]["mes"]), p100(des["series"][serie]["12m"])],
+        *[
+            [r, p100(des["series"][k]["mes"]), p100(des["series"][k]["12m"])]
+            for k, r in (("minha_inflacao", "Inflação pessoal"), ("ipca", "IPCA"), ("cdi", "CDI"))
+        ],
     ]
-    h.append("<h3>Vencimentos nos próximos 12 meses</h3>")
-    if venc:
-        h.append(
-            tabela(
-                ["Titular", "Investimento", "Camada", "Vencimento", "Em", "Valor"],
-                [
-                    [
-                        NOME[v["pessoa"]],
-                        esc(v["ativo"]),
-                        v["camada"].capitalize(),
-                        data_br(v["data_vencimento"]),
-                        f"{v['vencimento_em_dias']} d",
-                        brl(v["vlr_atualizado_brl"]),
-                    ]
-                    for v in venc
-                ],
-                ["Total", "", "", "", "", brl(sum(v["vlr_atualizado_brl"] for v in venc))],
-                ["l", "l", "l", "l", "n", "n"],
-            )
-        )
-    else:
-        h.append("<p>Nenhum título vencendo nos próximos 12 meses.</p>")
-    h.append("<h3>Ativos sem camada atribuída</h3>")
-    if nc:
-        h.append(
-            tabela(
-                ["Titular", "Investimento", "Instituição", "Valor"],
-                [
-                    [NOME[x["pessoa"]], esc(x["ativo"]), x["instituicao"].title(), brl(x["vlr_atualizado_brl"])]
-                    for x in nc
-                ],
-            )
-        )
-        h.append(
-            '<p class="sub">Classificar na aba <code>classificacao</code> '
-            "da planilha — esses valores ficam fora dos percentuais por camada.</p>"
-        )
-    else:
-        h.append("<p>Nenhum. Todos os ativos estão classificados por camada.</p>")
-    return "".join(h)
+    extra = " Queda no patrimônio de Deusa não tem causa apurável: resgate e mercado se confundem." if serie == "deusa" else ""
+    return f"<h3>Desempenho, {mes_extenso(des['mes'])}</h3>" + grade_2(
+        tabela(["", "No mês", "12 meses"], lin),
+        "<p class='sub'>A variação do patrimônio inclui aportes, resgates e entradas como herança: diz se o "
+        f"patrimônio cresceu mais que a inflação pessoal, não se a carteira bateu o CDI.{extra}</p>",
+    )
+
+
+SITUACAO_ACOMP = {
+    "seguida": "tag-ok",
+    "parcial": "tag-atencao",
+    "não seguida": "tag-critico",
+    "nao seguida": "tag-critico",
+    "sem dado": "",
+}
+
+
+def acompanhamento_html(itens, mes_anterior):
+    if not itens:
+        return ""
+    lin = [
+        [
+            esc(i.get("recomendacao", "")),
+            f'<span class="tag {SITUACAO_ACOMP.get(i.get("situacao", "").lower(), "")}">'
+            f'{esc(i.get("situacao", ""))}</span>',
+            esc(i.get("evidencia", "")),
+        ]
+        for i in itens
+    ]
+    return (
+        f"<h3>Recomendações de {mes_extenso(mes_anterior)}</h3>"
+        + tabela(["Recomendação", "Situação", "Evidência"], lin, None, ["l", "l", "l"])
+        + "<h3>Para o próximo mês</h3>"
+    )
+
+
+def mes_anterior(mes):
+    a, m = int(mes[:4]), int(mes[5:7])
+    a, m = (a - 1, 12) if m == 1 else (a, m - 1)
+    return f"{a}-{m:02d}-01"
+
+
+def linha_reserva_casal(d, pessoa):
+    """A reserva é do casal; o excedente sobre o teto vira aporte, e o titular precisa ver isso
+    ao lado das camadas dele."""
+    if pessoa not in COM_PATRIMONIO:
+        return ""
+    res = reserva_casal(d)
+    if not (res["excedente"] or res["falta"]):
+        return ""
+    return (
+        f"<p class='sub'>Reserva do casal {brl(res['total'])} ({NOME[pessoa]}: "
+        f"{brl(res['por_pessoa'][pessoa])}); mínimo {brl(res['minimo'])}, teto {brl(res['teto'])}: "
+        f"{res['situacao']}.</p>"
+    )
 
 
 def montar_investimentos(d, n, pessoa):
-    """Relatório de investimentos de um titular. A seção de patrimônio só
-    existe para quem tem série em staging_google_sheets.stg_patrimonio, então a numeração é
-    sequencial e não literal: o relatório de Deusa não pode sair com buraco
-    de seção."""
+    """Relatório de investimentos de um titular. O gráfico de patrimônio só
+    existe para quem tem série em staging_google_sheets.stg_patrimonio."""
     meta = d["meta"]
     tem_patrimonio = pessoa in COM_PATRIMONIO
     camadas = [c for c in d["carteira_camada"] if c["pessoa"] == pessoa]
@@ -684,149 +747,86 @@ def montar_investimentos(d, n, pessoa):
     sv = [sum(r["vlr_liquido_brl"] for r in div if r["mes_base"] == m) for m in mdiv]
     tot12 = sum(sv)
     reserva = next((c["valor"] for c in camadas if c["camada"] == "RESERVA"), 0)
+    pol = politica_vigente(meta["gerado_em"])
+    cal = pol["calibragem"].get(pessoa)
+    moedas = {m["moeda_ativo"]: float(m["pct_da_carteira"]) for m in d["carteira_moeda"] if m["pessoa"] == pessoa}
+    # Dólar em renda fixa protege; em renda variável é risco. O KPI mostra os dois.
+    pos = [x for x in d["posicoes"] if x["pessoa"] == pessoa]
+    usd_rv = sum(x["vlr_atualizado_brl"] for x in pos if x["moeda_ativo"] == "USD" and x["classe_ativo"] == "RENDA VARIAVEL")
+    usd = sum(x["vlr_atualizado_brl"] for x in pos if x["moeda_ativo"] == "USD")
 
     pat = d["patrimonio"] if tem_patrimonio else []
     col_pat = f"patrimonio_liquido_{pessoa}"
     upat = pat[-1][col_pat] if pat else None
     var_pat = variacao(pat[-1][col_pat], pat[-2][col_pat]) if len(pat) > 1 else None
 
-    numero = 0
-
-    def prox():
-        nonlocal numero
-        numero += 1
-        return numero
-
-    partes = [
-        cabecalho(
-            "Relatório de investimentos",
-            mes_extenso(meta["mes_carteira"]).capitalize(),
-            meta,
-            NOME[pessoa],
-            escopo=pessoa,
-        )
-    ]
-
-    # 1 — sumário. Quatro KPIs sempre: quem tem patrimônio abre com ele, quem
-    # não tem abre com a reserva, para não deixar buraco no grid.
+    # Quatro KPIs sempre: quem não tem patrimônio abre com a reserva, para não
+    # deixar buraco no grid.
     primeiro_kpi = (
         kpi("Patrimônio líquido", brl(upat), f"{sinal(var_pat)} vs. mês anterior", classe_delta(var_pat))
         if tem_patrimonio
         else kpi("Reserva", brl(reserva), f"{reserva / total * 100:.0f}% da carteira" if total else "")
     )
-    nota_sem_orcamento = (
-        '<p class="sub">Este relatório cobre exclusivamente investimentos. '
-        "Não há lançamentos de receita e despesa registrados para "
-        f"{NOME[pessoa]} no data warehouse, portanto não há apuração de "
-        "orçamento.</p>"
-        if not tem_patrimonio
-        else '<p class="sub">Este relatório cobre exclusivamente investimentos. '
-        "Receita, despesa e a cobertura da reserva de emergência são lançadas "
-        "em conjunto para o casal e saem no relatório de orçamento.</p>"
-    )
-    partes.append(
+    partes = [
+        cabecalho(f"Investimentos de {NOME[pessoa]}", mes_extenso(meta["mes_carteira"]).capitalize(), meta, pessoa),
+        '<div class="kpis">'
+        + primeiro_kpi
+        + kpi("Carteira total", brl(total))
+        + kpi(
+            "Renda passiva 12m",
+            brl(tot12),
+            f"yield {pct(tot12 / total * 100 if total else 0)}",
+        )
+        + kpi(
+            "Exposição em dólar",
+            pct(moedas.get("USD", 0)),
+            f"RV {pct(usd_rv / total * 100 if total else 0)} · RF e caixa "
+            f"{pct((usd - usd_rv) / total * 100 if total else 0)}",
+        )
+        + "</div>"
+        + (n.get("sumario") or ""),
+        secao(None, "Alocação por camada",
+              "Papel de cada parte da carteira" + (" contra o alvo da política" if cal else ""),
+              secao_camadas(d, pessoa, cal) + linha_reserva_casal(d, pessoa)),
         secao(
-            prox(),
-            "Sumário executivo",
-            f"Posição da carteira em {mes_extenso(meta['mes_carteira'])}",
-            '<div class="kpis">'
-            + primeiro_kpi
-            + kpi("Carteira total", brl(total))
-            + kpi("Renda passiva 12m", brl(tot12), f"média {brl(tot12 / max(len(mdiv), 1))}/mês")
-            + kpi("Yield da carteira", pct(tot12 / total * 100 if total else 0), "12 meses")
-            + "</div>"
-            + (n.get("sumario") or "")
-            + nota_sem_orcamento,
-        )
-    )
-
-    # 2 — patrimônio (só quem tem série)
-    if tem_patrimonio:
-        partes.append(
-            secao(
-                prox(),
-                "Patrimônio",
-                f"Patrimônio líquido de {NOME[pessoa]} · últimos 13 meses",
-                f"<figure>{barras_empilhadas([r['mes_base'] for r in pat], [(NOME[pessoa], SERIES[0], [r[col_pat] for r in pat])])}"
-                f"<figcaption>Patrimônio líquido do titular, em reais.</figcaption></figure>"
-                + tabela(
-                    ["Mês", "Patrimônio líquido", "Var. mês", "% do casal"],
-                    [
-                        [
-                            mes_curto(r["mes_base"]),
-                            brl(r[col_pat]),
-                            f'<span class="{classe_delta(variacao(r[col_pat], pat[i - 1][col_pat]) if i else None)}">'
-                            f"{sinal(variacao(r[col_pat], pat[i - 1][col_pat]) if i else None)}</span>",
-                            pct(
-                                r[col_pat] / r["total_patrimonio_liquido"] * 100 if r["total_patrimonio_liquido"] else 0
-                            ),
-                        ]
-                        for i, r in enumerate(pat)
-                    ],
-                ),
-            )
-        )
-
-    # 3 — carteira
-    partes.append(
-        secao(
-            prox(),
-            "Carteira",
-            f"Posição em {mes_extenso(meta['mes_carteira'])}",
-            secao_carteira(d, pessoa) + bloco("Leitura da carteira", n.get("diagnostico_carteira", "")),
-            quebra=True,
-        )
-    )
-
-    # 4 — renda passiva. Carteira sem provento rende gráfico e tabela de zeros —
-    # uma frase diz a mesma coisa e não ocupa página.
-    if tot12:
-        corpo_renda = (
-            f"<figure>{barras_empilhadas(mdiv, [('Proventos', SERIES[2], sv)], altura=180)}"
-            f"<figcaption>Proventos líquidos recebidos por mês, em reais."
-            f"</figcaption></figure>"
-            + tabela(
-                ["Mês", "Recebido"],
-                [[mes_curto(m), brl(sv[i])] for i, m in enumerate(mdiv)],
-                ["Total 12 meses", brl(tot12)],
-            )
-        )
-    else:
-        corpo_renda = (
-            "<p>Nenhum provento recebido nos últimos 12 meses. A "
-            "carteira não tem posição pagadora de renda — o que é "
-            "coerente com uma alocação-alvo sem camada de renda, mas "
-            "vira lacuna se o alvo mudar.</p>"
-        )
-    partes.append(
-        secao(prox(), "Renda passiva", "Dividendos e proventos líquidos · últimos 12 meses", corpo_renda, quebra=True)
-    )
-
-    # 5 — riscos
-    partes.append(
-        secao(
-            prox(),
-            "Riscos",
-            "FGC, concentração e vencimentos",
-            bloco_riscos(d, [pessoa]) + bloco("", n.get("diagnostico_riscos", "")),
-        )
-    )
-
-    # 6 — recomendações
-    partes.append(
-        secao(
-            prox(),
+            None,
             "Recomendações",
-            f"Destino sugerido para o aporte · aporte-alvo {brl(APORTE_ALVO[pessoa])}/mês",
-            recomendacoes_html(n.get("recomendacoes", [])),
-            quebra=True,
-        )
+            "Destino do aporte"
+            + (
+                f"; aporte-alvo {brl(alvo)} ({META_POUPANCA_PCT:g}% da receita de {mes_extenso(meta['mes_ref'])})"
+                if (alvo := aporte_alvo(d, pessoa))
+                else ""
+            ),
+            acompanhamento_html(n.get("acompanhamento"), mes_anterior(meta["mes_ref"]))
+            + recomendacoes_html(n.get("recomendacoes", [])),
+        ),
+        secao(None, "Perfil de referência", "Classe de ativo contra a carteira-modelo do perfil",
+              secao_perfil(d, pessoa, pol["perfis"].get(pessoa))),
+        secao(None, "Riscos", "", secao_riscos(d, pessoa)),
+    ]
+
+    leitura = (n.get("diagnostico_carteira") or "") + (n.get("diagnostico_riscos") or "")
+    if leitura:
+        partes.append(secao(None, "Leitura da carteira", "", bloco("", leitura)))
+
+    # Lado a lado, 13 rótulos de barra em meia largura se sobrepõem; os dois
+    # gráficos vão empilhados em largura cheia.
+    graf_pat = (
+        "<h3>Patrimônio líquido, 13 meses</h3>"
+        f"<figure>{barras_empilhadas([r['mes_base'] for r in pat], [(NOME[pessoa], SERIES[0], [r[col_pat] for r in pat])], altura=110)}</figure>"
+        if pat
+        else ""
     )
+    # Carteira sem provento rende gráfico de zeros; uma frase diz o mesmo.
+    graf_renda = (
+        "<h3>Proventos líquidos por mês, 12 meses</h3>"
+        f"<figure>{barras_empilhadas(mdiv, [('Proventos', SERIES[0], sv)], altura=110)}</figure>"
+        if tot12
+        else "<h3>Proventos</h3><p>Nenhum provento nos últimos 12 meses.</p>"
+    )
+    partes.append(secao(None, "Evolução", "", graf_pat + graf_renda + desempenho_html(d, pessoa, "Patrimônio líquido")))
 
-    # 7 — glossário
-    partes.append(secao(prox(), "Glossário", "O que significa cada camada de investimento", glossario(pessoa)))
-
-    partes.append(rodape(meta, n.get("premissas", []), escopo=pessoa))
+    partes.append(notas(meta, n.get("premissas", []), pessoa))
     return "\n".join(partes)
 
 
@@ -848,6 +848,10 @@ def main():
     n = json.loads(Path(a.narrativa).read_text(encoding="utf-8"))
     html = montar_orcamento(d, n) if a.escopo == "orcamento" else montar_investimentos(d, n, a.escopo)
     escrever(html, a.saida, Path(__file__).resolve().parent / "html_para_pdf.sh")
+    # A narrativa entregue vira a base do acompanhamento no relatório do mês seguinte.
+    if a.saida.endswith(".pdf"):
+        destino = Path(a.saida).parent / f"narrativa_{a.escopo}.json"
+        destino.write_text(json.dumps(n, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":

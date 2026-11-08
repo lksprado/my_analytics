@@ -349,16 +349,90 @@ ol.recomendacoes .titulo-rec {
     color: var(--text-muted);
 }
 
-/* ------------------------------------------------- ritmo do meio de mês --- */
-/* Envoltória mín–máx dos meses fechados. Referência, não entidade: cinza de
-   régua, sem cor de série — cor categórica aqui faria o leitor ler a faixa
-   como mais uma carteira. */
-svg .faixa-ref {
-    fill: var(--rule);
-    fill-opacity: 0.55;
-    stroke: none;
-}
-
 /* Chip de cor e o rótulo que ele identifica nunca se separam: numa coluna
    estreita o chip ficava sozinho numa linha e a palavra caía para a de baixo. */
 .rotulo-chip { white-space: nowrap; }
+
+/* ------------------------------------------------- fechamento compacto --- */
+/* Só o fechamento envolve o corpo em `.compacto`: o alvo é até 3 páginas por
+   PDF, e o meio de mês segue com o layout acima sem nenhuma alteração. */
+.compacto {
+    --font-ui: "Lato", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.45;
+}
+.compacto section { margin-bottom: 6mm; }
+.compacto h2 { font-size: 12pt; padding-bottom: 1.5mm; }
+.compacto h2 .num { display: none; }
+.compacto h3 { font-size: 9.5pt; margin: 4mm 0 1.5mm; }
+.compacto .sub { margin: 1mm 0 2.5mm; }
+.compacto .kpis { margin: 3mm 0 4mm; gap: 2.5mm; }
+.compacto .kpi { padding: 2.5mm 3mm; }
+.compacto .kpi .rotulo { text-transform: none; letter-spacing: 0; font-size: 8pt; margin-bottom: 1mm; }
+.compacto .kpi .valor { font-size: 13pt; }
+.compacto table { font-size: 8pt; margin: 2mm 0; }
+.compacto thead th { text-transform: none; letter-spacing: 0; font-size: 7.5pt; padding: 1.4mm 2mm; }
+.compacto tbody td { padding: 1.1mm 2mm; }
+.compacto tfoot td { padding: 1.4mm 2mm; }
+.compacto figure { margin: 2mm 0; }
+.compacto .destaque-bloco { padding: 2.5mm 3.5mm; margin: 3mm 0; page-break-inside: auto; }
+.compacto .destaque-bloco p { page-break-inside: avoid; }
+.compacto ol.recomendacoes > li { margin-bottom: 2.5mm; }
+.compacto ol.recomendacoes .titulo-rec { font-size: 9pt; margin-bottom: .5mm; }
+
+/* Faixa de título no lugar da capa de página inteira. */
+.cabecalho-doc {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 6mm;
+    border-bottom: 2px solid var(--text-primary);
+    padding-bottom: 2.5mm;
+    margin-bottom: 1mm;
+}
+.cabecalho-doc h1 {
+    font-size: 19pt;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    margin: 0;
+}
+.cabecalho-doc .periodo { font-family: var(--font-ui); font-size: 10.5pt; color: var(--text-secondary); margin-top: 1mm; }
+.cabecalho-doc .meta-doc {
+    font-family: var(--font-ui);
+    font-size: 7.5pt;
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.4;
+}
+.aviso-datas { font-family: var(--font-ui); font-size: 8pt; color: var(--text-secondary); margin: 1.5mm 0 0; }
+
+/* Duas colunas para pares gráfico | gráfico ou tabela | tabela. */
+.grade-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6mm;
+    page-break-inside: avoid;
+}
+.grade-2 > div { min-width: 0; }
+.grade-2 h3:first-child { margin-top: 1mm; }
+
+.notas {
+    border-top: 1px solid var(--rule);
+    padding-top: 2mm;
+    margin-top: 4mm;
+    font-family: var(--font-ui);
+    font-size: 7pt;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+.notas p { margin: 0 0 1mm; }
+.notas ul { margin: 0 0 1mm; padding-left: 4mm; }
+.compacto .recuo { padding-left: 4mm; color: var(--text-secondary); }
+.compacto .sub-rotulo { font-weight: 400; color: var(--text-secondary); }
+/* O subtítulo prende o título ao conteúdo: sem isso o h2 fica sozinho no pé da página. */
+.compacto .sub, .compacto h3 { break-after: avoid; page-break-after: avoid; }
+.compacto h2 { break-after: avoid; }
+/* Tabelas do fechamento têm no máximo uma dúzia de linhas: partir uma delas
+   deixa uma linha órfã e repete o rodapé de total na página seguinte. */
+.compacto table { break-inside: avoid; page-break-inside: avoid; }

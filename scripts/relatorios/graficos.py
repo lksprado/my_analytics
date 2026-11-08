@@ -50,8 +50,11 @@ def barras_empilhadas(meses, series, largura=640, altura=210):
             acum += v
         p.append(f'<text class="eixo" x="{cx:.1f}" y="{altura-13}" '
                  f'text-anchor="middle">{mes_curto(mes)}</text>')
+        if not totais[i]:
+            continue
+        rot = f"{totais[i]/1000:.1f}k" if vmax >= 10000 else f"{totais[i]:.0f}"
         p.append(f'<text class="rotulo-direto" x="{cx:.1f}" y="{y_de(acum)-3:.1f}" '
-                 f'text-anchor="middle">{totais[i]/1000:.1f}k</text>')
+                 f'text-anchor="middle">{rot}</text>')
     p.append(f'<line class="linha-base" x1="{m["e"]}" y1="{y_de(0):.1f}" '
              f'x2="{largura-m["d"]}" y2="{y_de(0):.1f}"/>')
     p.append("</svg>")
@@ -161,102 +164,3 @@ def legenda(itens):
                  for r, c in itens)
     return f'<div class="legenda">{sp}</div>'
 
-
-def linhas_dia(dias, series, faixa=None, largura=640, altura=210):
-    """Acumulado ao longo dos dias do mês.
-
-    Diferente de `linhas()` em três pontos que importam:
-
-    - o eixo x é dia do ciclo de fatura (1..N), não mês;
-    - uma série pode ser **mais curta** que o eixo. O mês corrente para no dia
-      do corte, e a linha para junto. Completar com zero até o fim do mês faria
-      o gasto parecer despencar;
-    - `faixa` desenha a envoltória mín–máx dos meses fechados como referência,
-      não como entidade: preenchimento neutro atrás de tudo, sem cor de série.
-      Cor categórica aqui diria ao leitor que a faixa é mais uma carteira.
-
-    series: lista de (rotulo, cor, [valores], tracejada)
-    faixa:  (minimos, maximos) — mesmo comprimento de `dias`
-    """
-    m = {"e": 40, "d": 92, "t": 12, "b": 26}
-    pw, ph = largura - m["e"] - m["d"], altura - m["t"] - m["b"]
-    todos = [v for _, _, vs, *_ in series for v in vs if v is not None]
-    if faixa:
-        todos += [v for v in faixa[1] if v is not None]
-    vmax = (max(todos) if todos else 1) * 1.10 or 1
-    def y_de(v): return m["t"] + ph - (v / vmax) * ph
-    def x_de(i): return m["e"] + (pw * i / max(len(dias) - 1, 1))
-
-    p = [f'<svg viewBox="0 0 {largura} {altura}" role="img">']
-
-    # envoltória primeiro, para ficar atrás das linhas
-    if faixa:
-        lo, hi = faixa
-        ida = " ".join(f'{"M" if i == 0 else "L"}{x_de(i):.1f},{y_de(v):.1f}'
-                       for i, v in enumerate(hi))
-        volta = " ".join(f'L{x_de(i):.1f},{y_de(v):.1f}'
-                         for i in range(len(lo) - 1, -1, -1) for v in [lo[i]])
-        p.append(f'<path class="faixa-ref" d="{ida} {volta} Z"/>')
-
-    p.append(_eixo_y(m["e"], largura - m["d"], y_de, vmax))
-
-    for s in series:
-        rotulo, cor, vals, tracejada = (list(s) + [False])[:4]
-        d = " ".join(f'{"M" if i == 0 else "L"}{x_de(i):.1f},{y_de(v):.1f}'
-                     for i, v in enumerate(vals))
-        traco = ' stroke-dasharray="5 3"' if tracejada else ""
-        p.append(f'<path class="serie-linha" d="{d}" stroke="{cor}"{traco}/>')
-        xf, yf = x_de(len(vals) - 1), y_de(vals[-1])
-        p.append(f'<circle cx="{xf:.1f}" cy="{yf:.1f}" r="3.2" fill="{cor}" '
-                 f'stroke="#ffffff" stroke-width="2"/>')
-        p.append(f'<text class="rotulo-direto" x="{xf+7:.1f}" y="{yf+3:.1f}" '
-                 f'fill="{cor}">{esc(rotulo)}</text>')
-
-    # marcas de dia: só as que cabem sem colidir
-    for i, dia in enumerate(dias):
-        if dia % 5 and dia != 1 and i != len(dias) - 1:
-            continue
-        p.append(f'<text class="eixo" x="{x_de(i):.1f}" y="{altura-13}" '
-                 f'text-anchor="middle">{dia}</text>')
-    p.append(f'<line class="linha-base" x1="{m["e"]}" y1="{y_de(0):.1f}" '
-             f'x2="{largura-m["d"]}" y2="{y_de(0):.1f}"/>')
-    p.append("</svg>")
-    return "".join(p)
-
-
-def barras_desvio(itens, largura=640, altura=None):
-    """Desvio da projeção contra a mediana, por categoria — barra divergente.
-
-    Zero no meio, barra para a direita quando a projeção estoura a mediana e
-    para a esquerda quando fica abaixo. Duas cores de polaridade (status), não
-    de identidade: aqui a cor significa estado, e vem acompanhada de rótulo com
-    o valor, nunca sozinha.
-
-    itens: (rotulo, valor_pp, texto_direito)
-    """
-    lh = 26
-    altura = altura or (len(itens) * lh + 22)
-    m = {"e": 96, "d": 108}
-    pw = largura - m["e"] - m["d"]
-    escala = max([abs(v) for _, v, _ in itens] + [10]) * 1.15
-    meio = m["e"] + pw / 2
-
-    p = [f'<svg viewBox="0 0 {largura} {altura}" role="img">']
-    for i, (rotulo, valor, txt) in enumerate(itens):
-        y = 8 + i * lh
-        w = abs(valor) / escala * (pw / 2)
-        x = meio if valor >= 0 else meio - w
-        cor = "#d03b3b" if valor > 0 else "#0ca30c"
-        p.append(f'<text class="eixo" x="{m["e"]-8}" y="{y+13}" text-anchor="end" '
-                 f'style="font-size:8.5px;font-weight:600">{esc(rotulo)}</text>')
-        p.append(f'<rect x="{x:.1f}" y="{y+3}" width="{max(w,1):.1f}" height="13" '
-                 f'fill="{cor}" rx="3"/>')
-        p.append(f'<text class="rotulo-direto" x="{largura-m["d"]+6}" y="{y+13}">'
-                 f'{esc(txt)}</text>')
-    p.append(f'<line x1="{meio:.1f}" y1="4" x2="{meio:.1f}" y2="{altura-16}" '
-             f'stroke="#0b0b0b" stroke-width="1.2"/>')
-    p.append(f'<text class="eixo" x="{m["e"]}" y="{altura-3}" '
-             f'style="font-size:7.5px">Direita: projeção acima da mediana de 6 meses '
-             f'· Esquerda: abaixo</text>')
-    p.append("</svg>")
-    return "".join(p)

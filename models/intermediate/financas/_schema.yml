@@ -44,7 +44,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE ou SEED). {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE ou SEED)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -90,7 +90,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -129,7 +129,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -156,7 +156,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -183,7 +183,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE). {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (RELATORIO B3 ou RELATORIO AVENUE)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -222,7 +222,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: "Procedência da linha (SEED). {{ doc('fonte_dado') }}"
+        description: "Procedência da linha (SEED)."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -341,9 +341,7 @@ models:
       - name: mes_fatura
         description: "Primeiro dia do mês da fatura."
       - name: mes_debito
-        description: >
-          Primeiro dia do mês de competência.
-          {{ doc('ciclo_fatura') }}
+        description: "Primeiro dia do mês de competência."
       - name: pessoa
         description: "Titular (lucas ou jessica)."
       - name: data_debito
@@ -355,21 +353,21 @@ models:
       - name: dia_real
         description: "Dia real do calendário."
       - name: mercado
-        description: '{{ doc("categoria_mercado") }}'
+        description: "Despesa em mercado (abastecimento da casa), em reais."
       - name: diversos
-        description: '{{ doc("categoria_diversos") }}'
+        description: "Despesa em diversos (categoria residual), em reais."
       - name: assinaturas
-        description: '{{ doc("categoria_assinaturas") }}'
+        description: "Despesa em assinaturas (serviços recorrentes), em reais."
       - name: role
-        description: '{{ doc("categoria_role") }}'
+        description: "Despesa em rolê (lazer e consumo fora de casa), em reais."
       - name: transporte
-        description: '{{ doc("categoria_transporte") }}'
+        description: "Despesa em transporte (deslocamento), em reais."
       - name: apartamento
-        description: '{{ doc("categoria_apartamento") }}'
+        description: "Despesa em apartamento (moradia e manutenção), em reais."
       - name: saude
-        description: '{{ doc("categoria_saude") }}'
+        description: "Despesa em saúde (física e mental), em reais."
       - name: educacao
-        description: '{{ doc("categoria_educacao") }}'
+        description: "Despesa em educação (formação e desenvolvimento), em reais."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -381,9 +379,7 @@ models:
       - name: mes_fatura
         description: "Primeiro dia do mês da fatura."
       - name: mes_debito
-        description: >
-          Primeiro dia do mês de competência.
-          {{ doc('ciclo_fatura') }}
+        description: "Primeiro dia do mês de competência."
       - name: pessoa
         description: "Titular (lucas ou jessica)."
       - name: salario
@@ -395,23 +391,23 @@ models:
       - name: receita_total
         description: "Receita total do mês, em reais."
       - name: ajuste_realizado
-        description: '{{ doc("ajuste") }}'
+        description: "Compensação mensal de Jéssica a Lucas pelas despesas conjuntas, em reais."
       - name: mercado
-        description: '{{ doc("categoria_mercado") }}'
+        description: "Despesa em mercado (abastecimento da casa), em reais."
       - name: diversos
-        description: '{{ doc("categoria_diversos") }}'
+        description: "Despesa em diversos (categoria residual), em reais."
       - name: assinaturas
-        description: '{{ doc("categoria_assinaturas") }}'
+        description: "Despesa em assinaturas (serviços recorrentes), em reais."
       - name: role
-        description: '{{ doc("categoria_role") }}'
+        description: "Despesa em rolê (lazer e consumo fora de casa), em reais."
       - name: transporte
-        description: '{{ doc("categoria_transporte") }}'
+        description: "Despesa em transporte (deslocamento), em reais."
       - name: apartamento
-        description: '{{ doc("categoria_apartamento") }}'
+        description: "Despesa em apartamento (moradia e manutenção), em reais."
       - name: saude
-        description: '{{ doc("categoria_saude") }}'
+        description: "Despesa em saúde (física e mental), em reais."
       - name: educacao
-        description: '{{ doc("categoria_educacao") }}'
+        description: "Despesa em educação (formação e desenvolvimento), em reais."
       - name: despesas_total
         description: "Despesa total do mês, em reais."
       - name: resultado

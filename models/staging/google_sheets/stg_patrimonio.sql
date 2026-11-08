@@ -35,38 +35,39 @@ renamed AS (
         REGEXP_REPLACE(nubank_investimentos_j, '[^0-9]', '', 'g')::INT AS nubank_investimentos_jessica,
         REGEXP_REPLACE(avenue_j, '[^0-9]', '', 'g')::INT               AS avenue_jessica,
         REGEXP_REPLACE(carro, '[^0-9]', '', 'g')::INT                  AS vlr_carro,
+        {#- O menos fica na regex: mês de deflação chega negativo da planilha. -#}
         (REPLACE(
-            REPLACE(REGEXP_REPLACE(minha_inflacao, '[^0-9,.]', '', 'g'), '.', ''),
+            REPLACE(REGEXP_REPLACE(minha_inflacao, '[^0-9,.-]', '', 'g'), '.', ''),
             ',',
             '.'
-        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS minha_inflacao,
+        )::NUMERIC / 100)::NUMERIC(18, 6)                              AS minha_inflacao,
         (REPLACE(
-            REPLACE(REGEXP_REPLACE(ipca, '[^0-9,.]', '', 'g'), '.', ''),
+            REPLACE(REGEXP_REPLACE(ipca, '[^0-9,.-]', '', 'g'), '.', ''),
             ',',
             '.'
-        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS ipca,
+        )::NUMERIC / 100)::NUMERIC(18, 6)                              AS ipca,
         (REPLACE(
-            REPLACE(REGEXP_REPLACE(igpm, '[^0-9,.]', '', 'g'), '.', ''),
+            REPLACE(REGEXP_REPLACE(igpm, '[^0-9,.-]', '', 'g'), '.', ''),
             ',',
             '.'
-        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS igpm,
+        )::NUMERIC / 100)::NUMERIC(18, 6)                              AS igpm,
         (REPLACE(
-            REPLACE(REGEXP_REPLACE(selic, '[^0-9,.]', '', 'g'), '.', ''),
+            REPLACE(REGEXP_REPLACE(selic, '[^0-9,.-]', '', 'g'), '.', ''),
             ',',
             '.'
-        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS selic,
+        )::NUMERIC / 100)::NUMERIC(18, 6)                              AS selic,
 
         (REPLACE(
-            REPLACE(REGEXP_REPLACE(cdi, '[^0-9,.]', '', 'g'), '.', ''),
+            REPLACE(REGEXP_REPLACE(cdi, '[^0-9,.-]', '', 'g'), '.', ''),
             ',',
             '.'
-        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS cdi,
-        REPLACE("minha_inflacao_acum.", ',', '.')::NUMERIC(18, 3)      AS minha_inflacao_acum,
+        )::NUMERIC / 100)::NUMERIC(18, 6)                              AS cdi,
+        REPLACE("minha_inflacao_acum.", ',', '.')::NUMERIC(18, 6)      AS minha_inflacao_acum,
 
-        REPLACE("ipca_acum.", ',', '.')::NUMERIC(18, 3)                AS ipca_acum,
-        REPLACE("igpm_acum.", ',', '.')::NUMERIC(18, 3)                AS igpm_acum,
-        REPLACE("selic_acum.", ',', '.')::NUMERIC(18, 3)               AS selic_acum,
-        REPLACE("cdi_acum.", ',', '.')::NUMERIC(18, 3)                 AS cdi_acum,
+        REPLACE("ipca_acum.", ',', '.')::NUMERIC(18, 6)                AS ipca_acum,
+        REPLACE("igpm_acum.", ',', '.')::NUMERIC(18, 6)                AS igpm_acum,
+        REPLACE("selic_acum.", ',', '.')::NUMERIC(18, 6)               AS selic_acum,
+        REPLACE("cdi_acum.", ',', '.')::NUMERIC(18, 6)                 AS cdi_acum,
         TO_DATE(
             CASE
                 WHEN mes LIKE 'jan.%' THEN '01/' || RIGHT(mes, 2)
