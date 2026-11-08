@@ -1,1 +1,0 @@
-../../relatorio-financas/scripts/html_para_pdf.sh
