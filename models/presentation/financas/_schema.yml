@@ -37,7 +37,18 @@ models:
       - name: codigo_ativo
         description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código sintético da conta)."
       - name: camada
-        description: '{{ doc("camada_investimento") }}'
+        description: "Camada de alocação do ativo (RESERVA, RESERVA ESTRATEGICA, CRESCIMENTO, RENDA, NAO CLASSIFICADO)."
+      - name: veiculo
+        description: "Veículo do ativo (ETF, FII ou o tipo_ativo quando não é fundo listado)."
+      - name: lastro
+        description: "Onde o fundo ou ETF investe (ex.: TITULOS PUBLICOS IPCA+, ACOES EUA (S&P 500)); nulo fora deles."
+      - name: classe_referencia
+        description: "Classe do ativo na taxonomia do perfil de referência (POS FIXADO, INFLACAO, PREFIXADO, ACOES BRASIL, FIIS, INTERNACIONAL RF, INTERNACIONAL RV, ALTERNATIVOS)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['POS FIXADO', 'INFLACAO', 'PREFIXADO', 'MULTIMERCADO', 'ACOES BRASIL', 'FIIS', 'INTERNACIONAL RF', 'INTERNACIONAL RV', 'ALTERNATIVOS']
       - name: ativo
         description: "Nome do ativo ('SALDO EM CONTA' nas disponibilidades)."
       - name: indexador
@@ -53,7 +64,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: '{{ doc("fonte_dado") }}'
+        description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED, GOOGLE SHEETS)."
         data_tests:
           - accepted_values:
               arguments:
@@ -127,7 +138,13 @@ models:
       - name: codigo_ativo
         description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código sintético da conta)."
       - name: camada
-        description: '{{ doc("camada_investimento") }}'
+        description: "Camada de alocação do ativo (RESERVA, RESERVA ESTRATEGICA, CRESCIMENTO, RENDA, NAO CLASSIFICADO)."
+      - name: veiculo
+        description: "Veículo do ativo (ETF, FII ou o tipo_ativo quando não é fundo listado)."
+      - name: lastro
+        description: "Onde o fundo ou ETF investe (ex.: TITULOS PUBLICOS IPCA+, ACOES EUA (S&P 500)); nulo fora deles."
+      - name: classe_referencia
+        description: "Classe do ativo na taxonomia do perfil de referência (POS FIXADO, INFLACAO, PREFIXADO, ACOES BRASIL, FIIS, INTERNACIONAL RF, INTERNACIONAL RV, ALTERNATIVOS)."
       - name: ativo
         description: "Nome do ativo ('SALDO EM CONTA' nas disponibilidades)."
       - name: indexador
@@ -143,7 +160,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: '{{ doc("fonte_dado") }}'
+        description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED, GOOGLE SHEETS)."
       - name: fl_mes_atual
         description: "Indica se a linha é do mês-base mais recente da carteira."
       - name: pessoa
@@ -175,7 +192,13 @@ models:
       - name: codigo_ativo
         description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código sintético da conta)."
       - name: camada
-        description: '{{ doc("camada_investimento") }}'
+        description: "Camada de alocação do ativo (RESERVA, RESERVA ESTRATEGICA, CRESCIMENTO, RENDA, NAO CLASSIFICADO)."
+      - name: veiculo
+        description: "Veículo do ativo (ETF, FII ou o tipo_ativo quando não é fundo listado)."
+      - name: lastro
+        description: "Onde o fundo ou ETF investe (ex.: TITULOS PUBLICOS IPCA+, ACOES EUA (S&P 500)); nulo fora deles."
+      - name: classe_referencia
+        description: "Classe do ativo na taxonomia do perfil de referência (POS FIXADO, INFLACAO, PREFIXADO, ACOES BRASIL, FIIS, INTERNACIONAL RF, INTERNACIONAL RV, ALTERNATIVOS)."
       - name: ativo
         description: "Nome do ativo ('SALDO EM CONTA' nas disponibilidades)."
       - name: indexador
@@ -191,7 +214,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: '{{ doc("fonte_dado") }}'
+        description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED, GOOGLE SHEETS)."
       - name: fl_mes_atual
         description: "Indica se a linha é do mês-base mais recente da carteira."
       - name: pessoa
@@ -223,7 +246,13 @@ models:
       - name: codigo_ativo
         description: "Código do ativo na fonte (ticker B3, ISIN do Tesouro, CUSIP da Avenue ou código sintético da conta)."
       - name: camada
-        description: '{{ doc("camada_investimento") }}'
+        description: "Camada de alocação do ativo (RESERVA, RESERVA ESTRATEGICA, CRESCIMENTO, RENDA, NAO CLASSIFICADO)."
+      - name: veiculo
+        description: "Veículo do ativo (ETF, FII ou o tipo_ativo quando não é fundo listado)."
+      - name: lastro
+        description: "Onde o fundo ou ETF investe (ex.: TITULOS PUBLICOS IPCA+, ACOES EUA (S&P 500)); nulo fora deles."
+      - name: classe_referencia
+        description: "Classe do ativo na taxonomia do perfil de referência (POS FIXADO, INFLACAO, PREFIXADO, ACOES BRASIL, FIIS, INTERNACIONAL RF, INTERNACIONAL RV, ALTERNATIVOS)."
       - name: ativo
         description: "Nome do ativo ('SALDO EM CONTA' nas disponibilidades)."
       - name: indexador
@@ -239,7 +268,7 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do ativo (BRL, USD ou BTC)."
       - name: fonte_dado
-        description: '{{ doc("fonte_dado") }}'
+        description: "Procedência da linha (RELATORIO B3, RELATORIO AVENUE, SEED, GOOGLE SHEETS)."
       - name: fl_mes_atual
         description: "Indica se a linha é do mês-base mais recente da carteira."
       - name: pessoa
@@ -354,8 +383,6 @@ models:
         description: "Corretora, banco ou custodiante, com nome padronizado."
       - name: classe_ativo
         description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
-      - name: tipo_ativo
-        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO ou CONTA CORRENTE)."
       - name: codigo_ativo
         description: "Código do ativo na fonte; é o valor a cadastrar na planilha."
       - name: ativo
@@ -598,9 +625,7 @@ models:
       com as fixas pré-agendadas, que não entram em média nem diagnóstico.
     columns:
       - name: mes
-        description: >
-          Primeiro dia do mês de competência.
-          {{ doc('ciclo_fatura') }}
+        description: "Primeiro dia do mês de competência."
       - name: data
         description: "Data do lançamento."
       - name: fl_data_especial
@@ -622,21 +647,21 @@ models:
       - name: ano
         description: "Ano com quatro dígitos."
       - name: total_mercado
-        description: '{{ doc("categoria_mercado") }}'
+        description: "Despesa em mercado (abastecimento da casa), em reais."
       - name: total_diversos
-        description: '{{ doc("categoria_diversos") }}'
+        description: "Despesa em diversos (categoria residual), em reais."
       - name: total_assinaturas
-        description: '{{ doc("categoria_assinaturas") }}'
+        description: "Despesa em assinaturas (serviços recorrentes), em reais."
       - name: total_role
-        description: '{{ doc("categoria_role") }}'
+        description: "Despesa em rolê (lazer e consumo fora de casa), em reais."
       - name: total_transporte
-        description: '{{ doc("categoria_transporte") }}'
+        description: "Despesa em transporte (deslocamento), em reais."
       - name: total_apartamento
-        description: '{{ doc("categoria_apartamento") }}'
+        description: "Despesa em apartamento (moradia e manutenção), em reais."
       - name: total_saude
-        description: '{{ doc("categoria_saude") }}'
+        description: "Despesa em saúde (física e mental), em reais."
       - name: total_educacao
-        description: '{{ doc("categoria_educacao") }}'
+        description: "Despesa em educação (formação e desenvolvimento), em reais."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 
@@ -646,9 +671,7 @@ models:
       de competência. Contém meses futuros com as fixas pré-agendadas, que não entram em média nem diagnóstico.
     columns:
       - name: mes_debito
-        description: >
-          Primeiro dia do mês de competência.
-          {{ doc('ciclo_fatura') }}
+        description: "Primeiro dia do mês de competência."
         data_tests:
           - unique
           - not_null
@@ -663,7 +686,7 @@ models:
       - name: total_receita
         description: "Receita total do mês, em reais."
       - name: ajuste_realizado
-        description: '{{ doc("ajuste") }}'
+        description: "Compensação mensal de Jéssica a Lucas pelas despesas conjuntas, em reais."
       - name: total_despesas
         description: "Despesa total do mês, em reais."
       - name: resultado
@@ -675,21 +698,21 @@ models:
       - name: total_outros
         description: "Outras receitas no mês, em reais."
       - name: total_mercado
-        description: '{{ doc("categoria_mercado") }}'
+        description: "Despesa em mercado (abastecimento da casa), em reais."
       - name: total_diversos
-        description: '{{ doc("categoria_diversos") }}'
+        description: "Despesa em diversos (categoria residual), em reais."
       - name: total_assinaturas
-        description: '{{ doc("categoria_assinaturas") }}'
+        description: "Despesa em assinaturas (serviços recorrentes), em reais."
       - name: total_role
-        description: '{{ doc("categoria_role") }}'
+        description: "Despesa em rolê (lazer e consumo fora de casa), em reais."
       - name: total_transporte
-        description: '{{ doc("categoria_transporte") }}'
+        description: "Despesa em transporte (deslocamento), em reais."
       - name: total_apartamento
-        description: '{{ doc("categoria_apartamento") }}'
+        description: "Despesa em apartamento (moradia e manutenção), em reais."
       - name: total_saude
-        description: '{{ doc("categoria_saude") }}'
+        description: "Despesa em saúde (física e mental), em reais."
       - name: total_educacao
-        description: '{{ doc("categoria_educacao") }}'
+        description: "Despesa em educação (formação e desenvolvimento), em reais."
       - name: model_run_at
         description: "Início do dbt run que materializou o modelo."
 

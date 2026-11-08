@@ -11,11 +11,23 @@
     Brasil e no Nubank, e sem ela a posição duplica.
 
     fonte_dado vem de cada trilha (relatório, seed, planilha), porque depois do
-    UNION ALL a origem não é recuperável. -#}
+    UNION ALL a origem não é recuperável.
+
+    Fundo e ETF chegam todos como tipo FUNDO; veículo, lastro e classe de
+    referência deles vêm de seed_ativos_lastro, e o resto sai da regra. -#}
 
 WITH
 fgc AS (
     SELECT * FROM {{ ref('stg_de_para_instituicoes_fgc') }}
+),
+
+lastro AS (
+    SELECT
+        codigo_ativo,
+        veiculo,
+        lastro,
+        classe_referencia
+    FROM {{ ref('stg_ativos_lastro') }}
 ),
 
 datas AS (
@@ -129,6 +141,21 @@ final AS (
         t1.moeda_ativo,
         t1.fonte_dado,
         COALESCE(t3.camada, 'NAO CLASSIFICADO') AS camada,
+        COALESCE(t5.veiculo, t1.tipo_ativo)     AS veiculo,
+        t5.lastro,
+        CASE
+            WHEN t5.classe_referencia IS NOT NULL         THEN t5.classe_referencia
+            WHEN t1.moeda_ativo = 'BTC'                   THEN 'ALTERNATIVOS'
+            WHEN t1.moeda_ativo <> 'BRL'
+                AND t1.classe_ativo = 'RENDA VARIAVEL'    THEN 'INTERNACIONAL RV'
+            WHEN t1.moeda_ativo <> 'BRL'                  THEN 'INTERNACIONAL RF'
+            WHEN t1.indexador = 'IPCA'                    THEN 'INFLACAO'
+            WHEN t1.indexador = 'PREFIXADO'               THEN 'PREFIXADO'
+            WHEN t1.classe_ativo IN ('RENDA FIXA', 'DISPONIBILIDADE')
+                                                          THEN 'POS FIXADO'
+            WHEN t1.tipo_ativo = 'ACAO'                   THEN 'ACOES BRASIL'
+            WHEN t1.tipo_ativo = 'FUNDO'                  THEN 'FIIS'
+        END                                     AS classe_referencia,
         t1.mes_base = MAX(t1.mes_base) OVER ()  AS fl_mes_atual
     FROM unioned AS t1
     INNER JOIN datas AS t2
@@ -139,6 +166,8 @@ final AS (
         AND t1.instituicao = t3.instituicao
     LEFT JOIN fgc AS t4
         ON t1.emissor = t4.instituicao
+    LEFT JOIN lastro AS t5
+        ON t1.codigo_ativo = t5.codigo_ativo
 )
 
 SELECT

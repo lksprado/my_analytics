@@ -1,4 +1,4 @@
-"""Blocos de HTML compartilhados: KPIs, tabelas, seções e glossário.
+"""Blocos de HTML compartilhados: KPIs, tabelas e seções.
 
 Capa, rodapé e tarja de prontidão **não** moram aqui: cada relatório tem os
 seus, porque o texto de procedência e os portões são diferentes. O que é
@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from . import politica
 from .formato import esc
 
 CSS = Path(__file__).resolve().parent / "relatorio.css"
@@ -60,7 +59,8 @@ def tabela(cabecalhos, linhas_, rodape=None, alinhamentos=None):
 def secao(num, titulo, sub, conteudo, quebra=False):
     s = f'<div class="sub">{esc(sub)}</div>' if sub else ""
     q = " quebra" if quebra else ""
-    return (f'<section class="{q.strip()}"><h2><span class="num">{num}</span>'
+    n = f'<span class="num">{num}</span>' if num is not None else ""
+    return (f'<section class="{q.strip()}"><h2>{n}'
             f'{esc(titulo)}</h2>{s}{conteudo}</section>')
 
 
@@ -87,26 +87,3 @@ def recomendacoes_html(recs):
     li = "".join(f'<li><span class="titulo-rec">{esc(r["titulo"])}</span>{r["texto"]}</li>'
                  for r in recs)
     return f'<ol class="recomendacoes">{li}</ol>'
-
-
-# ---------------------------------------------------------------- glossário ---
-# Os dois relatórios de gasto (fechamento do orçamento e meio de mês) usam o
-# mesmo verbete de categoria; só o de carteira usa o de camada. Ficam separados
-# para que cada montador componha o glossário do que de fato citou.
-
-def glossario_categorias():
-    itens = ["<h3>Categorias de gasto</h3><dl class='glossario'>"]
-    for c in politica.CATEGORIAS:
-        itens.append(f'<dt>{rotulo_chip(politica.COR_CAT[c], politica.ROTULO_CAT[c])}</dt>'
-                     f'<dd>{politica.TEXTO_CATEGORIA[c]}</dd>')
-    itens.append("</dl>")
-    return "".join(itens)
-
-
-def glossario_camadas():
-    itens = ["<h3>Camadas de investimento</h3><dl class='glossario'>"]
-    for cm in politica.CAMADAS_COM_ALVO + politica.CAMADAS_SEM_ALVO:
-        itens.append(f'<dt>{rotulo_chip(politica.COR_CAMADA[cm], politica.ROTULO_CAMADA[cm])}</dt>'
-                     f'<dd>{politica.TEXTO_CAMADA[cm]}</dd>')
-    itens.append("</dl>")
-    return "".join(itens)

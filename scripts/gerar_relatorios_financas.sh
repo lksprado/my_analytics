@@ -21,7 +21,7 @@
 # e um de orçamento do casal. Os portões de prontidão são dois e independentes —
 # com o orçamento reprovado e a carteira em dia, saem os três de investimento.
 #
-# Saída: 0 com os PDFs esperados gerados (4, ou 3 se só o orçamento reprovou)
+# Saída: 0 com os PDFs liberados pelo portão gerados (até 4)
 #        75 nada pôde ser gerado (não é erro — tente de novo depois)
 #        outros != 0 para falha de verdade
 #
@@ -67,40 +67,38 @@ DADOS="$DESTINO/.dados_$MES_REF.json"
 
 # Portão: mês que ainda não terminou de carregar produz relatório errado com
 # cara de certo. Sair com 75 em vez de 1 para o chamador distinguir "ainda não"
-# de "quebrou". São dois portões — o do orçamento pode reprovar sozinho, e nesse
-# caso os três relatórios de investimento saem normalmente.
+# de "quebrou". O orçamento tem portão próprio e cada titular tem o seu: ativo sem
+# camada de um titular não segura os outros relatórios.
 LEITURA="$(python3 - "$DADOS" <<'PY'
 import json, sys
 p = json.load(open(sys.argv[1]))["meta"]["prontidao"]
-# Fallback para `pronto`: extração antiga, sem as flags por escopo.
-orc = p.get("pronto_orcamento", p.get("pronto", False))
-inv = p.get("pronto_investimentos", p.get("pronto", False))
-print(("1" if orc else "0") + " " + ("1" if inv else "0"))
-for rotulo, chave in (("orçamento", "pendencias_orcamento"),
-                      ("investimentos", "pendencias_investimentos")):
-    for frase in p.get(chave) or []:
-        print(f"  - [{rotulo}] {frase}", file=sys.stderr)
-if not (orc and inv) and p.get("ultimo_mes_fechado"):
+liberados = ["orcamento"] if p.get("pronto_orcamento") else []
+for f in p.get("pendencias_orcamento") or []:
+    print(f"  - [orçamento] {f}", file=sys.stderr)
+for pessoa, t in (p.get("por_titular") or {}).items():
+    if t["pronto"]:
+        liberados.append(pessoa)
+    for f in t["pendencias"]:
+        print(f"  - [{pessoa}] {f}", file=sys.stderr)
+    for f in t.get("avisos") or []:
+        print(f"  - [{pessoa}] aviso, não bloqueia: {f}", file=sys.stderr)
+if not p.get("pronto_orcamento") and p.get("ultimo_mes_fechado"):
     print("  último mês fechado: " + p["ultimo_mes_fechado"][:7], file=sys.stderr)
+print(" ".join(liberados))
 PY
 )"
-read -r PRONTO_ORC PRONTO_INV <<<"$LEITURA"
 
-if [[ "$PRONTO_ORC" != "1" || "$PRONTO_INV" != "1" ]]; then
-    if [[ "$FORCAR" == "1" ]]; then
-        echo "[relatorios] AVISO: $MES_REF não passou no portão; gerando mesmo assim (--forcar)" >&2
-        PRONTO_ORC=1
-        PRONTO_INV=1
-    elif [[ "$PRONTO_ORC" != "1" && "$PRONTO_INV" != "1" ]]; then
-        echo "[relatorios] $MES_REF ainda não fechou — nada gerado (use --forcar para ignorar)" >&2
-        rm -f "$DADOS"
-        exit 75
-    fi
+TODOS="orcamento lucas jessica deusa"
+if [[ "$FORCAR" == "1" && "$LEITURA" != "$TODOS" ]]; then
+    echo "[relatorios] AVISO: $MES_REF não passou no portão; gerando mesmo assim (--forcar)" >&2
+    LEITURA="$TODOS"
+elif [[ -z "$LEITURA" ]]; then
+    echo "[relatorios] $MES_REF ainda não fechou — nada gerado (use --forcar para ignorar)" >&2
+    rm -f "$DADOS"
+    exit 75
 fi
 
-ESCOPOS=()
-if [[ "$PRONTO_ORC" == "1" ]]; then ESCOPOS+=(orcamento); fi
-if [[ "$PRONTO_INV" == "1" ]]; then ESCOPOS+=(lucas jessica deusa); fi
+read -r -a ESCOPOS <<<"$LEITURA"
 ESPERADOS=${#ESCOPOS[@]}
 echo "[relatorios] escopos liberados: ${ESCOPOS[*]} ($ESPERADOS PDFs)"
 
@@ -110,7 +108,7 @@ RELATORIOS_DIR="$DESTINO" timeout "$TIMEOUT_SEG" "$CLAUDE_BIN" \
     --print \
     --permission-mode acceptEdits \
     --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill" \
-    "/relatorio-financas mês de referência $MES_REF-01. Gere exatamente estes escopos, nada além: ${ESCOPOS[*]}. Grave os PDFs em $DESTINO. Modo não interativo: não faça perguntas, use os defaults do glossário para qualquer parâmetro marcado [CONFIRMAR] e registre no rodapé quais premissas foram usadas.$([[ "$FORCAR" == "1" ]] && echo ' O portão de prontidão reprovou este mês e a geração foi forçada: diga no diagnóstico que os valores estão parciais.')"
+    "/relatorio-financas mês de referência $MES_REF-01. Gere exatamente estes escopos, nada além: ${ESCOPOS[*]}. Grave os PDFs em $DESTINO. Modo não interativo: não faça perguntas; onde as fontes não decidirem, siga a seção Como interpretar e registre a leitura como [INTERPRETAÇÃO] em premissas.$([[ "$FORCAR" == "1" ]] && echo ' O portão de prontidão reprovou este mês e a geração foi forçada: diga no diagnóstico que os valores estão parciais.')"
 STATUS=$?
 set -e
 
